@@ -24,11 +24,11 @@ Private planning board on Miro:
 
 ### Setup Phase
 
-- 🚧 Initialise project components
-- 🚧 Create GFX Suite Website
+- ✅ Initialise project components
+- ✅ Create basic GFX Suite Website
 - 🚧 Create Connected Web Images API
 - 🚧 Create GFX Suite Remote Crank
-- 🚧 Setup remote FTP Server for Image Results
+- ✅ Setup remote FTP Server for Image Results
 
 ### GFX Suite Website
 
