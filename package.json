@@ -1,0 +1,21 @@
+{
+  "name": "gfx-suite",
+  "version": "1.0.0",
+  "description": "A set of online tools for providing authenticated access to the Connected Web Images API.",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "lerna bootstrap",
+    "start": "lerna run start",
+    "test": "lerna run test",
+    "lint": "lerna run lint"
+  },
+  "keywords": ["image-sorter", "browser", "http-server", "express", "png", "jpg", "stablediffusion", "filesystem"],
+  "author": "Connected Web",
+  "license": "UNLICENSED",
+  "workspaces": [
+    "website"
+  ],
+  "devDependencies": {
+    "lerna": "^6.6.1"
+  }
+}
