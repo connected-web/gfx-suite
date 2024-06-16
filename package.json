@@ -13,6 +13,8 @@
   "author": "Connected Web",
   "license": "UNLICENSED",
   "workspaces": [
+    "images-api",
+    "remote-crank",
     "website"
   ],
   "devDependencies": {

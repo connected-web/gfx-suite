@@ -1,0 +1,12 @@
+{
+  "name": "gfx-suite-remote-crank",
+  "version": "1.0.0",
+  "description": "GFX Suite Remote Crank",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Connected Web",
+  "license": "UNLICENSED"
+}

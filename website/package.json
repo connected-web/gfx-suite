@@ -1,8 +1,11 @@
 {
   "name": "gfx-suite-website",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "A website for the Connected Web GFX Suite",
   "type": "module",
+  "author": "Connected Web",
+  "license": "UNLICENSED",
   "scripts": {
     "bootstrap": "npm ci",
     "start": "vite",
