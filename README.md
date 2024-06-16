@@ -2,6 +2,24 @@
 
 A set of online tools for providing authenticated access to the Connected Web Images API.
 
+## Key features
+
+- GFX Suite - hosted web interface with user authentication
+- Images API - hosted web API for taking image requests
+- Remote Crank - locally hosted image gen server
+- Image hosting - images uploaded via FTP to be displayed in browser
+
+Utilises [comfyanonymous/ComfyUI](https://github.com/comfyanonymous/ComfyUI) as a local image gen service; using the Remote Crank to receive and process image requests.
+
+The system is designed for cost-effective hosting - providing a public presence online (accessible from anywhere), while taking advantage of local hardware for relatively expensive image processing tasks.
+
+## Proposed Architecture
+
+![image](https://github.com/connected-web/gfx-suite/assets/6341696/1537688d-414f-49f0-85b8-9a51d4442463)
+
+Private planning board on Miro:
+- [https://miro.com/app/board/o9J_khFpBJo=/](https://miro.com/app/board/o9J_khFpBJo=/?moveToWidget=3074457352935427514&cot=14)
+
 ## Roadmap
 
 ### Setup Phase
