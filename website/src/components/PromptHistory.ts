@@ -1,6 +1,6 @@
 export class PromptHistory {
   private history: string[] = []
-  private maxHistoryLength: number
+  private readonly maxHistoryLength: number
 
   constructor (maxHistoryLength: number) {
     this.maxHistoryLength = maxHistoryLength

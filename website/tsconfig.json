@@ -31,11 +31,9 @@
     }
   },
   "include": [
-    "./website/src/**/*.ts",
-    "./website/src/**/*.d.ts",
-    "./website/src/**/*.vue",
-    "./tests/**/*.ts",
-    "./tests/**/*.vue"
+    "./src/**/*.ts",
+    "./src/**/*.d.ts",
+    "./src/**/*.vue"
   ],
   "exclude": [
     "node_modules"
