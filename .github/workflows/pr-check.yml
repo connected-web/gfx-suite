@@ -1,0 +1,65 @@
+name: Check PR
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-cdk-api:
+    name: Test CDK API
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Use Node JS LTS
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+
+    - name: Install npm dependencies
+      run: npm ci
+
+    - name: Run tests
+      run: npm run test
+
+  deploy-cdk-api:
+    name: Deploy API via CDK
+    needs: ['test-cdk-api']
+    uses: ./.github/workflows/deploy-cdk-api.yml
+    secrets: inherit
+    with:
+      account: connected-web-dev
+      
+  post-deployment-tests:
+    name: Post-deployment Tests for API
+    needs: ['deploy-cdk-api']
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node JS LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      # Root project
+      - name: Install npm dependencies (root)
+        run: npm ci
+
+      # CDK API Project
+      - name: Install npm dependencies (api)
+        run: npm install
+        working-directory: ./api
+
+      - name: Run post-deployment tests
+        working-directory: ./api
+        run: npm run test:post-deployment
+        env:
+          POST_DEPLOYMENT_SERVER_DOMAIN: ${{ vars.POST_DEPLOYMENT_SERVER_DOMAIN }}
+          POST_DEPLOYMENT_AUTH_URL: ${{ vars.POST_DEPLOYMENT_AUTH_URL }}
+          POST_DEPLOYMENT_CLIENT_ID: ${{ secrets.POST_DEPLOYMENT_CLIENT_ID }}
+          POST_DEPLOYMENT_CLIENT_SECRET: ${{ secrets.POST_DEPLOYMENT_CLIENT_SECRET }}

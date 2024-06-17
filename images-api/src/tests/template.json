@@ -1,0 +1,998 @@
+{
+  "Resources": {
+    "TemplateAPIPrivateApiRequestAuthorizer92885BF4": {
+      "Type": "AWS::ApiGateway::Authorizer",
+      "Properties": {
+        "Name": "MyTestStackTemplateAPIPrivateApiRequestAuthorizer2642BEBA",
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        },
+        "Type": "REQUEST",
+        "AuthorizerUri": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Fn::Select": [
+                  1,
+                  {
+                    "Fn::Split": [
+                      ":",
+                      {
+                        "Fn::GetAtt": [
+                          "PrivateAPIAuthorizer2400616B",
+                          "Arn"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              ":apigateway:",
+              {
+                "Fn::Select": [
+                  3,
+                  {
+                    "Fn::Split": [
+                      ":",
+                      {
+                        "Fn::GetAtt": [
+                          "PrivateAPIAuthorizer2400616B",
+                          "Arn"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              ":lambda:path/2015-03-31/functions/",
+              {
+                "Fn::GetAtt": [
+                  "PrivateAPIAuthorizer2400616B",
+                  "Arn"
+                ]
+              },
+              "/invocations"
+            ]
+          ]
+        },
+        "IdentitySource": "method.request.header.Authorization"
+      }
+    },
+    "TemplateAPICE2A2E42": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "Description": "Template API - https://github.com/connected-web/template-api",
+        "Name": "Template API"
+      }
+    },
+    "TemplateAPICloudWatchRole973DFC1C": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "apigateway.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+              ]
+            ]
+          }
+        ]
+      },
+      "UpdateReplacePolicy": "Retain",
+      "DeletionPolicy": "Retain"
+    },
+    "TemplateAPIAccountE066AC80": {
+      "Type": "AWS::ApiGateway::Account",
+      "Properties": {
+        "CloudWatchRoleArn": {
+          "Fn::GetAtt": [
+            "TemplateAPICloudWatchRole973DFC1C",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "TemplateAPICE2A2E42"
+      ],
+      "UpdateReplacePolicy": "Retain",
+      "DeletionPolicy": "Retain"
+    },
+    "TemplateAPIDeploymentE23C5A286b0036ccbf3e114c83ccf51254eda874": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        },
+        "Description": "Template API - https://github.com/connected-web/template-api"
+      },
+      "DependsOn": [
+        "BasicObjectModel211727F7",
+        "StatusResponseModel7CA00167",
+        "TemplateAPIopenapiGETEB991BEB",
+        "TemplateAPIopenapiOPTIONSC7675E8D",
+        "TemplateAPIopenapi2F5F2234",
+        "TemplateAPIOPTIONS1705015A",
+        "TemplateAPIstatusGET34D6BD01",
+        "TemplateAPIstatusOPTIONS594662FC",
+        "TemplateAPIstatusFF5FE3C7"
+      ]
+    },
+    "TemplateAPIDeploymentStagev19D1EF21E": {
+      "Type": "AWS::ApiGateway::Stage",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        },
+        "DeploymentId": {
+          "Ref": "TemplateAPIDeploymentE23C5A286b0036ccbf3e114c83ccf51254eda874"
+        },
+        "StageName": "v1"
+      },
+      "DependsOn": [
+        "TemplateAPIAccountE066AC80"
+      ]
+    },
+    "TemplateAPIOPTIONS1705015A": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "OPTIONS",
+        "ResourceId": {
+          "Fn::GetAtt": [
+            "TemplateAPICE2A2E42",
+            "RootResourceId"
+          ]
+        },
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        },
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationResponses": [
+            {
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,content-type'",
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'",
+                "method.response.header.Access-Control-Allow-Credentials": "'true'"
+              },
+              "StatusCode": "204"
+            }
+          ],
+          "RequestTemplates": {
+            "application/json": "{ statusCode: 200 }"
+          },
+          "Type": "MOCK"
+        },
+        "MethodResponses": [
+          {
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Credentials": true
+            },
+            "StatusCode": "204"
+          }
+        ]
+      }
+    },
+    "TemplateAPIstatusFF5FE3C7": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "TemplateAPICE2A2E42",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "status",
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        }
+      }
+    },
+    "TemplateAPIstatusOPTIONS594662FC": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "OPTIONS",
+        "ResourceId": {
+          "Ref": "TemplateAPIstatusFF5FE3C7"
+        },
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        },
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationResponses": [
+            {
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,content-type'",
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'",
+                "method.response.header.Access-Control-Allow-Credentials": "'true'"
+              },
+              "StatusCode": "204"
+            }
+          ],
+          "RequestTemplates": {
+            "application/json": "{ statusCode: 200 }"
+          },
+          "Type": "MOCK"
+        },
+        "MethodResponses": [
+          {
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Credentials": true
+            },
+            "StatusCode": "204"
+          }
+        ]
+      }
+    },
+    "TemplateAPIstatusGETApiPermissionMyTestStackTemplateAPIE828004EGETstatus1911D121": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "TemplateAPIGetStatus25B03D29",
+            "Arn"
+          ]
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:eu-west-2:1234567890:",
+              {
+                "Ref": "TemplateAPICE2A2E42"
+              },
+              "/",
+              {
+                "Ref": "TemplateAPIDeploymentStagev19D1EF21E"
+              },
+              "/GET/status"
+            ]
+          ]
+        }
+      }
+    },
+    "TemplateAPIstatusGETApiPermissionTestMyTestStackTemplateAPIE828004EGETstatus09E6FBA7": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "TemplateAPIGetStatus25B03D29",
+            "Arn"
+          ]
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:eu-west-2:1234567890:",
+              {
+                "Ref": "TemplateAPICE2A2E42"
+              },
+              "/test-invoke-stage/GET/status"
+            ]
+          ]
+        }
+      }
+    },
+    "TemplateAPIstatusGET34D6BD01": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "GET",
+        "ResourceId": {
+          "Ref": "TemplateAPIstatusFF5FE3C7"
+        },
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        },
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "TemplateAPIPrivateApiRequestAuthorizer92885BF4"
+        },
+        "Integration": {
+          "Credentials": {
+            "Fn::GetAtt": [
+              "TemplateAPIApiExecutionRoleE18C505F",
+              "Arn"
+            ]
+          },
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:eu-west-2:lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "TemplateAPIGetStatus25B03D29",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": [
+          {
+            "ResponseModels": {
+              "application/json": {
+                "Ref": "StatusResponseModel7CA00167"
+              }
+            },
+            "ResponseParameters": {
+              "method.response.header.Content-Type": true,
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Credentials": true
+            },
+            "StatusCode": "200"
+          }
+        ],
+        "OperationName": "getStatus"
+      }
+    },
+    "TemplateAPIopenapi2F5F2234": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "TemplateAPICE2A2E42",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "openapi",
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        }
+      }
+    },
+    "TemplateAPIopenapiOPTIONSC7675E8D": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "OPTIONS",
+        "ResourceId": {
+          "Ref": "TemplateAPIopenapi2F5F2234"
+        },
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        },
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationResponses": [
+            {
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,content-type'",
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'",
+                "method.response.header.Access-Control-Allow-Credentials": "'true'"
+              },
+              "StatusCode": "204"
+            }
+          ],
+          "RequestTemplates": {
+            "application/json": "{ statusCode: 200 }"
+          },
+          "Type": "MOCK"
+        },
+        "MethodResponses": [
+          {
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Credentials": true
+            },
+            "StatusCode": "204"
+          }
+        ]
+      }
+    },
+    "TemplateAPIopenapiGETApiPermissionMyTestStackTemplateAPIE828004EGETopenapi1AE4EFAF": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "TemplateAPIGetOpenAPISpec4933EE24",
+            "Arn"
+          ]
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:eu-west-2:1234567890:",
+              {
+                "Ref": "TemplateAPICE2A2E42"
+              },
+              "/",
+              {
+                "Ref": "TemplateAPIDeploymentStagev19D1EF21E"
+              },
+              "/GET/openapi"
+            ]
+          ]
+        }
+      }
+    },
+    "TemplateAPIopenapiGETApiPermissionTestMyTestStackTemplateAPIE828004EGETopenapi94C3AD53": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "TemplateAPIGetOpenAPISpec4933EE24",
+            "Arn"
+          ]
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:eu-west-2:1234567890:",
+              {
+                "Ref": "TemplateAPICE2A2E42"
+              },
+              "/test-invoke-stage/GET/openapi"
+            ]
+          ]
+        }
+      }
+    },
+    "TemplateAPIopenapiGETEB991BEB": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "GET",
+        "ResourceId": {
+          "Ref": "TemplateAPIopenapi2F5F2234"
+        },
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        },
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "TemplateAPIPrivateApiRequestAuthorizer92885BF4"
+        },
+        "Integration": {
+          "Credentials": {
+            "Fn::GetAtt": [
+              "TemplateAPIApiExecutionRoleE18C505F",
+              "Arn"
+            ]
+          },
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:eu-west-2:lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "TemplateAPIGetOpenAPISpec4933EE24",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": [
+          {
+            "ResponseModels": {
+              "application/json": {
+                "Ref": "BasicObjectModel211727F7"
+              }
+            },
+            "ResponseParameters": {
+              "method.response.header.Content-Type": true,
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Credentials": true
+            },
+            "StatusCode": "200"
+          }
+        ],
+        "OperationName": "getOpenAPISpec"
+      }
+    },
+    "TemplateAPIApiExecutionRoleE18C505F": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "apigateway.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        }
+      }
+    },
+    "TemplateAPIApiExecutionRoleDefaultPolicy7161F064": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "TemplateAPIGetStatus25B03D29",
+                  "Arn"
+                ]
+              }
+            },
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "TemplateAPIGetOpenAPISpec4933EE24",
+                  "Arn"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "TemplateAPIApiExecutionRoleDefaultPolicy7161F064",
+        "Roles": [
+          {
+            "Ref": "TemplateAPIApiExecutionRoleE18C505F"
+          }
+        ]
+      }
+    },
+    "TemplateAPIGetStatusServiceRole2115891B": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "TemplateAPIGetStatusServiceRoleDefaultPolicyF097F116": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ServiceDataBucketF7784159",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ServiceDataBucketF7784159",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "TemplateAPIGetStatusServiceRoleDefaultPolicyF097F116",
+        "Roles": [
+          {
+            "Ref": "TemplateAPIGetStatusServiceRole2115891B"
+          }
+        ]
+      }
+    },
+    "TemplateAPIGetStatus25B03D29": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-1234567890-eu-west-2",
+          "S3Key": "118bffffbe63f7aba353c05a9399a75fdc5fe93364269121cf37a080a9e8bf41.zip"
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "TemplateAPIGetStatusServiceRole2115891B",
+            "Arn"
+          ]
+        },
+        "Environment": {
+          "Variables": {
+            "STATUS_INFO": "{\"deploymentTime\":\"2023-09-07T21:07:26.110Z\"}",
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+          }
+        },
+        "Handler": "index.handler",
+        "MemorySize": 256,
+        "Runtime": "nodejs18.x",
+        "Timeout": 25
+      },
+      "DependsOn": [
+        "TemplateAPIGetStatusServiceRoleDefaultPolicyF097F116",
+        "TemplateAPIGetStatusServiceRole2115891B"
+      ]
+    },
+    "TemplateAPIGetOpenAPISpecServiceRole2905E446": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "TemplateAPIGetOpenAPISpecServiceRoleDefaultPolicyBDBFBD5E": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "apigateway:GET",
+              "Effect": "Allow",
+              "Resource": "arn:aws:apigateway:*::/restapis/*/stages/*/exports/*"
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "TemplateAPIGetOpenAPISpecServiceRoleDefaultPolicyBDBFBD5E",
+        "Roles": [
+          {
+            "Ref": "TemplateAPIGetOpenAPISpecServiceRole2905E446"
+          }
+        ]
+      }
+    },
+    "TemplateAPIGetOpenAPISpec4933EE24": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-1234567890-eu-west-2",
+          "S3Key": "1918e40909cf3fda69c43ad60104f2733f332c261e1d49fe2bb07004ebed5281.zip"
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "TemplateAPIGetOpenAPISpecServiceRole2905E446",
+            "Arn"
+          ]
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+          }
+        },
+        "Handler": "index.handler",
+        "MemorySize": 256,
+        "Runtime": "nodejs18.x",
+        "Timeout": 25
+      },
+      "DependsOn": [
+        "TemplateAPIGetOpenAPISpecServiceRoleDefaultPolicyBDBFBD5E",
+        "TemplateAPIGetOpenAPISpecServiceRole2905E446"
+      ]
+    },
+    "PrivateAPIAuthorizerServiceRoleEBFD5560": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "PrivateAPIAuthorizer2400616B": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-1234567890-eu-west-2",
+          "S3Key": "d828a4e8b2a19c3b30352026a59195f65aca9c8177ab014c4f9f1e51a8ce2082.zip"
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "PrivateAPIAuthorizerServiceRoleEBFD5560",
+            "Arn"
+          ]
+        },
+        "Environment": {
+          "Variables": {
+            "AUTH_VERIFIERS_JSON": "[]",
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+          }
+        },
+        "Handler": "index.handler",
+        "MemorySize": 256,
+        "Runtime": "nodejs18.x",
+        "Timeout": 5
+      },
+      "DependsOn": [
+        "PrivateAPIAuthorizerServiceRoleEBFD5560"
+      ]
+    },
+    "PrivateAPIAuthorizerMyTestStackTemplateAPIPrivateApiRequestAuthorizer2642BEBAPermissionsA1E8AEB0": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "PrivateAPIAuthorizer2400616B",
+            "Arn"
+          ]
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:eu-west-2:1234567890:",
+              {
+                "Ref": "TemplateAPICE2A2E42"
+              },
+              "/authorizers/",
+              {
+                "Ref": "TemplateAPIPrivateApiRequestAuthorizer92885BF4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "ServiceDataBucketF7784159": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "template-api-service-data-bucket",
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        }
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete"
+    },
+    "StatusResponseModel7CA00167": {
+      "Type": "AWS::ApiGateway::Model",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        },
+        "ContentType": "application/json",
+        "Name": "StatusResponseModel",
+        "Schema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "title": "Status",
+          "type": "object",
+          "properties": {
+            "deploymentTime": {
+              "type": "string",
+              "description": "The UTC timestamp representing the last time the server was updated"
+            }
+          },
+          "required": [
+            "deploymentTime"
+          ]
+        }
+      }
+    },
+    "BasicObjectModel211727F7": {
+      "Type": "AWS::ApiGateway::Model",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        },
+        "ContentType": "application/json",
+        "Name": "BasicObjectModel",
+        "Schema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "title": "Basic Object",
+          "description": "A basic JSON object with key value pairs",
+          "type": "object",
+          "properties": {},
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "TemplateAPIEndpoint0377A7F7": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "TemplateAPICE2A2E42"
+            },
+            ".execute-api.eu-west-2.",
+            {
+              "Ref": "AWS::URLSuffix"
+            },
+            "/",
+            {
+              "Ref": "TemplateAPIDeploymentStagev19D1EF21E"
+            },
+            "/"
+          ]
+        ]
+      }
+    }
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Type": "AWS::SSM::Parameter::Value<String>",
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+    }
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5"
+                  ],
+                  {
+                    "Ref": "BootstrapVersion"
+                  }
+                ]
+              }
+            ]
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,66 @@
+name: Deploy CDK API
+on:
+  workflow_dispatch:
+    inputs:
+      account:
+        description: "The AWS account alias to deploy to"
+        required: true
+        type: choice
+        options:
+        - connected-web-dev
+        - connected-web-prod
+        default: 'connected-web-dev'
+  workflow_call:
+    inputs:
+      account:
+        description: "The AWS account alias to deploy to"
+        type: string
+        default: 'connected-web-dev'
+
+permissions:
+  id-token: write # This is required for OIDC
+  contents: write # This is required for actions/checkout@v2.4.0
+  pull-requests: write # This is required to write comments on the Pull Request
+
+jobs:
+  deploy:
+    name: Deploy CDK API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node JS LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+        
+      - name: Install npm dependencies
+        run: npm install
+
+      # Authorise for target account
+      - name: Read customer config to set AWS Account ID
+        working-directory: ./.github/workflows/scripts
+        run: sh ./setupGithubEnvironment.sh ${{ github.event.inputs.account || 'connected-web-dev' }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        env:
+          AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
+        with:
+          aws-region: eu-west-2
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/ConnectedWebGithub-gfx-suite
+          role-session-name: ${{ github.event.repository.name }}
+          role-duration-seconds: 900
+      
+      # CDK API Project
+      - name: Install npm dependencies
+        run: npm install
+        working-directory: ./api
+
+      - name: Deploy the CDK Stack
+        run: npm run deploy -- --require-approval never
+        env:
+          CREATE_CNAME_RECORD: true
+          OPENAPI_REST_API_REPORT_SUMMARY: true
+        working-directory: ./api

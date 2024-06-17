@@ -1,2 +1,16 @@
 node_modules/
 dist
+*.log
+
+.ftppass
+composer.phar
+vendor
+
+tests/integration/schema-errors/*
+secure-credentials.json
+
+.github.env
+coverage
+
+step-summary.md
+cdk.out
