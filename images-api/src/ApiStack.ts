@@ -40,9 +40,9 @@ export class ApiStack extends cdk.Stack {
     const sharedResources = new Resources(scope, this)
 
     // Create API Gateway
-    const apiGateway = new OpenAPIRestAPI<Resources>(this, 'Template API', {
-      Description: 'Template API - https://github.com/connected-web/template-api',
-      SubDomain: 'template-api',
+    const apiGateway = new OpenAPIRestAPI<Resources>(this, 'Images API', {
+      Description: 'Images API - https://github.com/connected-web/gfx-suite',
+      SubDomain: 'images',
       HostedZoneDomain: config.hostedZoneDomain,
       Verifiers: config?.identity.verifiers ?? []
     }, sharedResources)

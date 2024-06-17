@@ -1,6 +1,6 @@
 {
   "Resources": {
-    "TemplateAPIPrivateApiRequestAuthorizer92885BF4": {
+    "ImagesAPIPrivateApiRequestAuthorizer41647160": {
       "Type": "AWS::ApiGateway::Authorizer",
       "Properties": {
         "AuthorizerUri": {
@@ -53,21 +53,21 @@
           ]
         },
         "IdentitySource": "method.request.header.Authorization",
-        "Name": "MyTestStackTemplateAPIPrivateApiRequestAuthorizer2642BEBA",
+        "Name": "MyTestStackImagesAPIPrivateApiRequestAuthorizerD04C0467",
         "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
+          "Ref": "ImagesAPIF2D219E1"
         },
         "Type": "REQUEST"
       }
     },
-    "TemplateAPICE2A2E42": {
+    "ImagesAPIF2D219E1": {
       "Type": "AWS::ApiGateway::RestApi",
       "Properties": {
-        "Description": "Template API - https://github.com/connected-web/template-api",
-        "Name": "Template API"
+        "Description": "Images API - https://github.com/connected-web/gfx-suite",
+        "Name": "Images API"
       }
     },
-    "TemplateAPICloudWatchRole973DFC1C": {
+    "ImagesAPICloudWatchRole6044EC23": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -100,58 +100,58 @@
       "UpdateReplacePolicy": "Retain",
       "DeletionPolicy": "Retain"
     },
-    "TemplateAPIAccountE066AC80": {
+    "ImagesAPIAccount5B77B61F": {
       "Type": "AWS::ApiGateway::Account",
       "Properties": {
         "CloudWatchRoleArn": {
           "Fn::GetAtt": [
-            "TemplateAPICloudWatchRole973DFC1C",
+            "ImagesAPICloudWatchRole6044EC23",
             "Arn"
           ]
         }
       },
       "DependsOn": [
-        "TemplateAPICE2A2E42"
+        "ImagesAPIF2D219E1"
       ],
       "UpdateReplacePolicy": "Retain",
       "DeletionPolicy": "Retain"
     },
-    "TemplateAPIDeploymentE23C5A288232a7fb0611134d95403da90325ee70": {
+    "ImagesAPIDeployment434FFA1Ee6cdf63cfe957280be58d768b40b8378": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
-        "Description": "Template API - https://github.com/connected-web/template-api",
+        "Description": "Images API - https://github.com/connected-web/gfx-suite",
         "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
+          "Ref": "ImagesAPIF2D219E1"
         }
       },
       "DependsOn": [
         "BasicObjectModel211727F7",
-        "StatusResponseModel7CA00167",
-        "TemplateAPIopenapiGETEB991BEB",
-        "TemplateAPIopenapiOPTIONSC7675E8D",
-        "TemplateAPIopenapi2F5F2234",
-        "TemplateAPIOPTIONS1705015A",
-        "TemplateAPIstatusGET34D6BD01",
-        "TemplateAPIstatusOPTIONS594662FC",
-        "TemplateAPIstatusFF5FE3C7"
+        "ImagesAPIopenapiGETD1434BE0",
+        "ImagesAPIopenapiOPTIONS36BC6294",
+        "ImagesAPIopenapiF8333747",
+        "ImagesAPIOPTIONSE6EF3E41",
+        "ImagesAPIstatusGETB9A23742",
+        "ImagesAPIstatusOPTIONS8688E3CA",
+        "ImagesAPIstatus00A8A627",
+        "StatusResponseModel7CA00167"
       ]
     },
-    "TemplateAPIDeploymentStagev19D1EF21E": {
+    "ImagesAPIDeploymentStagev1141A3C8C": {
       "Type": "AWS::ApiGateway::Stage",
       "Properties": {
         "DeploymentId": {
-          "Ref": "TemplateAPIDeploymentE23C5A288232a7fb0611134d95403da90325ee70"
+          "Ref": "ImagesAPIDeployment434FFA1Ee6cdf63cfe957280be58d768b40b8378"
         },
         "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
+          "Ref": "ImagesAPIF2D219E1"
         },
         "StageName": "v1"
       },
       "DependsOn": [
-        "TemplateAPIAccountE066AC80"
+        "ImagesAPIAccount5B77B61F"
       ]
     },
-    "TemplateAPIOPTIONS1705015A": {
+    "ImagesAPIOPTIONSE6EF3E41": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "ApiKeyRequired": false,
@@ -187,31 +187,31 @@
         ],
         "ResourceId": {
           "Fn::GetAtt": [
-            "TemplateAPICE2A2E42",
+            "ImagesAPIF2D219E1",
             "RootResourceId"
           ]
         },
         "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
+          "Ref": "ImagesAPIF2D219E1"
         }
       }
     },
-    "TemplateAPIstatusFF5FE3C7": {
+    "ImagesAPIstatus00A8A627": {
       "Type": "AWS::ApiGateway::Resource",
       "Properties": {
         "ParentId": {
           "Fn::GetAtt": [
-            "TemplateAPICE2A2E42",
+            "ImagesAPIF2D219E1",
             "RootResourceId"
           ]
         },
         "PathPart": "status",
         "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
+          "Ref": "ImagesAPIF2D219E1"
         }
       }
     },
-    "TemplateAPIstatusOPTIONS594662FC": {
+    "ImagesAPIstatusOPTIONS8688E3CA": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "ApiKeyRequired": false,
@@ -246,20 +246,20 @@
           }
         ],
         "ResourceId": {
-          "Ref": "TemplateAPIstatusFF5FE3C7"
+          "Ref": "ImagesAPIstatus00A8A627"
         },
         "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
+          "Ref": "ImagesAPIF2D219E1"
         }
       }
     },
-    "TemplateAPIstatusGETApiPermissionMyTestStackTemplateAPIE828004EGETstatus1911D121": {
+    "ImagesAPIstatusGETApiPermissionMyTestStackImagesAPI06E953EDGETstatus9810C404": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
           "Fn::GetAtt": [
-            "TemplateAPIGetStatus25B03D29",
+            "ImagesAPIGetStatus49E0B940",
             "Arn"
           ]
         },
@@ -274,11 +274,11 @@
               },
               ":execute-api:eu-west-2:1234567890:",
               {
-                "Ref": "TemplateAPICE2A2E42"
+                "Ref": "ImagesAPIF2D219E1"
               },
               "/",
               {
-                "Ref": "TemplateAPIDeploymentStagev19D1EF21E"
+                "Ref": "ImagesAPIDeploymentStagev1141A3C8C"
               },
               "/GET/status"
             ]
@@ -286,13 +286,13 @@
         }
       }
     },
-    "TemplateAPIstatusGETApiPermissionTestMyTestStackTemplateAPIE828004EGETstatus09E6FBA7": {
+    "ImagesAPIstatusGETApiPermissionTestMyTestStackImagesAPI06E953EDGETstatus3CC3CBA4": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
           "Fn::GetAtt": [
-            "TemplateAPIGetStatus25B03D29",
+            "ImagesAPIGetStatus49E0B940",
             "Arn"
           ]
         },
@@ -307,7 +307,7 @@
               },
               ":execute-api:eu-west-2:1234567890:",
               {
-                "Ref": "TemplateAPICE2A2E42"
+                "Ref": "ImagesAPIF2D219E1"
               },
               "/test-invoke-stage/GET/status"
             ]
@@ -315,18 +315,18 @@
         }
       }
     },
-    "TemplateAPIstatusGET34D6BD01": {
+    "ImagesAPIstatusGETB9A23742": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "AuthorizationType": "CUSTOM",
         "AuthorizerId": {
-          "Ref": "TemplateAPIPrivateApiRequestAuthorizer92885BF4"
+          "Ref": "ImagesAPIPrivateApiRequestAuthorizer41647160"
         },
         "HttpMethod": "GET",
         "Integration": {
           "Credentials": {
             "Fn::GetAtt": [
-              "TemplateAPIApiExecutionRoleE18C505F",
+              "ImagesAPIApiExecutionRoleDE446B9D",
               "Arn"
             ]
           },
@@ -343,7 +343,7 @@
                 ":apigateway:eu-west-2:lambda:path/2015-03-31/functions/",
                 {
                   "Fn::GetAtt": [
-                    "TemplateAPIGetStatus25B03D29",
+                    "ImagesAPIGetStatus49E0B940",
                     "Arn"
                   ]
                 },
@@ -369,29 +369,29 @@
         ],
         "OperationName": "getStatus",
         "ResourceId": {
-          "Ref": "TemplateAPIstatusFF5FE3C7"
+          "Ref": "ImagesAPIstatus00A8A627"
         },
         "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
+          "Ref": "ImagesAPIF2D219E1"
         }
       }
     },
-    "TemplateAPIopenapi2F5F2234": {
+    "ImagesAPIopenapiF8333747": {
       "Type": "AWS::ApiGateway::Resource",
       "Properties": {
         "ParentId": {
           "Fn::GetAtt": [
-            "TemplateAPICE2A2E42",
+            "ImagesAPIF2D219E1",
             "RootResourceId"
           ]
         },
         "PathPart": "openapi",
         "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
+          "Ref": "ImagesAPIF2D219E1"
         }
       }
     },
-    "TemplateAPIopenapiOPTIONSC7675E8D": {
+    "ImagesAPIopenapiOPTIONS36BC6294": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "ApiKeyRequired": false,
@@ -426,20 +426,20 @@
           }
         ],
         "ResourceId": {
-          "Ref": "TemplateAPIopenapi2F5F2234"
+          "Ref": "ImagesAPIopenapiF8333747"
         },
         "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
+          "Ref": "ImagesAPIF2D219E1"
         }
       }
     },
-    "TemplateAPIopenapiGETApiPermissionMyTestStackTemplateAPIE828004EGETopenapi1AE4EFAF": {
+    "ImagesAPIopenapiGETApiPermissionMyTestStackImagesAPI06E953EDGETopenapi95505742": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
           "Fn::GetAtt": [
-            "TemplateAPIGetOpenAPISpec4933EE24",
+            "ImagesAPIGetOpenAPISpec3BD06488",
             "Arn"
           ]
         },
@@ -454,11 +454,11 @@
               },
               ":execute-api:eu-west-2:1234567890:",
               {
-                "Ref": "TemplateAPICE2A2E42"
+                "Ref": "ImagesAPIF2D219E1"
               },
               "/",
               {
-                "Ref": "TemplateAPIDeploymentStagev19D1EF21E"
+                "Ref": "ImagesAPIDeploymentStagev1141A3C8C"
               },
               "/GET/openapi"
             ]
@@ -466,13 +466,13 @@
         }
       }
     },
-    "TemplateAPIopenapiGETApiPermissionTestMyTestStackTemplateAPIE828004EGETopenapi94C3AD53": {
+    "ImagesAPIopenapiGETApiPermissionTestMyTestStackImagesAPI06E953EDGETopenapi3E9AB67D": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
           "Fn::GetAtt": [
-            "TemplateAPIGetOpenAPISpec4933EE24",
+            "ImagesAPIGetOpenAPISpec3BD06488",
             "Arn"
           ]
         },
@@ -487,7 +487,7 @@
               },
               ":execute-api:eu-west-2:1234567890:",
               {
-                "Ref": "TemplateAPICE2A2E42"
+                "Ref": "ImagesAPIF2D219E1"
               },
               "/test-invoke-stage/GET/openapi"
             ]
@@ -495,18 +495,18 @@
         }
       }
     },
-    "TemplateAPIopenapiGETEB991BEB": {
+    "ImagesAPIopenapiGETD1434BE0": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "AuthorizationType": "CUSTOM",
         "AuthorizerId": {
-          "Ref": "TemplateAPIPrivateApiRequestAuthorizer92885BF4"
+          "Ref": "ImagesAPIPrivateApiRequestAuthorizer41647160"
         },
         "HttpMethod": "GET",
         "Integration": {
           "Credentials": {
             "Fn::GetAtt": [
-              "TemplateAPIApiExecutionRoleE18C505F",
+              "ImagesAPIApiExecutionRoleDE446B9D",
               "Arn"
             ]
           },
@@ -523,7 +523,7 @@
                 ":apigateway:eu-west-2:lambda:path/2015-03-31/functions/",
                 {
                   "Fn::GetAtt": [
-                    "TemplateAPIGetOpenAPISpec4933EE24",
+                    "ImagesAPIGetOpenAPISpec3BD06488",
                     "Arn"
                   ]
                 },
@@ -549,14 +549,14 @@
         ],
         "OperationName": "getOpenAPISpec",
         "ResourceId": {
-          "Ref": "TemplateAPIopenapi2F5F2234"
+          "Ref": "ImagesAPIopenapiF8333747"
         },
         "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
+          "Ref": "ImagesAPIF2D219E1"
         }
       }
     },
-    "TemplateAPIApiExecutionRoleE18C505F": {
+    "ImagesAPIApiExecutionRoleDE446B9D": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -573,7 +573,7 @@
         }
       }
     },
-    "TemplateAPIApiExecutionRoleDefaultPolicy7161F064": {
+    "ImagesAPIApiExecutionRoleDefaultPolicyC9CBDBB6": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyDocument": {
@@ -583,7 +583,7 @@
               "Effect": "Allow",
               "Resource": {
                 "Fn::GetAtt": [
-                  "TemplateAPIGetStatus25B03D29",
+                  "ImagesAPIGetStatus49E0B940",
                   "Arn"
                 ]
               }
@@ -593,7 +593,7 @@
               "Effect": "Allow",
               "Resource": {
                 "Fn::GetAtt": [
-                  "TemplateAPIGetOpenAPISpec4933EE24",
+                  "ImagesAPIGetOpenAPISpec3BD06488",
                   "Arn"
                 ]
               }
@@ -601,15 +601,15 @@
           ],
           "Version": "2012-10-17"
         },
-        "PolicyName": "TemplateAPIApiExecutionRoleDefaultPolicy7161F064",
+        "PolicyName": "ImagesAPIApiExecutionRoleDefaultPolicyC9CBDBB6",
         "Roles": [
           {
-            "Ref": "TemplateAPIApiExecutionRoleE18C505F"
+            "Ref": "ImagesAPIApiExecutionRoleDE446B9D"
           }
         ]
       }
     },
-    "TemplateAPIGetStatusServiceRole2115891B": {
+    "ImagesAPIGetStatusServiceRole1327B92E": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -640,7 +640,7 @@
         ]
       }
     },
-    "TemplateAPIGetStatusServiceRoleDefaultPolicyF097F116": {
+    "ImagesAPIGetStatusServiceRoleDefaultPolicy6FC07D31": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyDocument": {
@@ -678,15 +678,15 @@
           ],
           "Version": "2012-10-17"
         },
-        "PolicyName": "TemplateAPIGetStatusServiceRoleDefaultPolicyF097F116",
+        "PolicyName": "ImagesAPIGetStatusServiceRoleDefaultPolicy6FC07D31",
         "Roles": [
           {
-            "Ref": "TemplateAPIGetStatusServiceRole2115891B"
+            "Ref": "ImagesAPIGetStatusServiceRole1327B92E"
           }
         ]
       }
     },
-    "TemplateAPIGetStatus25B03D29": {
+    "ImagesAPIGetStatus49E0B940": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
@@ -695,7 +695,7 @@
         },
         "Environment": {
           "Variables": {
-            "STATUS_INFO": "{\"deploymentTime\":\"2024-06-17T20:57:50.319Z\"}",
+            "STATUS_INFO": "{\"deploymentTime\":\"2024-06-17T21:11:14.921Z\"}",
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
           }
         },
@@ -703,7 +703,7 @@
         "MemorySize": 256,
         "Role": {
           "Fn::GetAtt": [
-            "TemplateAPIGetStatusServiceRole2115891B",
+            "ImagesAPIGetStatusServiceRole1327B92E",
             "Arn"
           ]
         },
@@ -711,11 +711,11 @@
         "Timeout": 25
       },
       "DependsOn": [
-        "TemplateAPIGetStatusServiceRoleDefaultPolicyF097F116",
-        "TemplateAPIGetStatusServiceRole2115891B"
+        "ImagesAPIGetStatusServiceRoleDefaultPolicy6FC07D31",
+        "ImagesAPIGetStatusServiceRole1327B92E"
       ]
     },
-    "TemplateAPIGetOpenAPISpecServiceRole2905E446": {
+    "ImagesAPIGetOpenAPISpecServiceRole663B62A0": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -746,7 +746,7 @@
         ]
       }
     },
-    "TemplateAPIGetOpenAPISpecServiceRoleDefaultPolicyBDBFBD5E": {
+    "ImagesAPIGetOpenAPISpecServiceRoleDefaultPolicyE0CD4EF2": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyDocument": {
@@ -759,15 +759,15 @@
           ],
           "Version": "2012-10-17"
         },
-        "PolicyName": "TemplateAPIGetOpenAPISpecServiceRoleDefaultPolicyBDBFBD5E",
+        "PolicyName": "ImagesAPIGetOpenAPISpecServiceRoleDefaultPolicyE0CD4EF2",
         "Roles": [
           {
-            "Ref": "TemplateAPIGetOpenAPISpecServiceRole2905E446"
+            "Ref": "ImagesAPIGetOpenAPISpecServiceRole663B62A0"
           }
         ]
       }
     },
-    "TemplateAPIGetOpenAPISpec4933EE24": {
+    "ImagesAPIGetOpenAPISpec3BD06488": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
@@ -783,7 +783,7 @@
         "MemorySize": 256,
         "Role": {
           "Fn::GetAtt": [
-            "TemplateAPIGetOpenAPISpecServiceRole2905E446",
+            "ImagesAPIGetOpenAPISpecServiceRole663B62A0",
             "Arn"
           ]
         },
@@ -791,8 +791,8 @@
         "Timeout": 25
       },
       "DependsOn": [
-        "TemplateAPIGetOpenAPISpecServiceRoleDefaultPolicyBDBFBD5E",
-        "TemplateAPIGetOpenAPISpecServiceRole2905E446"
+        "ImagesAPIGetOpenAPISpecServiceRoleDefaultPolicyE0CD4EF2",
+        "ImagesAPIGetOpenAPISpecServiceRole663B62A0"
       ]
     },
     "PrivateAPIAuthorizerServiceRoleEBFD5560": {
@@ -854,7 +854,7 @@
         "PrivateAPIAuthorizerServiceRoleEBFD5560"
       ]
     },
-    "PrivateAPIAuthorizerMyTestStackTemplateAPIPrivateApiRequestAuthorizer2642BEBAPermissionsA1E8AEB0": {
+    "PrivateAPIAuthorizerMyTestStackImagesAPIPrivateApiRequestAuthorizerD04C0467PermissionsBA5BD443": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "Action": "lambda:InvokeFunction",
@@ -875,11 +875,11 @@
               },
               ":execute-api:eu-west-2:1234567890:",
               {
-                "Ref": "TemplateAPICE2A2E42"
+                "Ref": "ImagesAPIF2D219E1"
               },
               "/authorizers/",
               {
-                "Ref": "TemplateAPIPrivateApiRequestAuthorizer92885BF4"
+                "Ref": "ImagesAPIPrivateApiRequestAuthorizer41647160"
               }
             ]
           ]
@@ -903,7 +903,7 @@
         "ContentType": "application/json",
         "Name": "StatusResponseModel",
         "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
+          "Ref": "ImagesAPIF2D219E1"
         },
         "Schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
@@ -927,7 +927,7 @@
         "ContentType": "application/json",
         "Name": "BasicObjectModel",
         "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
+          "Ref": "ImagesAPIF2D219E1"
         },
         "Schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
@@ -941,14 +941,14 @@
     }
   },
   "Outputs": {
-    "TemplateAPIEndpoint0377A7F7": {
+    "ImagesAPIEndpointF7831E6E": {
       "Value": {
         "Fn::Join": [
           "",
           [
             "https://",
             {
-              "Ref": "TemplateAPICE2A2E42"
+              "Ref": "ImagesAPIF2D219E1"
             },
             ".execute-api.eu-west-2.",
             {
@@ -956,7 +956,7 @@
             },
             "/",
             {
-              "Ref": "TemplateAPIDeploymentStagev19D1EF21E"
+              "Ref": "ImagesAPIDeploymentStagev1141A3C8C"
             },
             "/"
           ]

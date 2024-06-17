@@ -18,7 +18,7 @@ const accountId = AWS_ACCOUNT_ID
 console.log('Account config:', { accountProfile, accountId, accountConfig })
 
 const app = new cdk.App()
-const stackName = 'TemplateAPI'
+const stackName = 'ImagesAPI'
 const stackTemplate = new ApiStack(app, stackName, {
   env: {
     account: CDK_DEFAULT_ACCOUNT ?? '123456789012',
@@ -27,7 +27,7 @@ const stackTemplate = new ApiStack(app, stackName, {
 },
 {
   hostedZoneDomain: accountConfig.hostedZoneDomain,
-  serviceDataBucketName: ['template-api', accountConfig.environment].join('-'),
+  serviceDataBucketName: ['images-api', accountConfig.environment].join('-'),
   identity: accountConfig.identity
 })
 
