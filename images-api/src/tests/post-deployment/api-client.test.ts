@@ -41,13 +41,13 @@ const clientConfigs = {
     clientId: CONNECTED_WEB_DEV_SSO_CLIENT_ID as string,
     clientSecret: CONNECTED_WEB_DEV_SSO_SECRET as string,
     oauthTokenEndpoint: 'https://connected-web-dev.auth.eu-west-2.amazoncognito.com/oauth2/token',
-    serviceUnderTest: 'https://template-api.dev.connected-web.services'
+    serviceUnderTest: 'https://images.dev.connected-web.services'
   },
   prod: {
     clientId: CONNECTED_WEB_PROD_SSO_CLIENT_ID as string,
     clientSecret: CONNECTED_WEB_PROD_SSO_SECRET as string,
     oauthTokenEndpoint: 'https://connected-web.auth.eu-west-2.amazoncognito.com/oauth2/token',
-    serviceUnderTest: 'https://template-api.prod.connected-web.services'
+    serviceUnderTest: 'https://images.prod.connected-web.services'
   },
   ci: {
     clientId: POST_DEPLOYMENT_CLIENT_ID as string,
@@ -108,8 +108,8 @@ describe('Open API Spec', () => {
     it('should contain an info block with title and description', async () => {
       const { version, ...testableProps } = openapiDoc.info
       expect(testableProps).toEqual({
-        title: 'Template API',
-        description: 'Template API - https://github.com/connected-web/template-api'
+        title: 'Images API',
+        description: 'Images API - https://github.com/connected-web/gfx-suite'
       })
     })
 

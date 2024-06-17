@@ -18,9 +18,7 @@ export interface StackParameters { hostedZoneDomain: string, serviceDataBucketNa
  *
  * The main stack for the API. This stack creates the API Gateway, and all of its endpoints.
  *
- * Use this stack as a template for your own API.
- *
- * Create your own endpoints in ./endpoints/ by extending the OpenAPIEndpoint class, and adding them to the API Gateway.
+ * Create additional endpoints in ./endpoints/ by extending the OpenAPIEndpoint class, and adding them to the API Gateway.
  *
  * Share custom resources by implementing the ./Resources.ts class, which will be passed into your endpoints.
  *
