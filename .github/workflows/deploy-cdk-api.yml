@@ -56,11 +56,11 @@ jobs:
       # CDK API Project
       - name: Install npm dependencies
         run: npm install
-        working-directory: ./api
+        working-directory: ./images-api
 
       - name: Deploy the CDK Stack
         run: npm run deploy -- --require-approval never
         env:
           CREATE_CNAME_RECORD: true
           OPENAPI_REST_API_REPORT_SUMMARY: true
-        working-directory: ./api
+        working-directory: ./images-api
