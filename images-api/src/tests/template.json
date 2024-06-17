@@ -3,11 +3,6 @@
     "TemplateAPIPrivateApiRequestAuthorizer92885BF4": {
       "Type": "AWS::ApiGateway::Authorizer",
       "Properties": {
-        "Name": "MyTestStackTemplateAPIPrivateApiRequestAuthorizer2642BEBA",
-        "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
-        },
-        "Type": "REQUEST",
         "AuthorizerUri": {
           "Fn::Join": [
             "",
@@ -57,7 +52,12 @@
             ]
           ]
         },
-        "IdentitySource": "method.request.header.Authorization"
+        "IdentitySource": "method.request.header.Authorization",
+        "Name": "MyTestStackTemplateAPIPrivateApiRequestAuthorizer2642BEBA",
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        },
+        "Type": "REQUEST"
       }
     },
     "TemplateAPICE2A2E42": {
@@ -116,13 +116,13 @@
       "UpdateReplacePolicy": "Retain",
       "DeletionPolicy": "Retain"
     },
-    "TemplateAPIDeploymentE23C5A286b0036ccbf3e114c83ccf51254eda874": {
+    "TemplateAPIDeploymentE23C5A288232a7fb0611134d95403da90325ee70": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
+        "Description": "Template API - https://github.com/connected-web/template-api",
         "RestApiId": {
           "Ref": "TemplateAPICE2A2E42"
-        },
-        "Description": "Template API - https://github.com/connected-web/template-api"
+        }
       },
       "DependsOn": [
         "BasicObjectModel211727F7",
@@ -139,11 +139,11 @@
     "TemplateAPIDeploymentStagev19D1EF21E": {
       "Type": "AWS::ApiGateway::Stage",
       "Properties": {
+        "DeploymentId": {
+          "Ref": "TemplateAPIDeploymentE23C5A288232a7fb0611134d95403da90325ee70"
+        },
         "RestApiId": {
           "Ref": "TemplateAPICE2A2E42"
-        },
-        "DeploymentId": {
-          "Ref": "TemplateAPIDeploymentE23C5A286b0036ccbf3e114c83ccf51254eda874"
         },
         "StageName": "v1"
       },
@@ -154,17 +154,9 @@
     "TemplateAPIOPTIONS1705015A": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
-        "HttpMethod": "OPTIONS",
-        "ResourceId": {
-          "Fn::GetAtt": [
-            "TemplateAPICE2A2E42",
-            "RootResourceId"
-          ]
-        },
-        "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
-        },
+        "ApiKeyRequired": false,
         "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
         "Integration": {
           "IntegrationResponses": [
             {
@@ -192,7 +184,16 @@
             },
             "StatusCode": "204"
           }
-        ]
+        ],
+        "ResourceId": {
+          "Fn::GetAtt": [
+            "TemplateAPICE2A2E42",
+            "RootResourceId"
+          ]
+        },
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        }
       }
     },
     "TemplateAPIstatusFF5FE3C7": {
@@ -213,14 +214,9 @@
     "TemplateAPIstatusOPTIONS594662FC": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
-        "HttpMethod": "OPTIONS",
-        "ResourceId": {
-          "Ref": "TemplateAPIstatusFF5FE3C7"
-        },
-        "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
-        },
+        "ApiKeyRequired": false,
         "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
         "Integration": {
           "IntegrationResponses": [
             {
@@ -248,7 +244,13 @@
             },
             "StatusCode": "204"
           }
-        ]
+        ],
+        "ResourceId": {
+          "Ref": "TemplateAPIstatusFF5FE3C7"
+        },
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        }
       }
     },
     "TemplateAPIstatusGETApiPermissionMyTestStackTemplateAPIE828004EGETstatus1911D121": {
@@ -316,17 +318,11 @@
     "TemplateAPIstatusGET34D6BD01": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
-        "HttpMethod": "GET",
-        "ResourceId": {
-          "Ref": "TemplateAPIstatusFF5FE3C7"
-        },
-        "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
-        },
         "AuthorizationType": "CUSTOM",
         "AuthorizerId": {
           "Ref": "TemplateAPIPrivateApiRequestAuthorizer92885BF4"
         },
+        "HttpMethod": "GET",
         "Integration": {
           "Credentials": {
             "Fn::GetAtt": [
@@ -371,7 +367,13 @@
             "StatusCode": "200"
           }
         ],
-        "OperationName": "getStatus"
+        "OperationName": "getStatus",
+        "ResourceId": {
+          "Ref": "TemplateAPIstatusFF5FE3C7"
+        },
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        }
       }
     },
     "TemplateAPIopenapi2F5F2234": {
@@ -392,14 +394,9 @@
     "TemplateAPIopenapiOPTIONSC7675E8D": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
-        "HttpMethod": "OPTIONS",
-        "ResourceId": {
-          "Ref": "TemplateAPIopenapi2F5F2234"
-        },
-        "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
-        },
+        "ApiKeyRequired": false,
         "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
         "Integration": {
           "IntegrationResponses": [
             {
@@ -427,7 +424,13 @@
             },
             "StatusCode": "204"
           }
-        ]
+        ],
+        "ResourceId": {
+          "Ref": "TemplateAPIopenapi2F5F2234"
+        },
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        }
       }
     },
     "TemplateAPIopenapiGETApiPermissionMyTestStackTemplateAPIE828004EGETopenapi1AE4EFAF": {
@@ -495,17 +498,11 @@
     "TemplateAPIopenapiGETEB991BEB": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
-        "HttpMethod": "GET",
-        "ResourceId": {
-          "Ref": "TemplateAPIopenapi2F5F2234"
-        },
-        "RestApiId": {
-          "Ref": "TemplateAPICE2A2E42"
-        },
         "AuthorizationType": "CUSTOM",
         "AuthorizerId": {
           "Ref": "TemplateAPIPrivateApiRequestAuthorizer92885BF4"
         },
+        "HttpMethod": "GET",
         "Integration": {
           "Credentials": {
             "Fn::GetAtt": [
@@ -550,7 +547,13 @@
             "StatusCode": "200"
           }
         ],
-        "OperationName": "getOpenAPISpec"
+        "OperationName": "getOpenAPISpec",
+        "ResourceId": {
+          "Ref": "TemplateAPIopenapi2F5F2234"
+        },
+        "RestApiId": {
+          "Ref": "TemplateAPICE2A2E42"
+        }
       }
     },
     "TemplateAPIApiExecutionRoleE18C505F": {
@@ -688,22 +691,22 @@
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-1234567890-eu-west-2",
-          "S3Key": "118bffffbe63f7aba353c05a9399a75fdc5fe93364269121cf37a080a9e8bf41.zip"
+          "S3Key": "7cc292e868e8c4042f7bbd5fd63e758dc841385c3ed8addf36310d71d2c4818e.zip"
         },
+        "Environment": {
+          "Variables": {
+            "STATUS_INFO": "{\"deploymentTime\":\"2024-06-17T20:57:50.319Z\"}",
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+          }
+        },
+        "Handler": "index.handler",
+        "MemorySize": 256,
         "Role": {
           "Fn::GetAtt": [
             "TemplateAPIGetStatusServiceRole2115891B",
             "Arn"
           ]
         },
-        "Environment": {
-          "Variables": {
-            "STATUS_INFO": "{\"deploymentTime\":\"2023-09-07T21:07:26.110Z\"}",
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
-          }
-        },
-        "Handler": "index.handler",
-        "MemorySize": 256,
         "Runtime": "nodejs18.x",
         "Timeout": 25
       },
@@ -769,13 +772,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-1234567890-eu-west-2",
-          "S3Key": "1918e40909cf3fda69c43ad60104f2733f332c261e1d49fe2bb07004ebed5281.zip"
-        },
-        "Role": {
-          "Fn::GetAtt": [
-            "TemplateAPIGetOpenAPISpecServiceRole2905E446",
-            "Arn"
-          ]
+          "S3Key": "96542439d68ea52f3c610c311ef9b98fa0069f5e45c64eb8293085ca8e1ab9b2.zip"
         },
         "Environment": {
           "Variables": {
@@ -784,6 +781,12 @@
         },
         "Handler": "index.handler",
         "MemorySize": 256,
+        "Role": {
+          "Fn::GetAtt": [
+            "TemplateAPIGetOpenAPISpecServiceRole2905E446",
+            "Arn"
+          ]
+        },
         "Runtime": "nodejs18.x",
         "Timeout": 25
       },
@@ -828,13 +831,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-1234567890-eu-west-2",
-          "S3Key": "d828a4e8b2a19c3b30352026a59195f65aca9c8177ab014c4f9f1e51a8ce2082.zip"
-        },
-        "Role": {
-          "Fn::GetAtt": [
-            "PrivateAPIAuthorizerServiceRoleEBFD5560",
-            "Arn"
-          ]
+          "S3Key": "ebdc6dd628fbde280b91195c91be0729eef43de07857adb6ebf4c79f235df134.zip"
         },
         "Environment": {
           "Variables": {
@@ -844,6 +841,12 @@
         },
         "Handler": "index.handler",
         "MemorySize": 256,
+        "Role": {
+          "Fn::GetAtt": [
+            "PrivateAPIAuthorizerServiceRoleEBFD5560",
+            "Arn"
+          ]
+        },
         "Runtime": "nodejs18.x",
         "Timeout": 5
       },
@@ -897,11 +900,11 @@
     "StatusResponseModel7CA00167": {
       "Type": "AWS::ApiGateway::Model",
       "Properties": {
+        "ContentType": "application/json",
+        "Name": "StatusResponseModel",
         "RestApiId": {
           "Ref": "TemplateAPICE2A2E42"
         },
-        "ContentType": "application/json",
-        "Name": "StatusResponseModel",
         "Schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
           "title": "Status",
@@ -921,11 +924,11 @@
     "BasicObjectModel211727F7": {
       "Type": "AWS::ApiGateway::Model",
       "Properties": {
+        "ContentType": "application/json",
+        "Name": "BasicObjectModel",
         "RestApiId": {
           "Ref": "TemplateAPICE2A2E42"
         },
-        "ContentType": "application/json",
-        "Name": "BasicObjectModel",
         "Schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
           "title": "Basic Object",
