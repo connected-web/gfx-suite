@@ -695,7 +695,7 @@
         },
         "Environment": {
           "Variables": {
-            "STATUS_INFO": "{\"deploymentTime\":\"2024-06-17T21:11:14.921Z\"}",
+            "STATUS_INFO": "{\"deploymentTime\":\"2024-06-17T21:14:06.252Z\"}",
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
           }
         },
@@ -889,7 +889,7 @@
     "ServiceDataBucketF7784159": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
-        "BucketName": "template-api-service-data-bucket",
+        "BucketName": "images-api-service-data-bucket",
         "VersioningConfiguration": {
           "Status": "Enabled"
         }
