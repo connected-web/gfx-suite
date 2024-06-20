@@ -4,8 +4,8 @@ import { Construct } from 'constructs'
 import { OpenAPIRestAPI, OpenAPIVerifiers, OpenAPIBasicModels } from '@connected-web/openapi-rest-api'
 
 import { Resources } from './Resources'
-import { StatusEndpoint } from './endpoints/Status'
-import { OpenAPISpecEndpoint } from './endpoints/OpenAPISpec'
+import { StatusEndpoint } from './endpoints/Status/metadata'
+import { OpenAPISpecEndpoint } from './endpoints/OpenAPISpec/metadata'
 
 export interface IdentityConfig {
   verifiers: OpenAPIVerifiers
@@ -50,10 +50,10 @@ export class ApiStack extends cdk.Stack {
 
     // Add endpoints to API
     apiGateway
-      .addEndpoints([
-        new StatusEndpoint(),
-        new OpenAPISpecEndpoint()
-      ])
+      .addEndpoints({
+        'GET /status': new StatusEndpoint(),
+        'GET /openapi': new OpenAPISpecEndpoint()
+      })
       .report()
   }
 }
