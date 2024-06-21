@@ -32,7 +32,7 @@ Private planning board on Miro:
 
 ### GFX Suite Website
 
-- 🚧 Host GFX Suite Website via CI Pipeline
+- ✅ Host GFX Suite Website via CI Pipeline
 - 🚧 Add user authentication via Connected Web Identity
 - 🚧 Create Image Request Form
 - 🚧 Create Image Browser
@@ -51,7 +51,7 @@ Private planning board on Miro:
 
 ### GFX Suite Remote Crank
 
-- 🚧 Run service locally 
+- ✅ Run service locally 
 - 🚧 Integrate Remote Crank with ComfyUI Server to generate images
 - 🚧 Integrate Remote Crank with Connected Web Images API to download batches
 - 🚧 Integrate Remote Crank with Connected Web Images API to upload results
@@ -59,8 +59,8 @@ Private planning board on Miro:
 
 ### FTP Server
 
-- 🚧 Setup FTP Server
-- 🚧 Create FTP Server user accounts
+- ✅ Setup FTP Server
+- ✅ Create FTP Server user accounts
 - 🚧 Create FTP Server directories
 
 ## Contributing
