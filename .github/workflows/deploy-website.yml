@@ -1,0 +1,37 @@
+name: Deploy Website
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  id-token: write # This is required for OIDC
+  contents: write # This is required for actions/checkout@v2.4.0
+  pull-requests: write # This is required to write comments on the Pull Request
+
+jobs:
+  deploy:
+    name: Deploy Website
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Checkout
+        uses: actions/checkout@v4
+
+      - name: 💽 Use Node JS LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+        
+      - name: 🌌 Install npm dependencies
+        run: npm install
+
+      - name: 🔨 Build
+        run: npm run build
+        working-directory: ./website
+      
+      - name: 📂 Deploy files
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ftp.connected-web.net
+          username: cweb_gfx_suite
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./website/dist/

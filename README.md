@@ -41,7 +41,7 @@ Private planning board on Miro:
 ### Connected Web Images API
 
 - Client facing
-  - 🚧 Host Image API via Connected Web Services AWS
+  - ✅ Host Image API via Connected Web Services AWS
   - 🚧 Create Image Request API endpoints to accept requests
   - 🚧 Create Image Request API progress endpoints to monitor requests
   - 🚧 Create Image Request API results endpoints to browse images
