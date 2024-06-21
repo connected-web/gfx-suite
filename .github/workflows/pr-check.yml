@@ -7,7 +7,7 @@ on:
 
 jobs:
   test-cdk-api:
-    name: Test CDK API
+    name: Test Project
     runs-on: ubuntu-latest
 
     steps:
@@ -53,10 +53,10 @@ jobs:
       # CDK API Project
       - name: Install npm dependencies (api)
         run: npm install
-        working-directory: ./api
+        working-directory: ./images-api
 
       - name: Run post-deployment tests
-        working-directory: ./api
+        working-directory: ./images-api
         run: npm run test:post-deployment
         env:
           POST_DEPLOYMENT_SERVER_DOMAIN: ${{ vars.POST_DEPLOYMENT_SERVER_DOMAIN }}

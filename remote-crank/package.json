@@ -22,6 +22,9 @@
     "ts-standard": "^12.0.2",
     "typescript": "^5.4.5"
   },
+  "ts-standard": {
+    "ignore": ["dist"]
+  },
   "dependencies": {
     "express": "^4.19.2"
   },

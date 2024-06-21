@@ -28,7 +28,7 @@ export class Resources {
   }
 
   get serviceBucket (): s3.Bucket {
-    const serviceBucketName = process.env.SERVICE_BUCKET_NAME ?? 'template-api-service-data-bucket'
+    const serviceBucketName = process.env.SERVICE_BUCKET_NAME ?? 'images-api-service-data-bucket'
     return new s3.Bucket(this.stack, 'ServiceDataBucket', {
       bucketName: serviceBucketName,
       removalPolicy: cdk.RemovalPolicy.DESTROY,

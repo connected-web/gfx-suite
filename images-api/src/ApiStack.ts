@@ -4,8 +4,8 @@ import { Construct } from 'constructs'
 import { OpenAPIRestAPI, OpenAPIVerifiers, OpenAPIBasicModels } from '@connected-web/openapi-rest-api'
 
 import { Resources } from './Resources'
-import { StatusEndpoint } from './endpoints/Status'
-import { OpenAPISpecEndpoint } from './endpoints/OpenAPISpec'
+import { StatusEndpoint } from './endpoints/Status/metadata'
+import { OpenAPISpecEndpoint } from './endpoints/OpenAPISpec/metadata'
 
 export interface IdentityConfig {
   verifiers: OpenAPIVerifiers
@@ -18,9 +18,7 @@ export interface StackParameters { hostedZoneDomain: string, serviceDataBucketNa
  *
  * The main stack for the API. This stack creates the API Gateway, and all of its endpoints.
  *
- * Use this stack as a template for your own API.
- *
- * Create your own endpoints in ./endpoints/ by extending the OpenAPIEndpoint class, and adding them to the API Gateway.
+ * Create additional endpoints in ./endpoints/ by extending the OpenAPIEndpoint class, and adding them to the API Gateway.
  *
  * Share custom resources by implementing the ./Resources.ts class, which will be passed into your endpoints.
  *
@@ -40,9 +38,9 @@ export class ApiStack extends cdk.Stack {
     const sharedResources = new Resources(scope, this)
 
     // Create API Gateway
-    const apiGateway = new OpenAPIRestAPI<Resources>(this, 'Template API', {
-      Description: 'Template API - https://github.com/connected-web/template-api',
-      SubDomain: 'template-api',
+    const apiGateway = new OpenAPIRestAPI<Resources>(this, 'Images API', {
+      Description: 'Images API - https://github.com/connected-web/gfx-suite',
+      SubDomain: 'images',
       HostedZoneDomain: config.hostedZoneDomain,
       Verifiers: config?.identity.verifiers ?? []
     }, sharedResources)
@@ -52,10 +50,10 @@ export class ApiStack extends cdk.Stack {
 
     // Add endpoints to API
     apiGateway
-      .addEndpoints([
-        new StatusEndpoint(),
-        new OpenAPISpecEndpoint()
-      ])
+      .addEndpoints({
+        'GET /status': new StatusEndpoint(),
+        'GET /openapi': new OpenAPISpecEndpoint()
+      })
       .report()
   }
 }

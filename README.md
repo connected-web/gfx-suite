@@ -26,7 +26,7 @@ Private planning board on Miro:
 
 - ✅ Initialise project components
 - ✅ Create basic GFX Suite Website
-- 🚧 Create Connected Web Images API
+- ✅ Create Connected Web Images API
 - ✅ Create GFX Suite Remote Crank
 - ✅ Setup remote FTP Server for Image Results
 

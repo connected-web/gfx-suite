@@ -38,8 +38,8 @@ describe('REST API', () => {
 
   it('Creates an AWS ApiGateway RestApi with the correct title and description', () => {
     template.hasResourceProperties('AWS::ApiGateway::RestApi', {
-      Description: 'Template API - https://github.com/connected-web/template-api',
-      Name: 'Template API'
+      Description: 'Images API - https://github.com/connected-web/gfx-suite',
+      Name: 'Images API'
     })
   })
 

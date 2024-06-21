@@ -1,21 +1,11 @@
-import {
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult
-} from 'aws-lambda/trigger/api-gateway-proxy'
-
-import { OpenAPIEnums, OpenAPIHelpers, OpenAPIRouteMetadata } from '@connected-web/openapi-rest-api'
-
 import { Construct } from 'constructs'
+import path from 'path'
 import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-nodejs'
-import { MethodResponse, IModel } from 'aws-cdk-lib/aws-apigateway'
-import { Resources } from '../Resources'
-import StatusResponse from '../models/StatusResponse'
+import { MethodResponse } from 'aws-cdk-lib/aws-apigateway'
 
-/* This handler is executed by AWS Lambda when the endpoint is invoked */
-export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const statusInfo = process.env.STATUS_INFO ?? JSON.stringify({ message: 'No STATUS_INFO found on env' })
-  return OpenAPIHelpers.lambdaResponse(OpenAPIEnums.httpStatusCodes.success, statusInfo)
-}
+import { OpenAPIRouteMetadata } from '@connected-web/openapi-rest-api'
+import { Resources } from '../../Resources'
+import { ApiResponse } from '../../models/ApiResponse'
 
 /* This section is for route metadata used by CDK to create the stack that will host your endpoint */
 export class StatusEndpoint extends OpenAPIRouteMetadata<Resources> {
@@ -33,7 +23,7 @@ export class StatusEndpoint extends OpenAPIRouteMetadata<Resources> {
   }
 
   get routeEntryPoint (): string {
-    return __filename
+    return path.join(__dirname, 'handler.ts')
   }
 
   get lambdaConfig (): NodejsFunctionProps {
@@ -55,16 +45,8 @@ export class StatusEndpoint extends OpenAPIRouteMetadata<Resources> {
         'method.response.header.Access-Control-Allow-Credentials': true
       },
       responseModels: {
-        'application/json': StatusResponse.model
+        'application/json': ApiResponse.model
       }
     }]
-  }
-
-  get methodRequestModels (): { [param: string]: IModel } | undefined {
-    return undefined
-  }
-
-  get requestParameters (): { [param: string]: boolean } | undefined {
-    return undefined
   }
 }
