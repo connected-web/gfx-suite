@@ -33,7 +33,7 @@ Private planning board on Miro:
 ### GFX Suite Website
 
 - ✅ Host GFX Suite Website via CI Pipeline
-- 🚧 Add user authentication via Connected Web Identity
+- ✅ Add user authentication via Connected Web Identity
 - 🚧 Create Image Request Form
 - 🚧 Create Image Browser
 - 🚧 Create Status Page
