@@ -10,12 +10,10 @@ import pageRoutes from './pages'
 const auth = new Auth('prod')
 console.log('Initialised Auth', { auth })
 
-
 const router = VueRouter.createRouter({
   history: VueRouter.createWebHistory(),
   routes: pageRoutes as VueRouter.RouteRecordRaw[]
 })
-
 
 const app = createApp(App)
 app.use(router)
