@@ -1,0 +1,7 @@
+{
+  "name": "Connected Web (UAT)",
+  "auth": "https://connected-web-dev.auth.eu-west-2.amazoncognito.com",
+  "url": "https://cognito-idp.eu-west-2.amazonaws.com/eu-west-2_VBRbzaly6",
+  "clientId": "5rgdg0eeeeu043fbfvl12ehrmg",
+  "scopes": "openid email profile"
+}

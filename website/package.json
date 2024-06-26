@@ -17,11 +17,17 @@
     "transform": "cuc-w2c -i workflows/render-simplified.json -o workflows/render-simplified.js -t esm"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.5.1",
+    "@fortawesome/free-brands-svg-icons": "^6.5.1",
+    "@fortawesome/free-solid-svg-icons": "^6.5.1",
+    "@fortawesome/vue-fontawesome": "^3.0.6",
     "@stable-canvas/comfyui-client": "^1.2.11",
     "@stable-canvas/comfyui-client-cli": "^1.2.2",
+    "crypto-js": "^4.2.0",
+    "oauth4webapi": "^2.10.4",
     "ts-standard": "^12.0.2",
     "vue": "^3.4.21",
-    "vue-router": "^4.2.1",
+    "vue-router": "^4.4.0",
     "ws": "^8.17.0"
   },
   "devDependencies": {

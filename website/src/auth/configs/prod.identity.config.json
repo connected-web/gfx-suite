@@ -1,0 +1,7 @@
+{
+  "name": "Connected Web (Prod)",
+  "auth": "https://connected-web.auth.eu-west-2.amazoncognito.com",
+  "url": "https://cognito-idp.eu-west-2.amazonaws.com/eu-west-2_rt9QhO9KA",
+  "clientId": "2fomt3amj0luqe3o5ce8ou76m8",
+  "scopes": "openid email profile"
+}
