@@ -27,7 +27,7 @@ const stackTemplate = new ApiStack(app, stackName, {
 },
 {
   hostedZoneDomain: accountConfig.hostedZoneDomain,
-  serviceDataBucketName: ['images-api', accountConfig.environment].join('-'),
+  serviceDataBucketName: ['connected-web-images-api', accountConfig.environment].join('-'),
   identity: accountConfig.identity
 })
 
