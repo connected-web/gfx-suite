@@ -118,6 +118,9 @@ describe('Open API Spec', () => {
       expect(pathStrings).toEqual([
         '/',
         '/openapi',
+        '/request',
+        '/request/{requestId}',
+        '/requests',
         '/status'
       ])
     })
