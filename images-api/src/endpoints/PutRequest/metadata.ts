@@ -28,7 +28,7 @@ export class PutRequestEndpoint extends OpenAPIRouteMetadata<Resources> {
   }
 
   get restSignature (): string {
-    return 'PUT /request/:requestId'
+    return 'PUT /request/{requestId}'
   }
 
   get routeEntryPoint (): string {
