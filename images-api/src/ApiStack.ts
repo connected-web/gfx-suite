@@ -6,6 +6,9 @@ import { OpenAPIRestAPI, OpenAPIVerifiers, OpenAPIBasicModels } from '@connected
 import { Resources } from './Resources'
 import { StatusEndpoint } from './endpoints/Status/metadata'
 import { OpenAPISpecEndpoint } from './endpoints/OpenAPISpec/metadata'
+import { PutRequestEndpoint } from './endpoints/PutRequest/metadata'
+import { GetRequestsEndpoint } from './endpoints/GetRequests/metadata'
+import { DeleteRequestsEndpoint } from './endpoints/DeleteRequests/metadata'
 
 export interface IdentityConfig {
   verifiers: OpenAPIVerifiers
@@ -52,7 +55,10 @@ export class ApiStack extends cdk.Stack {
     apiGateway
       .addEndpoints({
         'GET /status': new StatusEndpoint(),
-        'GET /openapi': new OpenAPISpecEndpoint()
+        'GET /openapi': new OpenAPISpecEndpoint(),
+        'PUT /request/{requestId}': new PutRequestEndpoint(sharedResources),
+        'GET /requests': new GetRequestsEndpoint(sharedResources),
+        'DELETE /requests': new DeleteRequestsEndpoint(sharedResources)
       })
       .report()
   }

@@ -2,6 +2,7 @@
 import { Construct } from 'constructs'
 import * as cdk from 'aws-cdk-lib'
 import * as s3 from 'aws-cdk-lib/aws-s3'
+import * as sqs from 'aws-cdk-lib/aws-sqs'
 import { StackParameters } from './ApiStack'
 
 /**
@@ -23,19 +24,22 @@ export class Resources {
   scope: Construct
   stack: cdk.Stack
   serviceDataBucketName: string
+  serviceBucket: s3.Bucket
+  requestsQueue: sqs.Queue
 
   constructor (scope: Construct, stack: cdk.Stack, stackConfig: StackParameters) {
     this.scope = scope
     this.stack = stack
     this.serviceDataBucketName = stackConfig?.serviceDataBucketName
-  }
 
-  get serviceBucket (): s3.Bucket {
-    const { serviceDataBucketName } = this
-    return new s3.Bucket(this.stack, 'ServiceDataBucket', {
-      bucketName: serviceDataBucketName,
+    this.serviceBucket = new s3.Bucket(this.stack, 'ServiceDataBucket', {
+      bucketName: stackConfig?.serviceDataBucketName,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       versioned: true
+    })
+
+    this.requestsQueue = new sqs.Queue(this.stack, 'RequestsQueue', {
+      visibilityTimeout: cdk.Duration.seconds(30)
     })
   }
 }
