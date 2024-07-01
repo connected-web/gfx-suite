@@ -53,7 +53,7 @@ export class DeleteRequestsEndpoint extends OpenAPIRouteMetadata<Resources> {
         'method.response.header.Access-Control-Allow-Credentials': true
       },
       responseModels: {
-        'application/json': ApiResponse.model
+        'application/json': ApiResponse.deleteRequests
       }
     }]
   }

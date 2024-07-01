@@ -177,4 +177,61 @@ describe('Open API Spec', () => {
       expect(ajv.errors ?? []).toEqual([])
     })
   })
+
+  describe('Request Endpoints', () => {
+    let appClient: ApiClientUnderTest
+    beforeAll(async () => {
+      const axiosApi = new OpenAPIClientAxios({
+        definition: openapiDoc,
+        axiosConfigDefaults: {
+          headers: serverConfig.headers,
+          validateStatus: function (status) {
+            return status >= 200 // don't throw errors on non-200 codes
+          }
+        }
+      })
+
+      appClient = await axiosApi.getClient<ApiClientUnderTest>()
+      appClient.interceptors.response.use((response) => response, (error) => {
+        console.log('Caught client error:', error.message)
+      })
+    })
+
+    it('should be possible to create a request', async () => {
+      const response = await appClient.putRequest({ requestId: 'test-suite' }, {
+        description: 'This is a test request',
+        width: 512,
+        height: 768
+      })
+
+      console.log('Create Request:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/PutRequest' }, response.data)
+      expect(ajv.errors ?? []).toEqual([])
+    })
+
+    const receiptHandles: any = []
+    it('should be possible to get a list of requests', async () => {
+      const response = await appClient.getRequests()
+
+      console.log('Get Requests:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+
+      const requests: any = (response.data as any)?.requests ?? []
+      requests.forEach((request: any) => {
+        receiptHandles.push({ ReceiptHandle: request.ReceiptHandle })
+      })
+
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/GetRequests' }, response.data)
+      expect(ajv.errors ?? []).toEqual([])
+    })
+
+    it('should be possible to delete requests', async () => {
+      const response = await appClient.deleteRequests({}, receiptHandles)
+
+      console.log('List Requests:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/DeleteRequests' }, response.data)
+      expect(ajv.errors ?? []).toEqual([])
+    })
+  })
 })
