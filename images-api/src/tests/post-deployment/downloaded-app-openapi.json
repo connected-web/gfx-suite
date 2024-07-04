@@ -3,7 +3,7 @@
   "info": {
     "title": "Images API",
     "description": "Images API - https://github.com/connected-web/gfx-suite",
-    "version": "2024-06-30T19:52:00Z"
+    "version": "2024-07-01T20:55:25Z"
   },
   "servers": [
     {
@@ -138,7 +138,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseModel"
+                  "$ref": "#/components/schemas/GetRequestsModel"
                 }
               }
             }
@@ -175,7 +175,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseModel"
+                  "$ref": "#/components/schemas/DeleteRequestsModel"
                 }
               }
             }
@@ -355,7 +355,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseModel"
+                  "$ref": "#/components/schemas/PutRequestModel"
                 }
               }
             }
@@ -411,12 +411,90 @@
   },
   "components": {
     "schemas": {
+      "GetRequestsModel": {
+        "title": "Get Requests Response",
+        "required": [
+          "message",
+          "requests"
+        ],
+        "type": "object",
+        "properties": {
+          "requests": {
+            "type": "array",
+            "description": "The list of requests that were retrieved",
+            "items": {
+              "required": [
+                "batchSize",
+                "height",
+                "negative",
+                "positive",
+                "receiptHandle",
+                "requestId",
+                "type",
+                "width"
+              ],
+              "type": "object",
+              "properties": {
+                "negative": {
+                  "type": "array",
+                  "description": "The negative image labels"
+                },
+                "requestId": {
+                  "type": "string",
+                  "description": "The unique identifier for the request"
+                },
+                "width": {
+                  "type": "integer",
+                  "description": "The width of the image"
+                },
+                "receiptHandle": {
+                  "type": "string",
+                  "description": "The unique identifier for the message"
+                },
+                "positive": {
+                  "type": "array",
+                  "description": "The positive image labels"
+                },
+                "type": {
+                  "type": "string",
+                  "description": "The type of request"
+                },
+                "batchSize": {
+                  "type": "integer",
+                  "description": "The number of images to process in a batch"
+                },
+                "height": {
+                  "type": "integer",
+                  "description": "The height of the image"
+                }
+              }
+            }
+          },
+          "message": {
+            "type": "string",
+            "description": "The message content describing the response"
+          }
+        }
+      },
       "BasicObjectModel": {
         "title": "Basic Object",
         "type": "object",
         "properties": {},
         "additionalProperties": true,
         "description": "A basic JSON object with key value pairs"
+      },
+      "DeleteRequestsModel": {
+        "title": "Delete Requests Response",
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "The message content describing the response"
+          }
+        }
       },
       "ApiResponseModel": {
         "title": "Basic API Response",
@@ -438,6 +516,63 @@
           "statusCode": {
             "type": "integer",
             "description": "The HTTP status code of the response"
+          }
+        }
+      },
+      "PutRequestModel": {
+        "title": "Put Request Response",
+        "required": [
+          "message",
+          "request"
+        ],
+        "type": "object",
+        "properties": {
+          "request": {
+            "required": [
+              "batchSize",
+              "height",
+              "negative",
+              "positive",
+              "requestId",
+              "type",
+              "width"
+            ],
+            "type": "object",
+            "properties": {
+              "negative": {
+                "type": "array",
+                "description": "The negative image labels"
+              },
+              "requestId": {
+                "type": "string",
+                "description": "The unique identifier for the request"
+              },
+              "width": {
+                "type": "integer",
+                "description": "The width of the image"
+              },
+              "positive": {
+                "type": "array",
+                "description": "The positive image labels"
+              },
+              "type": {
+                "type": "string",
+                "description": "The type of request"
+              },
+              "batchSize": {
+                "type": "integer",
+                "description": "The number of images to process in a batch"
+              },
+              "height": {
+                "type": "integer",
+                "description": "The height of the image"
+              }
+            },
+            "description": "The request that was queued for processing"
+          },
+          "message": {
+            "type": "string",
+            "description": "The message content describing the response"
           }
         }
       }

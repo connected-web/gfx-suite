@@ -162,7 +162,7 @@ describe('Open API Spec', () => {
     it('should be possible to getOpenAPISpec', async () => {
       const response = await appClient.getOpenAPISpec()
 
-      console.log('Get Open API Spec:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+      console.log('Get Open API Spec:', response.status, response.statusText, JSON.stringify(response.data, null, 2)?.length, 'bytes received')
 
       ajv.validate({ $ref: 'app-openapi.json#/components/schemas/BasicObjectModel' }, response.data)
       expect(ajv.errors ?? []).toEqual([])
