@@ -206,7 +206,7 @@ describe('Open API Spec', () => {
 
       console.log('Create Request:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
 
-      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/PutRequest' }, response.data)
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/PutRequestModel' }, response.data)
       expect(ajv.errors ?? []).toEqual([])
     })
 
@@ -221,7 +221,7 @@ describe('Open API Spec', () => {
         receiptHandles.push({ ReceiptHandle: request.ReceiptHandle })
       })
 
-      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/GetRequests' }, response.data)
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/GetRequestsModel' }, response.data)
       expect(ajv.errors ?? []).toEqual([])
     })
 
@@ -230,7 +230,7 @@ describe('Open API Spec', () => {
 
       console.log('List Requests:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
 
-      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/DeleteRequests' }, response.data)
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/DeleteRequestsModel' }, response.data)
       expect(ajv.errors ?? []).toEqual([])
     })
   })
