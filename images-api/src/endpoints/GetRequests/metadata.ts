@@ -39,7 +39,7 @@ export class GetRequestsEndpoint extends OpenAPIRouteMetadata<Resources> {
     return {
       environment: {
         SERVICE_BUCKET: this.resources.serviceBucket.bucketName,
-        REQUESTS_QUEUE: this.resources.requestsQueue.queueUrl
+        REQUESTS_QUEUE_URL: this.resources.requestsQueue.queueUrl
       }
     }
   }

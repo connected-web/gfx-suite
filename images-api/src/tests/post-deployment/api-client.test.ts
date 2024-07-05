@@ -228,7 +228,7 @@ describe('Open API Spec', () => {
     it('should be possible to delete requests', async () => {
       const response = await appClient.deleteRequests({}, receiptHandles)
 
-      console.log('List Requests:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+      console.log('Delete Requests:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
 
       ajv.validate({ $ref: 'app-openapi.json#/components/schemas/DeleteRequestsModel' }, response.data)
       expect(ajv.errors ?? []).toEqual([])
