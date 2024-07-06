@@ -201,7 +201,10 @@ describe('Open API Spec', () => {
       const response = await appClient.putRequest({ requestId: 'test-suite' }, {
         description: 'This is a test request',
         width: 512,
-        height: 768
+        height: 768,
+        batchSize: 1,
+        negative: 'rubbish',
+        positive: 'masterwork'
       })
 
       console.log('Create Request:', response.status, response.statusText, JSON.stringify(response.data, null, 2))

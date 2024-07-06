@@ -99,13 +99,17 @@ export class ApiResponse extends OpenAPIBasicModels {
           items: {
             type: JsonSchemaType.OBJECT,
             properties: {
+              messageId: {
+                type: JsonSchemaType.STRING,
+                description: 'The unique identifier for this specific message'
+              },
               receiptHandle: {
                 type: JsonSchemaType.STRING,
-                description: 'The unique identifier for the message'
+                description: 'The unique identifier used to delete this message once handled'
               },
               requestId: {
                 type: JsonSchemaType.STRING,
-                description: 'The unique identifier for the request'
+                description: 'The unique identifier for the original request'
               },
               type: {
                 type: JsonSchemaType.STRING,

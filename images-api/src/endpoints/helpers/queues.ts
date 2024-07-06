@@ -1,5 +1,11 @@
 import { SQS } from 'aws-sdk'
 
+export interface MessageWithReceiptType {
+  receiptHandler?: string
+  ReceiptHandler?: string
+  [key: string]: string | undefined
+}
+
 export default class Queues {
   private readonly sqs: SQS
   private readonly queueUrl: string
@@ -26,22 +32,23 @@ export default class Queues {
     return result?.Messages ?? []
   }
 
-  async deleteMessages (messages: SQS.MessageList): Promise<SQS.Message[]> {
+  async deleteMessages (messages: MessageWithReceiptType[]): Promise<MessageWithReceiptType[]> {
     console.log(`Received ${String(messages?.length)} messages for processing`)
     const work = messages.map(async (message) => {
-      if (message?.ReceiptHandle !== undefined) {
+      const receiptHandle = message?.receiptHandler ?? message.ReceiptHandler
+      if (receiptHandle !== undefined) {
         console.log('Marking message as processed:', message.MessageId)
         try {
           await this.sqs.deleteMessage({
             QueueUrl: this.queueUrl,
-            ReceiptHandle: message.ReceiptHandle
+            ReceiptHandle: receiptHandle
           }).promise()
         } catch (ex) {
           const error = ex as Error
           console.log('Unable to process message:', error?.message, 'Message', message.MessageId, message?.Body)
         }
       } else {
-        console.log('No receipt handle on message:', 'Message', message.MessageId, message?.Body)
+        console.log('No receipt handle on message:', 'Message', message?.MessageId, message?.Body)
       }
       return message
     })

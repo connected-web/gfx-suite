@@ -9,6 +9,19 @@ const requestsQueue = new Queues(queueUrl)
 /* This handler is executed by AWS Lambda when the endpoint is invoked */
 export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const messages = await requestsQueue.retrieveMessages()
+  const requests = messages.map((message) => {
+    const request = JSON.parse(message.Body as string)
+    return {
+      messageId: message.MessageId,
+      receiptHandle: message.ReceiptHandle,
+      ...request
+    }
+  })
 
-  return lambdaResponse(httpStatusCodes.success, JSON.stringify({ messages }))
+  const response = {
+    message: `Retrieved ${requests.length} requests from the queue`,
+    requests
+  }
+
+  return lambdaResponse(httpStatusCodes.success, JSON.stringify(response))
 }

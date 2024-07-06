@@ -5,7 +5,7 @@ import { MethodResponse } from 'aws-cdk-lib/aws-apigateway'
 
 import { OpenAPIRouteMetadata } from '@connected-web/openapi-rest-api'
 import { Resources } from '../../Resources'
-import { ApiResponse } from '../../models/ApiResponse'
+import { ApiResponse } from '../../models/ApiResponses'
 
 /* This section is for route metadata used by CDK to create the stack that will host your endpoint */
 export class PutRequestEndpoint extends OpenAPIRouteMetadata<Resources> {
