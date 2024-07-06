@@ -4,11 +4,11 @@
       <h3>Your Details</h3>
       <p>Hi {{ firstName }}!</p>
       <pre>Principal ID: <b>{{ principalId }}</b></pre>
-      <p>You need to be logged in to access the GFX Suite</p>
     </div>
     <div v-else>
       <h3>Guest</h3>
       <p>You are not logged in.</p>
+      <p>You need to be logged in to access the GFX Suite</p>
     </div>
 
     <h3>Account actions</h3>
