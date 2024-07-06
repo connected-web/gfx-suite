@@ -21,7 +21,7 @@ export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayP
     requestId: event?.pathParameters?.requestId,
     type: 'image-batch',
     positive: rawRequest?.positive,
-    negative: rawRequest?.positive,
+    negative: rawRequest?.negative,
     width: rawRequest?.width,
     height: rawRequest?.height,
     batchSize: rawRequest?.batchSize

@@ -56,11 +56,11 @@ export class ApiResponse extends OpenAPIBasicModels {
               description: 'The type of request'
             },
             positive: {
-              type: JsonSchemaType.ARRAY,
+              type: JsonSchemaType.STRING,
               description: 'The positive image labels'
             },
             negative: {
-              type: JsonSchemaType.ARRAY,
+              type: JsonSchemaType.STRING,
               description: 'The negative image labels'
             },
             width: {
@@ -116,12 +116,12 @@ export class ApiResponse extends OpenAPIBasicModels {
                 description: 'The type of request'
               },
               positive: {
-                type: JsonSchemaType.ARRAY,
-                description: 'The positive image labels'
+                type: JsonSchemaType.STRING,
+                description: 'The positive image description'
               },
               negative: {
-                type: JsonSchemaType.ARRAY,
-                description: 'The negative image labels'
+                type: JsonSchemaType.STRING,
+                description: 'The negative image description'
               },
               width: {
                 type: JsonSchemaType.INTEGER,
@@ -133,7 +133,11 @@ export class ApiResponse extends OpenAPIBasicModels {
               },
               batchSize: {
                 type: JsonSchemaType.INTEGER,
-                description: 'The number of images to process in a batch'
+                description: 'The number of images to generate in a batch'
+              },
+              model: {
+                type: JsonSchemaType.STRING,
+                description: 'The model to use for processing'
               }
             },
             required: ['receiptHandle', 'requestId', 'type', 'positive', 'negative', 'width', 'height', 'batchSize']

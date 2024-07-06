@@ -91,10 +91,10 @@ describe('Open API Spec', () => {
   beforeAll(async () => {
     console.log('Implicit test: it should download the openapi spec for the App Store from /openapi')
     const oauthToken = await getOAuthToken()
-    console.log('Received OAuth Token:', { oauthToken })
+    console.log('Received OAuth Token:', { oauthToken: `${oauthToken?.length} bytes` })
     serverConfig.headers.authorization = `Bearer ${oauthToken}`
     const basicClient = axios.create(serverConfig)
-    console.log('Created basic Axios client using:', { serverConfig })
+    // console.log('Created basic Axios client using:', { serverConfig })
 
     const response = await basicClient.get('/openapi')
     openapiDoc = response.data

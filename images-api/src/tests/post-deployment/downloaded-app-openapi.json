@@ -3,7 +3,7 @@
   "info": {
     "title": "Images API",
     "description": "Images API - https://github.com/connected-web/gfx-suite",
-    "version": "2024-07-01T20:55:25Z"
+    "version": "2024-07-06T10:05:52Z"
   },
   "servers": [
     {
@@ -441,15 +441,19 @@
                 },
                 "requestId": {
                   "type": "string",
-                  "description": "The unique identifier for the request"
+                  "description": "The unique identifier for the original request"
                 },
                 "width": {
                   "type": "integer",
                   "description": "The width of the image"
                 },
+                "messageId": {
+                  "type": "string",
+                  "description": "The unique identifier for this specific message"
+                },
                 "receiptHandle": {
                   "type": "string",
-                  "description": "The unique identifier for the message"
+                  "description": "The unique identifier used to delete this message once handled"
                 },
                 "positive": {
                   "type": "array",
