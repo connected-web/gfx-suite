@@ -21,22 +21,28 @@
         <label>{{ loggedIn ? 'Logout' : 'Login' }}</label>
       </button>
     </div>
+    <div class="warning column p5 left">
+      <h3>Server status</h3>
+      <pre><code>{{ serverStatus }}</code></pre>
+    </div>
   </div>
 </template>
 
 <script type="ts">
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import Auth from '../Auth'
+import { onErrorCaptured } from 'vue'
 
 export default {
   components: { LoadingSpinner },
   data() {
     return {
-      processingAuthAction: false
+      processingAuthAction: false,
+      serverStatus: 'unknown'
     }
   },
   async mounted() {
-    this.refreshData()
+    this.refreshStatus()
     const self = this
     Auth.instance?.onInitialized(() => {
       console.log('Auth initialized in user/Details.vue')
@@ -69,10 +75,12 @@ export default {
       this.processingAuthAction = false
       this.$forceUpdate()
     },
-    async refreshData() {
+    async refreshStatus() {
+      const statusUrl = 'https://images.dev.connected-web.services/status'
       const accessToken = await Auth.instance.getLatestAccessToken()
       try {
-        const result = await fetch('https://images.dev.connected-web.services/status', {
+        this.serverStatus = 'Loading server status...'
+        const result = await fetch(statusUrl, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -82,9 +90,13 @@ export default {
         if (result.ok) {
           const data = await result.json()
           console.log('Data:', data)
+          this.serverStatus = data
+        } else {
+          this.serverStatus = { message: 'Unable to load status', result, statusUrl }
         }
       } catch (error) {
-        console.error('Unable to refresh data:', error)
+        console.error('Unable to load status:', error)
+        this.serverStatus = { message: 'Unable to load status', error: error.message, statusUrl }
       }
     }
   }
