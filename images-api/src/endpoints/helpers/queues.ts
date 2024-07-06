@@ -37,7 +37,7 @@ export default class Queues {
     const work = messages.map(async (message) => {
       const receiptHandle = message?.receiptHandle ?? message.ReceiptHandle
       if (receiptHandle !== undefined) {
-        console.log('Marking message as processed:', message.MessageId)
+        console.log('Marking message as processed:', message)
         try {
           await this.sqs.deleteMessage({
             QueueUrl: this.queueUrl,

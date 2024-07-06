@@ -221,7 +221,7 @@ describe('Open API Spec', () => {
 
       const requests: any = (response.data as any)?.requests ?? []
       requests.forEach((request: any) => {
-        receiptHandles.push({ ReceiptHandle: request.ReceiptHandle })
+        receiptHandles.push({ ReceiptHandle: request.receiptHandle })
       })
 
       ajv.validate({ $ref: 'app-openapi.json#/components/schemas/GetRequestsModel' }, response.data)
