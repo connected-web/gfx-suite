@@ -15,7 +15,7 @@ The system is designed for cost-effective hosting - providing a public presence 
 
 ## Proposed Architecture
 
-![image](https://github.com/connected-web/gfx-suite/assets/6341696/1537688d-414f-49f0-85b8-9a51d4442463)
+![image](https://github.com/connected-web/gfx-suite/assets/6341696/092f0835-6a19-4188-8dbb-698abcf9e2a0)
 
 Private planning board on Miro:
 - [https://miro.com/app/board/o9J_khFpBJo=/](https://miro.com/app/board/o9J_khFpBJo=/?moveToWidget=3074457352935427514&cot=14)
