@@ -13,12 +13,17 @@
       "clientId": "5rgdg0eeeeu043fbfvl12ehrmg",
       "oauthUrl": "https://connected-web-dev.auth.eu-west-2.amazoncognito.com"
     }, {
-      "name": "Apps Dev",
+      "name": "Github Apps Dev",
       "userPoolId": "eu-west-2_VBRbzaly6",
       "tokenUse": "access",
       "clientId": "4jflpkjl6c4u6ve18o822ovu1m",
       "oauthUrl": "https://connected-web-dev.auth.eu-west-2.amazoncognito.com"
+    }, {
+      "name": "GFXSuite Apps Dev",
+      "userPoolId": "eu-west-2_VBRbzaly6",
+      "tokenUse": "access",
+      "clientId": "1hcnq7garo932n1b19am30gula",
+      "oauthUrl": "https://connected-web-dev.auth.eu-west-2.amazoncognito.com"
     }]
   }
 }
-

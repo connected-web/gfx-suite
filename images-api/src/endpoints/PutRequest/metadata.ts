@@ -8,18 +8,27 @@ import { Resources } from '../../Resources'
 import { ApiResponse } from '../../models/ApiResponses'
 
 /* This section is for route metadata used by CDK to create the stack that will host your endpoint */
-export class StatusEndpoint extends OpenAPIRouteMetadata<Resources> {
+export class PutRequestEndpoint extends OpenAPIRouteMetadata<Resources> {
+  resources: Resources
+
+  constructor (resources: Resources) {
+    super()
+    this.resources = resources
+  }
+
   grantPermissions (scope: Construct, endpoint: NodejsFunction, resources: Resources): void {
     const serviceBucket = resources.serviceBucket
+    const requestsQueue = resources.requestsQueue
     serviceBucket.grantRead(endpoint)
+    requestsQueue.grantSendMessages(endpoint)
   }
 
   get operationId (): string {
-    return 'getStatus'
+    return 'putRequest'
   }
 
   get restSignature (): string {
-    return 'GET /status'
+    return 'PUT /request/{requestId}'
   }
 
   get routeEntryPoint (): string {
@@ -29,9 +38,8 @@ export class StatusEndpoint extends OpenAPIRouteMetadata<Resources> {
   get lambdaConfig (): NodejsFunctionProps {
     return {
       environment: {
-        STATUS_INFO: JSON.stringify({
-          deploymentTime: process.env.USE_MOCK_TIME ?? new Date()
-        })
+        SERVICE_BUCKET: this.resources.serviceBucket.bucketName,
+        REQUESTS_QUEUE_URL: this.resources.requestsQueue.queueUrl
       }
     }
   }
@@ -45,7 +53,7 @@ export class StatusEndpoint extends OpenAPIRouteMetadata<Resources> {
         'method.response.header.Access-Control-Allow-Credentials': true
       },
       responseModels: {
-        'application/json': ApiResponse.apiResponse
+        'application/json': ApiResponse.putRequest
       }
     }]
   }

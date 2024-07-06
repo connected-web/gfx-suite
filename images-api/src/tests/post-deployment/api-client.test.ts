@@ -91,10 +91,10 @@ describe('Open API Spec', () => {
   beforeAll(async () => {
     console.log('Implicit test: it should download the openapi spec for the App Store from /openapi')
     const oauthToken = await getOAuthToken()
-    console.log('Received OAuth Token:', { oauthToken })
+    console.log('Received OAuth Token:', { oauthToken: `${oauthToken?.length} bytes` })
     serverConfig.headers.authorization = `Bearer ${oauthToken}`
     const basicClient = axios.create(serverConfig)
-    console.log('Created basic Axios client using:', { serverConfig })
+    // console.log('Created basic Axios client using:', { serverConfig })
 
     const response = await basicClient.get('/openapi')
     openapiDoc = response.data
@@ -118,6 +118,9 @@ describe('Open API Spec', () => {
       expect(pathStrings).toEqual([
         '/',
         '/openapi',
+        '/request',
+        '/request/{requestId}',
+        '/requests',
         '/status'
       ])
     })
@@ -159,7 +162,7 @@ describe('Open API Spec', () => {
     it('should be possible to getOpenAPISpec', async () => {
       const response = await appClient.getOpenAPISpec()
 
-      console.log('Get Open API Spec:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+      console.log('Get Open API Spec:', response.status, response.statusText, JSON.stringify(response.data, null, 2)?.length, 'bytes received')
 
       ajv.validate({ $ref: 'app-openapi.json#/components/schemas/BasicObjectModel' }, response.data)
       expect(ajv.errors ?? []).toEqual([])
@@ -171,6 +174,66 @@ describe('Open API Spec', () => {
       console.log('Get Status:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
 
       ajv.validate({ $ref: 'app-openapi.json#/components/schemas/BasicObjectModel' }, response.data)
+      expect(ajv.errors ?? []).toEqual([])
+    })
+  })
+
+  describe('Request Endpoints', () => {
+    let appClient: ApiClientUnderTest
+    beforeAll(async () => {
+      const axiosApi = new OpenAPIClientAxios({
+        definition: openapiDoc,
+        axiosConfigDefaults: {
+          headers: serverConfig.headers,
+          validateStatus: function (status) {
+            return status >= 200 // don't throw errors on non-200 codes
+          }
+        }
+      })
+
+      appClient = await axiosApi.getClient<ApiClientUnderTest>()
+      appClient.interceptors.response.use((response) => response, (error) => {
+        console.log('Caught client error:', error.message)
+      })
+    })
+
+    it('should be possible to create a request', async () => {
+      const response = await appClient.putRequest({ requestId: 'test-suite' }, {
+        description: 'This is a test request',
+        width: 512,
+        height: 768,
+        batchSize: 1,
+        negative: 'rubbish',
+        positive: 'masterwork'
+      })
+
+      console.log('Create Request:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/PutRequestModel' }, response.data)
+      expect(ajv.errors ?? []).toEqual([])
+    })
+
+    const receiptHandles: any = []
+    it('should be possible to get a list of requests', async () => {
+      const response = await appClient.getRequests()
+
+      console.log('Get Requests:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+
+      const requests: any = (response.data as any)?.requests ?? []
+      requests.forEach((request: any) => {
+        receiptHandles.push({ ReceiptHandle: request.ReceiptHandle })
+      })
+
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/GetRequestsModel' }, response.data)
+      expect(ajv.errors ?? []).toEqual([])
+    })
+
+    it('should be possible to delete requests', async () => {
+      const response = await appClient.deleteRequests({}, receiptHandles)
+
+      console.log('Delete Requests:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/DeleteRequestsModel' }, response.data)
       expect(ajv.errors ?? []).toEqual([])
     })
   })
