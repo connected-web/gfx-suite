@@ -13,7 +13,8 @@ export interface ImageRequestType {
   height: number
   batchSize: number
   model?: string
-  [key: string]: string | number | undefined
+  requestTime?: Date | string
+  [key: string]: string | number | undefined | Date
 }
 
 export interface ImageRequestMessageType extends ImageRequestType {
@@ -33,4 +34,5 @@ export interface GetRequestResponseType {
 
 export interface DeleteRequestResponseType {
   message: string
+  results: string[]
 }

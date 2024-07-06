@@ -74,6 +74,14 @@ export class ApiResponse extends OpenAPIBasicModels {
             batchSize: {
               type: JsonSchemaType.INTEGER,
               description: 'The number of images to process in a batch'
+            },
+            model: {
+              type: JsonSchemaType.STRING,
+              description: 'The model to use for processing'
+            },
+            requestTime: {
+              type: JsonSchemaType.STRING,
+              description: 'The time the request was received by the server in ISO format'
             }
           },
           required: ['requestId', 'type', 'positive', 'negative', 'width', 'height', 'batchSize']
@@ -138,6 +146,10 @@ export class ApiResponse extends OpenAPIBasicModels {
               model: {
                 type: JsonSchemaType.STRING,
                 description: 'The model to use for processing'
+              },
+              requestTime: {
+                type: JsonSchemaType.STRING,
+                description: 'The time the request was received by the server in ISO format'
               }
             },
             required: ['receiptHandle', 'requestId', 'type', 'positive', 'negative', 'width', 'height', 'batchSize']
@@ -157,6 +169,13 @@ export class ApiResponse extends OpenAPIBasicModels {
         message: {
           type: JsonSchemaType.STRING,
           description: 'The message content describing the response'
+        },
+        results: {
+          type: JsonSchemaType.ARRAY,
+          description: 'The list of results for each message processed',
+          items: {
+            type: JsonSchemaType.STRING
+          }
         }
       },
       required: ['message']

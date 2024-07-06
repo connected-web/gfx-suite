@@ -32,10 +32,10 @@ export default class Queues {
     return result?.Messages ?? []
   }
 
-  async deleteMessages (messages: MessageWithReceiptType[]): Promise<MessageWithReceiptType[]> {
+  async deleteMessages (messages: MessageWithReceiptType[]): Promise<string[]> {
     console.log(`Received ${String(messages?.length)} messages for processing`)
     const work = messages.map(async (message) => {
-      const receiptHandle = message?.receiptHandler ?? message.ReceiptHandler
+      const receiptHandle = message?.receiptHandle ?? message.ReceiptHandle
       if (receiptHandle !== undefined) {
         console.log('Marking message as processed:', message.MessageId)
         try {
@@ -45,12 +45,14 @@ export default class Queues {
           }).promise()
         } catch (ex) {
           const error = ex as Error
-          console.log('Unable to process message:', error?.message, 'Message', message.MessageId, message?.Body)
+          console.log('Unable to process message:', error?.message, 'Message', message)
+          return `Error processing message ${receiptHandle}: ${error?.message}`
         }
       } else {
-        console.log('No receipt handle on message:', 'Message', message?.MessageId, message?.Body)
+        console.log('No receipt handle on message:', 'Message', message)
+        return 'No receipt handle on message'
       }
-      return message
+      return `Removed message ${receiptHandle} from queue`
     })
 
     return await Promise.all(work)

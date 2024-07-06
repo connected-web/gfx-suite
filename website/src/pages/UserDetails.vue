@@ -32,13 +32,15 @@
 <script lang="ts">
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import Auth from '../Auth'
+import ImagesApiClient from '../clients/ImagesApi'
 
 export default {
   components: { LoadingSpinner },
   data() {
     return {
       processingAuthAction: false,
-      serverStatus: 'unknown'
+      serverStatus: 'unknown',
+      imagesApi: new ImagesApiClient()
     }
   },
   async mounted() {
@@ -76,26 +78,13 @@ export default {
       this.$forceUpdate()
     },
     async refreshStatus() {
-      const statusUrl = 'https://images.dev.connected-web.services/status'
-      const accessToken = await Auth.instance.getLatestAccessToken()
       try {
         this.serverStatus = 'Loading server status...'
-        const result = await fetch(statusUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'content-type': 'application/json'
-          }
-        })
-        if (result.ok) {
-          const data = await result.json()
-          this.serverStatus = data
-        } else {
-          this.serverStatus = { message: 'Unable to load status', result, statusUrl }
-        }
+        const statusResponse = await this.imagesApi.getStatus()
+        this.serverStatus = statusResponse
       } catch (error) {
         console.error('Unable to load status:', error)
-        this.serverStatus = { message: 'Unable to load status', error: error.message, statusUrl }
+        this.serverStatus = { message: 'Unable to load status', error: error.message }
       }
     }
   }

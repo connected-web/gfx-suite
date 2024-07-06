@@ -92,7 +92,10 @@ p {
 }
 
 .card {
-  padding: 2em;
+  padding: 10px;
+  border: 1px solid #ddd;
+  background: #efefef;
+  border-radius: 5px;
 }
 
 body {
@@ -117,6 +120,10 @@ body {
   flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;
+}
+
+.row.stretch > * {
+  flex: 1;
 }
 
 .column {
@@ -190,5 +197,5 @@ select, input, textarea {
   border: 1px solid #578991;
   border-radius: 10px;
   padding: 10px;
-  margin: 10%;
+  margin: 10px 10px;
 }

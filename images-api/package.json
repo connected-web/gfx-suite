@@ -1,5 +1,5 @@
 {
-  "name": "template-api-cdk",
+  "name": "images-api-cdk",
   "version": "0.1.0",
   "description": "Connected Web Images API",
   "bin": {

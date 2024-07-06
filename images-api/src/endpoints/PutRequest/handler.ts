@@ -16,6 +16,7 @@ function parseEvent (body: string): any {
 
 /* This handler is executed by AWS Lambda when the endpoint is invoked */
 export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const now = new Date()
   const rawRequest = parseEvent(event?.body ?? '{}')
   const requestMessage = {
     requestId: event?.pathParameters?.requestId,
@@ -24,7 +25,8 @@ export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayP
     negative: rawRequest?.negative,
     width: rawRequest?.width,
     height: rawRequest?.height,
-    batchSize: rawRequest?.batchSize
+    batchSize: rawRequest?.batchSize,
+    requestTime: now.toISOString()
   }
 
   try {
