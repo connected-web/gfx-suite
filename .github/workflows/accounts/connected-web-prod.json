@@ -13,10 +13,16 @@
       "clientId": "2fomt3amj0luqe3o5ce8ou76m8",
       "oauthUrl": "https://connected-web.auth.eu-west-2.amazoncognito.com"
     }, {
-      "name": "Apps Prod",
+      "name": "Github Apps Prod",
       "userPoolId": "eu-west-2_rt9QhO9KA",
       "tokenUse": "access",
       "clientId": "4ibp2u08e7a6lpv8vkjo7trcvu",
+      "oauthUrl": "https://connected-web.auth.eu-west-2.amazoncognito.com"
+    }, {
+      "name": "GfxSuite Apps Prod",
+      "userPoolId": "eu-west-2_rt9QhO9KA",
+      "tokenUse": "access",
+      "clientId": "1r1lhvviqm80oocqn27ol37490",
       "oauthUrl": "https://connected-web.auth.eu-west-2.amazoncognito.com"
     }]
   }
