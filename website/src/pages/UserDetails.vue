@@ -1,9 +1,10 @@
 <template>
-  <div class="pt-4">
+  <div class="column p10">
+    <h2>Your Details</h2>
     <div v-if="loggedIn">
-      <h3>Your Details</h3>
       <p>Hi {{ firstName }}!</p>
-      <pre>Principal ID: <b>{{ principalId }}</b></pre>
+      <p>The only information we keep on file is your user ID; this is used to track which accounts are using our systems and how often.</p>
+      <pre>User ID: <b>{{ principalId }}</b></pre>
     </div>
     <div v-else>
       <h3>Guest</h3>
@@ -28,10 +29,9 @@
   </div>
 </template>
 
-<script type="ts">
+<script lang="ts">
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import Auth from '../Auth'
-import { onErrorCaptured } from 'vue'
 
 export default {
   components: { LoadingSpinner },
@@ -89,7 +89,6 @@ export default {
         })
         if (result.ok) {
           const data = await result.json()
-          console.log('Data:', data)
           this.serverStatus = data
         } else {
           this.serverStatus = { message: 'Unable to load status', result, statusUrl }

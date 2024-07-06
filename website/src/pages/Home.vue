@@ -1,5 +1,7 @@
 <template>
   <div class="column p5">
+    <h2>Create Image Request</h2>
+    <p>Use this form to request an image to generate.</p>
     <textarea v-model="prompt"></textarea>
 
     <div class="row p5">

@@ -37,7 +37,8 @@ import LoadingSpinner from './components/LoadingSpinner.vue';
 
 const navigationItems = [
   { title: 'Home', path: '/' },
-  { title: 'Account', path: '/user/details' }
+  { title: 'Account', path: '/user/details' },
+  { title: 'Requests', path: '/queue' }
 ]
 
 export default {
