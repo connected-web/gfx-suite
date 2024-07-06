@@ -1,10 +1,9 @@
 <template>
   <div class="app-frame">
-    <div class="column p5">
-      <div class="row p5">
+    <div class="column">
+      <div class="row p5 page-header">
         <div class="column p5 left">
           <h1>{{ title }}</h1>
-          <p>{{ description }}</p>
         </div>
         <router-link to="/user/details" class="button align-self-center">
           <div :prepend-icon="loggedIn ? 'mdi-account' : 'mdi-shield-account'">
@@ -12,8 +11,20 @@
           </div>
         </router-link>
       </div>
-      <Navigation :items="navigationItems" />
-      <router-view></router-view>
+      <Navigation v-if="loggedIn" :items="navigationItems" />
+      <div v-if="loggedIn" class="content-frame">
+        <router-view></router-view>
+      </div>
+      <div v-else>
+        <p class="warning column p5 center">
+          <span>Please login to access the GFX Suite.</span>
+          <button @click="login" :disabled="processingAuthAction" class="row p5">
+            <LoadingSpinner v-if="processingAuthAction" />
+            <Icon :icon="loggedIn ? 'lock' : 'key'" />
+            <label>{{ loggedIn ? 'Logout' : 'Login' }}</label>
+          </button>
+        </p>
+      </div>
     </div>
   </div>
 </template>
@@ -22,7 +33,7 @@
 import Auth from './Auth'
 
 import Navigation from './components/Navigation.vue'
-import promptHistory from './components/PromptHistory'
+import LoadingSpinner from './components/LoadingSpinner.vue';
 
 const navigationItems = [
   { title: 'Home', path: '/' },
@@ -30,18 +41,11 @@ const navigationItems = [
 ]
 
 export default {
-  components: { Navigation },
+  components: { Navigation, LoadingSpinner },
   data() {
     return {
       title: 'GFX Suite',
-      description: 'This site provides authenticated access to the Connected Web Images API.',
-      promptHistory: [] as string[],
-      prompt: '',
-      invoking: false,
-      images: [] as string[],
-      batchSize: 1,
-      imageWidth: 512,
-      imageHeight: 768,
+      processingAuthAction: false,
       navigationItems
     }
   },
@@ -57,7 +61,6 @@ export default {
     }
   },
   mounted() {
-    this.promptHistory = promptHistory.getHistory()
     const self = this
     Auth.instance?.onInitialized(() => {
       console.log('Auth initialized in App.vue')
@@ -65,8 +68,11 @@ export default {
     })
   },
   methods: {
-    async activateWorkflow() {
-
+    async login() {
+      this.processingAuthAction = true
+      await Auth.instance?.login()
+      this.processingAuthAction = false
+      this.$forceUpdate()
     }
   }
 }
@@ -75,8 +81,18 @@ export default {
 <style scoped>
 .app-frame {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
+}
+
+.page-header {
+  border-bottom: 4px solid #ccc;
+  padding: 10px;
+}
+
+.content-frame {
+  padding: 10px;
 }
 </style>

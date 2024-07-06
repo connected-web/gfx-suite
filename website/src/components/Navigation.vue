@@ -1,5 +1,6 @@
 <template>
-  <div class="navigation">
+  <div class="navigation row left">
+    <Icon icon="home" />
     <router-link v-for="item in items" :key="item.path" :to="item.path" class="nav-item">{{ item.title }}</router-link>
   </div>
 </template>
@@ -21,18 +22,16 @@ export default {
 
 <style scoped>
 .navigation {
-  display: flex;
-  justify-content: space-around;
   background-color: #f3f3f3;
+  padding: 0 10px;
 }
 
 .nav-item {
   text-decoration: none;
   color: #333;
-  flex: 1;
   background-color: #f3f3f3;
-  transition: background-color 0.5s;
-  padding: 10px;
+  transition: background-color 0.2s;
+  padding: 10px 20px;
 }
 .nav-item:hover {
   background-color: #ddd;

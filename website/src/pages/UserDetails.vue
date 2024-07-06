@@ -14,11 +14,13 @@
     <h3>Account actions</h3>
     <p v-if="loggedIn">If you're using a public computer; or need to switch accounts (for whatever reason!) you can logout below when finishing a session:</p>
     <p v-else>If you have an account you can login, or create an account below:</p>
-    <button @click="loginOrLogout" :disabled="processingAuthAction">
-      <LoadingSpinner v-if="processingAuthAction" />
-      <Icon :icon="processingAuthAction ? 'mdi-account' : 'mdi-shield-account'" />
-      <label>{{ loggedIn ? 'Logout' : 'Login' }}</label>
-    </button>
+    <div class="row center">
+      <button @click="loginOrLogout" :disabled="processingAuthAction" class="row p5">
+        <LoadingSpinner v-if="processingAuthAction" />
+        <Icon :icon="loggedIn ? 'lock' : 'key'" />
+        <label>{{ loggedIn ? 'Logout' : 'Login' }}</label>
+      </button>
+    </div>
   </div>
 </template>
 
