@@ -34,12 +34,15 @@ import Auth from './Auth'
 
 import Navigation from './components/Navigation.vue'
 import LoadingSpinner from './components/LoadingSpinner.vue';
+import pages from './pages'
 
-const navigationItems = [
-  { title: 'Home', path: '/' },
-  { title: 'Account', path: '/user/details' },
-  { title: 'Requests', path: '/queue' }
-]
+const navigationItems = pages.filter(item => item.primaryNav).map(item => {
+  return {
+    title: item.navTitle ?? 'Untitled',
+    path: item.path ?? '/',
+    icon: item.icon ?? 'star'
+  }
+})
 
 export default {
   components: { Navigation, LoadingSpinner },

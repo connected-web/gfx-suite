@@ -1,6 +1,9 @@
 <template>
   <div class="column p10">
-    <h2>Requests Queue</h2>
+    <h2 class="row p5">
+      <Icon icon="rectangle-list" />
+      <label>Requests Queue</label>
+    </h2>
     <p>Information about active requests.</p>
     <div class="row p5 left">
       <button @click="refreshData" class="row p5" :disabled="loadingRequests">

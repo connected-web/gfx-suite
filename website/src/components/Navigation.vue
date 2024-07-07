@@ -1,7 +1,9 @@
 <template>
   <div class="navigation row left">
-    <Icon icon="home" />
-    <router-link v-for="item in items" :key="item.path" :to="item.path" class="nav-item">{{ item.title }}</router-link>
+    <router-link v-for="item in items" :key="item.path" :to="item.path" class="nav-item row p5">
+      <Icon :icon="item.icon ?? 'circle'" />
+      <label>{{ item.title }}</label>
+    </router-link>
   </div>
 </template>
 
@@ -10,6 +12,7 @@
 export interface NavigationItem {
   title: string
   path: string
+  icon: string
 }
 
 export default {
@@ -23,7 +26,7 @@ export default {
 <style scoped>
 .navigation {
   background-color: #f3f3f3;
-  padding: 0 10px;
+  padding: 0 0;
 }
 
 .nav-item {
