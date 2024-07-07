@@ -82,9 +82,10 @@ export default {
         this.serverStatus = 'Loading server status...'
         const statusResponse = await this.imagesApi.getStatus()
         this.serverStatus = statusResponse
-      } catch (error) {
+      } catch (ex) {
+        const error = ex as Error
         console.error('Unable to load status:', error)
-        this.serverStatus = { message: 'Unable to load status', error: error.message }
+        this.serverStatus = `Unable to load status: ${error.message}`
       }
     }
   }

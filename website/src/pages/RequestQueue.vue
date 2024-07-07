@@ -69,7 +69,7 @@
 </template>
 
 <script lang="ts">
-import ImagesApiClient from '../clients/ImagesApi'
+import ImagesApiClient, { ImageRequest } from '../clients/ImagesApi'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 
 export default {
@@ -79,7 +79,7 @@ export default {
       imagesApi: new ImagesApiClient(),
       loadingRequests: false,
       requestsStatus: undefined as string | undefined,
-      requests: []
+      requests: [] as ImageRequest[]
     }
   },
   async mounted() {
