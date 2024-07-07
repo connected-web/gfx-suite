@@ -21,16 +21,12 @@
       "DOM.Iterable",
       "ScriptHost"
     ],
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    },
+    "rootDir": "./src",
     "outDir": "./dist"
   },
   "include": [
     "src/**/*.ts",
-    "server.ts",
+    "src/server.ts",
     "tests/**/*.ts"
   ],
   "exclude": [
