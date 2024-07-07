@@ -34,7 +34,8 @@ Private planning board on Miro:
 
 - ✅ Host GFX Suite Website via CI Pipeline
 - ✅ Add user authentication via Connected Web Identity
-- 🚧 Create Image Request Form
+- ✅ Create Image Request Form
+- ✅ Create Page to Diagnose Requests
 - 🚧 Create Image Browser
 - 🚧 Create Status Page
 
