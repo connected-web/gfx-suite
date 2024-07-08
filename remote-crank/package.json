@@ -26,6 +26,9 @@
     ]
   },
   "dependencies": {
+    "@stable-canvas/comfyui-client": "^1.2.11",
+    "@stable-canvas/comfyui-client-cli": "^1.5.2",
+    "@types/node-fetch": "^2.6.11",
     "express": "^4.19.2",
     "tsx": "^4.16.2"
   },

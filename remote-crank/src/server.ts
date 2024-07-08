@@ -3,10 +3,11 @@ import express from 'express'
 import packageJson from '../package.json' assert { type: 'json' }
 
 import Auth, { ClientConfig } from './Auth'
+import refreshSchedule, { RefreshScheduleItem } from './refreshSchedule'
+import { ComfyUIClient } from './clients/ComfyUI'
+import ImagesApiClient from './clients/ImagesApi'
 import { LocalRequests } from './clients/LocalRequests'
 import { LocalResults } from './clients/LocalResults'
-import refreshSchedule, { RefreshScheduleItem } from './refreshSchedule'
-import ImagesApiClient from './clients/ImagesApi'
 import { ImageRequest } from './clients/SharedTypes'
 
 const app = express()
@@ -52,6 +53,7 @@ const localDirectory = path.join(REMOTE_CRANK_LOCALDATA_PATH ?? process.cwd(), '
 const localRequests = new LocalRequests(localDirectory)
 const localResults = new LocalResults(localDirectory)
 const imagesApiClient = new ImagesApiClient()
+const comfyUiClient = new ComfyUIClient()
 
 const status = {
   state: 'running',
@@ -63,6 +65,8 @@ const status = {
 
 let currentSchedule: RefreshScheduleItem
 let accessToken: string = ''
+
+const outstandingRequests: ImageRequest[] = []
 
 async function updateServer (): Promise<void> {
   status.uptime = process.uptime()
@@ -82,11 +86,11 @@ async function updateServer (): Promise<void> {
     console.log('[updateServer] Checking for new requests...')
     const requestsData = await imagesApiClient.getRequests()
     newRequests = requestsData?.requests ?? []
-    newRequests.forEach(async (requestItem: ImageRequest) => {
+    const work = newRequests.map(async (requestItem: ImageRequest) => {
       console.log('[updateServer] Received request:', requestItem)
       await localRequests.storeRequest(requestItem)
-      return
     })
+    await Promise.allSettled(work)
     await imagesApiClient.deleteRequests(newRequests.map(requestItem => String(requestItem?.receiptHandle)))
     if (newRequests?.length > 0) {
       console.log('[updateServer] Stored and deleted', newRequests?.length, 'new requests')
@@ -101,11 +105,34 @@ async function updateServer (): Promise<void> {
   status.requests = await localRequests.listRequests()
   status.results = await localResults.listResults()
 
+  newRequests.forEach(request => {
+    outstandingRequests.push(request)
+  })
+
+  await processRequests()
+
   const now = new Date()
   currentSchedule = refreshSchedule[now.getUTCHours()]
 
   /* eslint-disable @typescript-eslint/no-misused-promises */
   setTimeout(updateServer, currentSchedule?.refreshTime ?? 60000)
+}
+
+async function processRequests (): Promise<void> {
+  while (outstandingRequests.length > 0) {
+    const nextRequest: ImageRequest | undefined = outstandingRequests.shift()
+    if (nextRequest === undefined) {
+      break
+    }
+
+    try {
+      const workflow = comfyUiClient.createWorkflow(nextRequest?.requestId ?? 'no-id', nextRequest?.positive ?? 'orange', nextRequest?.negative ?? '1girl', nextRequest?.batchSize)
+      await comfyUiClient.invokeWorkflow(workflow)
+    } catch (ex) {
+      const error = ex as Error
+      console.info('[processRequests] Unable to invoke workflow:', { error: error.message, request: nextRequest })
+    }
+  }
 }
 
 app.get('/', (req, res) => {

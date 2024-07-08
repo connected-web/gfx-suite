@@ -91,11 +91,11 @@ const schedule: RefreshSchedule = {
   },
   19: {
     name: '7pm',
-    ...slowRefresh
+    ...fastRefresh
   },
   20: {
     name: '8pm',
-    ...slowRefresh
+    ...fastRefresh
   },
   21: {
     name: '9pm',
