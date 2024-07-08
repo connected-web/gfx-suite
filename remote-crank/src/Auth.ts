@@ -46,14 +46,15 @@ export default class Auth {
   }
 
   async getLatestAccessToken (): Promise<string> {
+    const now = new Date()
     if (this.outstandingPromise !== undefined) {
       return await this.outstandingPromise
     }
     if (this.accessToken === undefined) {
-      console.log('No access token found, fetching new one')
+      console.log(now.toISOString(), 'No access token found, fetching new one')
       this.outstandingPromise = this.getOAuthToken()
-    } else if (this.tokenExpiry === undefined || this.tokenExpiry < Date.now()) {
-      console.log('Access token expired, fetching new one')
+    } else if (this.tokenExpiry === undefined || this.tokenExpiry < now.getTime()) {
+      console.log(now.toISOString(), 'Access token expired, fetching new one')
       this.outstandingPromise = this.getOAuthToken()
     } else {
       return this.accessToken
