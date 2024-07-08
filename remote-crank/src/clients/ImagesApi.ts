@@ -58,4 +58,19 @@ export default class ImagesApiClient {
 
     return await response.json()
   }
+
+  async deleteRequests (receiptHandles: string[]): Promise<any> {
+    const endpointUrl = `${this.baseUrl}/requests`
+    const accessToken = await Auth.instance?.getLatestAccessToken()
+    const response = await fetch(endpointUrl, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${String(accessToken)}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(receiptHandles)
+    })
+
+    return await response.json()
+  }
 }

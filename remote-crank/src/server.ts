@@ -5,7 +5,9 @@ import packageJson from '../package.json' assert { type: 'json' }
 import Auth, { ClientConfig } from './Auth'
 import { LocalRequests } from './clients/LocalRequests'
 import { LocalResults } from './clients/LocalResults'
-import refreshSchedule, { RefreshSchedule } from './refreshSchedule'
+import refreshSchedule, { RefreshScheduleItem } from './refreshSchedule'
+import ImagesApiClient from './clients/ImagesApi'
+import { ImageRequest } from './clients/SharedTypes'
 
 const app = express()
 const startDate = new Date()
@@ -49,6 +51,7 @@ console.log('Created Auth instance with', auth)
 const localDirectory = path.join(REMOTE_CRANK_LOCALDATA_PATH ?? process.cwd(), 'localdata')
 const localRequests = new LocalRequests(localDirectory)
 const localResults = new LocalResults(localDirectory)
+const imagesApiClient = new ImagesApiClient()
 
 const status = {
   state: 'running',
@@ -58,7 +61,7 @@ const status = {
   results: [] as string[]
 }
 
-let currentSchedule: RefreshSchedule
+let currentSchedule: RefreshScheduleItem
 let accessToken: string = ''
 
 async function updateServer (): Promise<void> {
@@ -72,6 +75,23 @@ async function updateServer (): Promise<void> {
   } catch (ex) {
     const error = ex as Error
     console.log('Unable to update access token:', error?.message)
+  }
+
+  let newRequests: ImageRequest[] = []
+  try {
+    console.log('[updateServer] Checking for new requests')
+    const requestsData = await imagesApiClient.getRequests()
+    newRequests = requestsData?.requests ?? []
+    newRequests.forEach(async (requestItem: ImageRequest) => {
+      console.log('[updateServer] Received request:', requestItem)
+      await localRequests.storeRequest(requestItem)
+      return
+    })
+    await imagesApiClient.deleteRequests(newRequests.map(requestItem => String(requestItem?.receiptHandle)))
+    console.log('[updateServer] Stored and deleted', newRequests?.length, 'new requests')
+  } catch (ex) {
+    const error = ex as Error
+    console.log('[updateServer] Unable to process requests', { error: error.message, newRequests })
   }
 
   status.requests = await localRequests.listRequests()
@@ -93,6 +113,13 @@ app.get('/', (req, res) => {
     clientId,
     clientSecret: clientSecret?.substring(0, 8) + '... (truncated)',
     schedule: currentSchedule
+  })
+})
+
+app.get('/schedule', (req, res) => {
+  res.json({
+    currentSchedule,
+    refreshSchedule
   })
 })
 

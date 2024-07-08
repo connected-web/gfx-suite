@@ -1,5 +1,6 @@
 
 export interface ImageRequest {
+  receiptHandle: string
   requestId: string
   messageId: string
   type: string
@@ -9,7 +10,6 @@ export interface ImageRequest {
   height: number
   batchSize: number
   model?: string
-  [key: string]: string | number | undefined
 }
 
 export interface ImageResult {

@@ -1,9 +1,11 @@
+export interface RefreshScheduleItem {
+  name: string
+  refreshTime: number
+  label: string
+}
+
 export interface RefreshSchedule {
-  [key: number]: {
-    name: string
-    refreshTime: number
-    label: string
-  }
+  [key: number]: RefreshScheduleItem
 }
 
 const rapidRefresh = { refreshTime: 10 * 1000, label: 'rapid' }

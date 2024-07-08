@@ -16,4 +16,4 @@ step-summary.md
 cdk.out
 template.json
 
-localdata/**/*.json
+remote-crank/localdata/**/*.json
