@@ -1,12 +1,16 @@
+import path from 'path'
 import express from 'express'
 import packageJson from '../package.json' assert { type: 'json' }
 
 import Auth, { ClientConfig } from './Auth'
+import { LocalRequests } from './clients/LocalRequests'
+import { LocalResults } from './clients/LocalResults'
 
 const app = express()
 const startDate = new Date()
 
 const {
+  REMOTE_CRANK_LOCALDATA_PATH,
   GFX_SUITE_DEV_SSO_CLIENT_ID,
   GFX_SUITE_DEV_SSO_SECRET,
   GFX_SUITE_PROD_SSO_CLIENT_ID,
@@ -41,10 +45,16 @@ const { clientId, clientSecret, oauthTokenEndpoint } = environment
 const auth = new Auth(environment)
 console.log('Created Auth instance with', auth)
 
+const localDirectory = path.join(REMOTE_CRANK_LOCALDATA_PATH ?? process.cwd(), 'localdata')
+const localRequests = new LocalRequests(localDirectory)
+const localResults = new LocalResults(localDirectory)
+
 const status = {
   state: 'running',
   version: packageJson?.version ?? '0.0.0',
-  uptime: 0
+  uptime: 0,
+  requests: [] as string[],
+  results: [] as string[]
 }
 
 let accessToken = ''
@@ -60,6 +70,10 @@ async function updateServer (): Promise<void> {
     const error = ex as Error
     console.log('Unable to update access token:', error?.message)
   }
+
+  status.requests = await localRequests.listRequests()
+  status.results = await localResults.listResults()
+
   /* eslint-disable @typescript-eslint/no-misused-promises */
   setTimeout(updateServer, 5000)
 }

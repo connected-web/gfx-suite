@@ -1,15 +1,6 @@
 import Auth from '../Auth'
 
-export interface ImageRequest {
-  type: string
-  positive: string
-  negative: string
-  width: number
-  height: number
-  batchSize: number
-  model?: string
-  [key: string]: string | number | undefined
-}
+import { ImageRequest } from './SharedTypes'
 
 export default class ImagesApiClient {
   baseUrl = 'https://images.dev.connected-web.services'
