@@ -79,7 +79,7 @@ async function updateServer (): Promise<void> {
 
   let newRequests: ImageRequest[] = []
   try {
-    console.log('[updateServer] Checking for new requests')
+    console.log('[updateServer] Checking for new requests...')
     const requestsData = await imagesApiClient.getRequests()
     newRequests = requestsData?.requests ?? []
     newRequests.forEach(async (requestItem: ImageRequest) => {
@@ -88,7 +88,11 @@ async function updateServer (): Promise<void> {
       return
     })
     await imagesApiClient.deleteRequests(newRequests.map(requestItem => String(requestItem?.receiptHandle)))
-    console.log('[updateServer] Stored and deleted', newRequests?.length, 'new requests')
+    if (newRequests?.length > 0) {
+      console.log('[updateServer] Stored and deleted', newRequests?.length, 'new requests')
+    } else {
+      console.log('[updateServer] No new requests found')
+    }
   } catch (ex) {
     const error = ex as Error
     console.log('[updateServer] Unable to process requests', { error: error.message, newRequests })
