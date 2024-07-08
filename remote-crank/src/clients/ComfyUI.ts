@@ -3,6 +3,7 @@ import path from 'path'
 import WebSocket from 'ws'
 
 import { ComfyUIApiClient, ComfyUIWorkflow, WorkflowOutput } from '@stable-canvas/comfyui-client'
+import { ImageRequest } from './SharedTypes'
 
 export const isNone = (x: any): x is null | undefined =>
   x === null || x === undefined
@@ -34,7 +35,7 @@ export class ComfyUIClient {
     })
   }
 
-  createWorkflow (batchId: string, positivePrompt: string, negativePrompt: string, batchSize: number = 1): ComfyUIWorkflow {
+  createWorkflow (imageRequest: ImageRequest): ComfyUIWorkflow {
     const workflow = new ComfyUIWorkflow()
     const cls = workflow.classes
     const [model, clip] = cls.CheckpointLoaderSimple({
@@ -52,19 +53,19 @@ export class ComfyUIClient {
       scheduler: 'karras',
       denoise: 1,
       model,
-      positive: enc(positivePrompt),
-      negative: enc(negativePrompt),
+      positive: enc(imageRequest.positive),
+      negative: enc(imageRequest.negative),
       latent_image: cls.EmptyLatentImage({
         width: 512,
         height: 768,
-        batch_size: batchSize
+        batch_size: imageRequest.batchSize
       })[0]
     })
 
     const now = new Date()
     const datePrefix = now.toISOString().substring(0, 10)
     cls.SaveImage({
-      filename_prefix: `${datePrefix}/${batchId}/img_`,
+      filename_prefix: `${datePrefix}/${String(imageRequest?.requestId)}/gfxs`,
       images: cls.VAEDecode({ samples, vae })[0]
     })
 
@@ -72,6 +73,7 @@ export class ComfyUIClient {
   }
 
   async saveUrlToFile (url: string, filepath: string): Promise<void> {
+    console.log('Saving file from URL', url, 'to', filepath)
     const res = await fetch(url)
     const fileStream = fs.createWriteStream(filepath)
     await new Promise<void>((resolve, reject) => {
@@ -90,8 +92,10 @@ export class ComfyUIClient {
   };
 
   async saveWorkflowOutputs (outputs: WorkflowOutput): Promise<void> {
+    console.log('Saving outputs:', Object.keys(outputs), outputs?.images?.length ?? 0, 'images')
     const images = outputs.images ?? []
-    const work = images.map(async (image) => {
+    const work = images.map(async (image, index) => {
+      console.log(`[${index}] Dealing with ${image.type}`)
       if (image.type === 'url') {
         const url = image.data
         const filename = new URLSearchParams(new URL(url).search).get(

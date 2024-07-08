@@ -126,7 +126,7 @@ async function processRequests (): Promise<void> {
     }
 
     try {
-      const workflow = comfyUiClient.createWorkflow(nextRequest?.requestId ?? 'no-id', nextRequest?.positive ?? 'orange', nextRequest?.negative ?? '1girl', nextRequest?.batchSize)
+      const workflow = comfyUiClient.createWorkflow(nextRequest)
       await comfyUiClient.invokeWorkflow(workflow)
     } catch (ex) {
       const error = ex as Error
