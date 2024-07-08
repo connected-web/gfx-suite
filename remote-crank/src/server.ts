@@ -50,10 +50,15 @@ const status = {
 let accessToken = ''
 async function updateServer (): Promise<void> {
   status.uptime = process.uptime()
-  const latestAccessToken = await auth.getLatestAccessToken()
-  if (latestAccessToken !== accessToken) {
-    accessToken = latestAccessToken
-    console.log('Updated access token:', accessToken?.length, 'bytes', `(${accessToken?.substring(0, 8)}...)`)
+  try {
+    const latestAccessToken = await auth.getLatestAccessToken()
+    if (latestAccessToken !== accessToken) {
+      accessToken = latestAccessToken
+      console.log('Updated access token:', accessToken?.length, 'bytes', `(${accessToken?.substring(0, 8)}...)`)
+    }
+  } catch (ex) {
+    const error = ex as Error
+    console.log('Unable to update access token:', error?.message)
   }
   /* eslint-disable @typescript-eslint/no-misused-promises */
   setTimeout(updateServer, 5000)
