@@ -5,6 +5,7 @@ import packageJson from '../package.json' assert { type: 'json' }
 import Auth, { ClientConfig } from './Auth'
 import { LocalRequests } from './clients/LocalRequests'
 import { LocalResults } from './clients/LocalResults'
+import refreshSchedule, { RefreshSchedule } from './refreshSchedule'
 
 const app = express()
 const startDate = new Date()
@@ -57,7 +58,9 @@ const status = {
   results: [] as string[]
 }
 
-let accessToken = ''
+let currentSchedule: RefreshSchedule
+let accessToken: string = ''
+
 async function updateServer (): Promise<void> {
   status.uptime = process.uptime()
   try {
@@ -74,8 +77,11 @@ async function updateServer (): Promise<void> {
   status.requests = await localRequests.listRequests()
   status.results = await localResults.listResults()
 
+  const now = new Date()
+  currentSchedule = refreshSchedule[now.getUTCHours()]
+
   /* eslint-disable @typescript-eslint/no-misused-promises */
-  setTimeout(updateServer, 5000)
+  setTimeout(updateServer, currentSchedule?.refreshTime ?? 60000)
 }
 
 app.get('/', (req, res) => {
@@ -85,7 +91,8 @@ app.get('/', (req, res) => {
     apiEnv,
     oauthTokenEndpoint,
     clientId,
-    clientSecret: clientSecret?.substring(0, 8) + '... (truncated)'
+    clientSecret: clientSecret?.substring(0, 8) + '... (truncated)',
+    schedule: currentSchedule
   })
 })
 
