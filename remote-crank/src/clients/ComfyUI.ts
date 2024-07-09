@@ -1,9 +1,31 @@
 import fs from 'fs'
-import path from 'path'
+import path, { dirname as pathDirname } from 'path'
 import WebSocket from 'ws'
+import { pipeline, Readable } from 'stream'
+import { promisify } from 'util'
+import { fileURLToPath } from 'url'
 
 import { ComfyUIApiClient, ComfyUIWorkflow, WorkflowOutput } from '@stable-canvas/comfyui-client'
 import { ImageRequest } from './SharedTypes'
+
+const pipelineAsync = promisify(pipeline)
+const filename = fileURLToPath(import.meta.url)
+const dirname = pathDirname(filename)
+
+function responseToReadable (response: Response): Readable {
+  const reader: ReadableStreamDefaultReader<Uint8Array> = (response?.body?.getReader()) as ReadableStreamDefaultReader<Uint8Array>
+  const rs = new Readable()
+  /* eslint-disable-next-line @typescript-eslint/no-misused-promises */
+  rs._read = async () => {
+    const result = await reader.read()
+    if (!result.done) {
+      rs.push(Buffer.from(result.value))
+    } else {
+      rs.push(null)
+    }
+  }
+  return rs
+}
 
 export const isNone = (x: any): x is null | undefined =>
   x === null || x === undefined
@@ -56,8 +78,8 @@ export class ComfyUIClient {
       positive: enc(imageRequest.positive),
       negative: enc(imageRequest.negative),
       latent_image: cls.EmptyLatentImage({
-        width: 512,
-        height: 768,
+        width: imageRequest?.width ?? 512,
+        height: imageRequest?.height ?? 512,
         batch_size: imageRequest.batchSize
       })[0]
     })
@@ -74,43 +96,65 @@ export class ComfyUIClient {
 
   async saveUrlToFile (url: string, filepath: string): Promise<void> {
     console.log('Saving file from URL', url, 'to', filepath)
+
     const res = await fetch(url)
-    const fileStream = fs.createWriteStream(filepath)
-    await new Promise<void>((resolve, reject) => {
-      if (res.body === null) {
-        reject(new Error('No body in response'))
-        return
+    if (!res.ok || res.body === null) {
+      throw new Error(`Failed to fetch ${url}: ${res.statusText}`)
+    }
+
+    try {
+      const dirpath = path.dirname(filepath)
+      if (!fs.existsSync(dirpath)){
+        fs.mkdirSync(dirpath, { recursive: true });
       }
-      res.body.pipe(fileStream)
-      res.body.on('error', (error: Error) => {
-        reject(error)
-      })
-      fileStream.on('finish', function () {
-        resolve()
-      })
-    })
-  };
+    } catch (ex) {
+      const error = ex as Error
+      console.error(`Error creating directory: ${error.message}`)
+      throw error
+    }
+
+    try {
+      const fileStream = fs.createWriteStream(filepath)
+      const readable = responseToReadable(res)
+      await pipelineAsync(readable, fileStream)
+      console.log(`File saved to ${filepath}`)
+    } catch (ex) {
+      const error = ex as Error
+      console.error(`Error saving file: ${error.message}`)
+      throw error
+    }
+  }
 
   async saveWorkflowOutputs (outputs: WorkflowOutput): Promise<void> {
     console.log('Saving outputs:', Object.keys(outputs), outputs?.images?.length ?? 0, 'images')
     const images = outputs.images ?? []
     const work = images.map(async (image, index) => {
       console.log(`[${index}] Dealing with ${image.type}`)
-      if (image.type === 'url') {
-        const url = image.data
-        const filename = new URLSearchParams(new URL(url).search).get(
-          'filename'
-        )
-        if (isNone(filename)) {
-          console.error('No filename in URL')
-          return
+      try {
+        if (image.type === 'url') {
+          const url = image.data
+          const params = new URLSearchParams(new URL(url).search)
+          const filename = params.get('filename')
+          const subfolder = params.get('subfolder')
+          if (isNone(filename)) {
+            console.error('No filename in received URL', { url })
+            return
+          }
+          if (isNone(subfolder)) {
+            console.error('No subfolder in received URL', { url })
+            return
+          }
+          const filepath = path.join(dirname, '../../outputs', subfolder, filename)
+          console.log('Using filename from URL', { filename, filepath })
+          await this.saveUrlToFile(url, filepath)
+        } else if (image.type === 'buff') {
+          const filename = `image-${Date.now()}.png`
+          const filepath = path.join(dirname, '../../outputs', filename)
+          fs.writeFileSync(filepath, Buffer.from(image.data))
         }
-        const filepath = path.join(__dirname, '../../outputs', filename)
-        await this.saveUrlToFile(url, filepath)
-      } else if (image.type === 'buff') {
-        const filename = `image-${Date.now()}.png`
-        const filepath = path.join(__dirname, '../../outputs', filename)
-        fs.writeFileSync(filepath, Buffer.from(image.data))
+      } catch (ex) {
+        const error = ex as Error
+        console.log('Unable to save workflow outputs', { error: error.message, image })
       }
     })
     await Promise.allSettled(work)
