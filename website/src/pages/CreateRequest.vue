@@ -56,7 +56,7 @@ function guid() {
   })
 }
 
-const defaultNegativePrompt = 'blurry, low resolution, bad anatomy, deformed, extra limbs, extra fingers, missing limbs, missing fingers, unnatural lighting, oversaturated colors, text, watermark, logo, distorted, out of focus, poor quality, bad composition, noise, grain, artifacts, ugly, poorly drawn, unrealistic, bad proportions, mutated, low contrast'
+const defaultNegativePrompt = '((low quality)) (large) (fat) (thin) (penis) (deformed) (ugly) (unhealthy)'
 
 export default {
   components: { LoadingSpinner },

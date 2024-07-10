@@ -7,6 +7,18 @@ export default class LocalData {
     this.localDataPath = localDataPath
   }
 
+  safeMakeDirectory(filepath: string): void {
+    try {
+      const dirpath = path.dirname(filepath)
+      if (!fs.existsSync(dirpath)) {
+        fs.mkdirSync(dirpath, { recursive: true })
+      }
+    } catch (ex) {
+      const error = ex as Error
+      console.error(`Error creating directory: ${error.message}`)
+    }
+  }
+
   async readJson (filename: string): Promise<any> {
     const filepath = path.join(this.localDataPath, filename)
     try {
@@ -22,6 +34,7 @@ export default class LocalData {
   async writeJson (filename: string, data: any): Promise<void> {
     const filepath = path.join(this.localDataPath, filename)
     try {
+      this.safeMakeDirectory(filepath)
       fs.writeFileSync(filepath, JSON.stringify(data), 'utf8')
     } catch (ex) {
       const error = ex as Error

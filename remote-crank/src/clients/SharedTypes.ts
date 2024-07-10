@@ -16,4 +16,9 @@ export interface ImageResult {
   originalRequest: ImageRequest
   started: Date | string
   finished: Date | string
+  generatedFiles: string[]
 }
+
+export type FileList = string[]
+
+export type ResultsIndex = { [key: string]: FileList }

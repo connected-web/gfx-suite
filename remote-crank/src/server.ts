@@ -8,7 +8,7 @@ import { ComfyUIClient } from './clients/ComfyUI'
 import ImagesApiClient from './clients/ImagesApi'
 import { LocalRequests } from './clients/LocalRequests'
 import { LocalResults } from './clients/LocalResults'
-import { ImageRequest } from './clients/SharedTypes'
+import { ImageRequest, ImageResult, ResultsIndex } from './clients/SharedTypes'
 
 const app = express()
 const startDate = new Date()
@@ -60,7 +60,7 @@ const status = {
   version: packageJson?.version ?? '0.0.0',
   uptime: 0,
   requests: [] as string[],
-  results: [] as string[]
+  results: {} as ResultsIndex
 }
 
 let currentSchedule: RefreshScheduleItem
@@ -103,7 +103,7 @@ async function updateServer (): Promise<void> {
   }
 
   status.requests = await localRequests.listRequests()
-  status.results = await localResults.listResults()
+  status.results = await localResults.listAllResults()
 
   newRequests.forEach(request => {
     outstandingRequests.push(request)
@@ -126,8 +126,16 @@ async function processRequests (): Promise<void> {
     }
 
     try {
+      const started = new Date()
       const workflow = comfyUiClient.createWorkflow(nextRequest)
-      await comfyUiClient.invokeWorkflow(workflow)
+      const generatedFiles = await comfyUiClient.invokeWorkflow(workflow, nextRequest.batchSize)
+      const imageResult: ImageResult = {
+        originalRequest: nextRequest,
+        started,
+        finished: new Date(),
+        generatedFiles
+      }
+      localResults.storeResult(imageResult)
     } catch (ex) {
       const error = ex as Error
       console.info('[processRequests] Unable to invoke workflow:', { error: error.message, request: nextRequest })

@@ -6,7 +6,7 @@ import { promisify } from 'util'
 import { fileURLToPath } from 'url'
 
 import { ComfyUIApiClient, ComfyUIWorkflow, WorkflowOutput } from '@stable-canvas/comfyui-client'
-import { ImageRequest } from './SharedTypes'
+import { ImageRequest, FileList } from './SharedTypes'
 
 const pipelineAsync = promisify(pipeline)
 const filename = fileURLToPath(import.meta.url)
@@ -36,7 +36,7 @@ export class ComfyUIClient {
   constructor () {
     this.client = new ComfyUIApiClient({
       api_host: '127.0.0.1:8188',
-      WebSocket,
+      WebSocket: WebSocket as any,
       fetch
     })
 
@@ -52,9 +52,30 @@ export class ComfyUIClient {
       if (data instanceof Buffer || data instanceof ArrayBuffer) {
         console.log('Received image data')
       } else {
-        console.log(data)
+        try {
+          const json = JSON.parse(data)
+          if (json?.type === 'progress') {
+            console.log('Progress:', json?.data?.value, 'of', json?.data?.max)
+          } else {
+            console.log('Workflow:', json)
+          }
+        } catch (ex) {
+          console.log('ComfyUI Message:', data)
+        }
       }
     })
+  }
+
+  safeMakeDirectory(filepath: string): void {
+    try {
+      const dirpath = path.dirname(filepath)
+      if (!fs.existsSync(dirpath)) {
+        fs.mkdirSync(dirpath, { recursive: true })
+      }
+    } catch (ex) {
+      const error = ex as Error
+      console.error(`Error creating directory: ${error.message}`)
+    }
   }
 
   createWorkflow (imageRequest: ImageRequest): ComfyUIWorkflow {
@@ -80,7 +101,7 @@ export class ComfyUIClient {
       latent_image: cls.EmptyLatentImage({
         width: imageRequest?.width ?? 512,
         height: imageRequest?.height ?? 512,
-        batch_size: imageRequest.batchSize
+        batch_size: 1
       })[0]
     })
 
@@ -102,16 +123,7 @@ export class ComfyUIClient {
       throw new Error(`Failed to fetch ${url}: ${res.statusText}`)
     }
 
-    try {
-      const dirpath = path.dirname(filepath)
-      if (!fs.existsSync(dirpath)) {
-        fs.mkdirSync(dirpath, { recursive: true })
-      }
-    } catch (ex) {
-      const error = ex as Error
-      console.error(`Error creating directory: ${error.message}`)
-      throw error
-    }
+    this.safeMakeDirectory(filepath)
 
     try {
       const fileStream = fs.createWriteStream(filepath)
@@ -125,7 +137,7 @@ export class ComfyUIClient {
     }
   }
 
-  async saveWorkflowOutputs (outputs: WorkflowOutput): Promise<void> {
+  async saveWorkflowOutputs (outputs: WorkflowOutput): Promise<FileList> {
     console.log('Saving outputs:', Object.keys(outputs), outputs?.images?.length ?? 0, 'images')
     const images = outputs.images ?? []
     const work = images.map(async (image, index) => {
@@ -138,36 +150,53 @@ export class ComfyUIClient {
           const subfolder = params.get('subfolder')
           if (isNone(filename)) {
             console.error('No filename in received URL', { url })
-            return
+            return `Error: No filename in received URL ${String(url)}`
           }
           if (isNone(subfolder)) {
             console.error('No subfolder in received URL', { url })
-            return
+            return `Error: No subfolder in received URL ${String(url)}`
           }
           const filepath = path.join(dirname, '../../outputs', subfolder, filename)
           console.log('Using filename from URL', { filename, filepath })
           await this.saveUrlToFile(url, filepath)
+          return filepath
         } else if (image.type === 'buff') {
           const filename = `image-${Date.now()}.png`
           const filepath = path.join(dirname, '../../outputs', filename)
           fs.writeFileSync(filepath, Buffer.from(image.data))
+          return filepath
+        } else {
+          return `Error: Unrecognised type ${String((image as any)?.type)}`
         }
       } catch (ex) {
         const error = ex as Error
         console.log('Unable to save workflow outputs', { error: error.message, image })
+        return `Error: ${String(error.message)}`
       }
     })
-    await Promise.allSettled(work)
+    const results = await Promise.allSettled(work)
+    return results.map((result: any) => result?.value ?? `Error: ${String(result?.reason)}`)
   }
 
-  async invokeWorkflow (workflow: ComfyUIWorkflow): Promise<void> {
-    const { client } = this
-    try {
-      const comfyResponse = await workflow.invoke(client)
-      await this.saveWorkflowOutputs(comfyResponse)
-    } catch (ex) {
-      const error = ex as Error
-      console.log('Unable to invoke workflow:', { error: error.message, workflow })
+  async invokeWorkflow (workflow: ComfyUIWorkflow, workflowRuns: number): Promise<FileList> {
+    const files = []
+    while (files.length < workflowRuns) {
+      const { client } = this
+      try {
+        const comfyResponse = await workflow.invoke(client)
+        const newFiles = await this.saveWorkflowOutputs(comfyResponse)
+        while (newFiles.length > 0) {
+          const file = newFiles.shift()
+          if (file !== undefined) {
+            files.push(file)
+          }
+        }
+      } catch (ex) {
+        const error = ex as Error
+        console.log('Unable to invoke workflow:', { error: error.message, workflow })
+        files.push(`Error: ${String(error?.message)}`)
+      }
     }
+    return files
   }
 }
