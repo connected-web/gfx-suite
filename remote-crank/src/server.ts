@@ -136,6 +136,7 @@ async function processRequests (): Promise<void> {
         generatedFiles
       }
       localResults.storeResult(imageResult)
+      localRequests.deleteRequest(nextRequest?.requestId)
     } catch (ex) {
       const error = ex as Error
       console.info('[processRequests] Unable to invoke workflow:', { error: error.message, request: nextRequest })
@@ -165,6 +166,17 @@ app.get('/schedule', (req, res) => {
 const port = process?.env?.PORT ?? 3000
 app.listen(port, async () => {
   console.log(`GFX Suite : Remote Crank Server is running on port http://localhost:${port}`)
+
+  const existingRequests = await localRequests.listRequests()
+  const work = existingRequests.map(async (requestId: string) => {
+    console.log('[server start] Found existing request:', requestId)
+    const request = await localRequests.getRequest(requestId)
+    if (request !== undefined) {
+      outstandingRequests.push(request)
+    }
+  })
+  await Promise.all(work)
+  console.log('[server start] Found', existingRequests?.length, 'existing requests - starting update loop...')
   await updateServer()
 })
 
