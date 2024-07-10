@@ -104,8 +104,8 @@ export class ComfyUIClient {
 
     try {
       const dirpath = path.dirname(filepath)
-      if (!fs.existsSync(dirpath)){
-        fs.mkdirSync(dirpath, { recursive: true });
+      if (!fs.existsSync(dirpath)) {
+        fs.mkdirSync(dirpath, { recursive: true })
       }
     } catch (ex) {
       const error = ex as Error
