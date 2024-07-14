@@ -10,7 +10,7 @@ export interface RefreshSchedule {
 
 const rapidRefresh = { refreshTime: 10 * 1000, label: 'rapid' }
 const fastRefresh = { refreshTime: 30 * 1000, label: 'fast' }
-const slowRefresh = { refreshTime: 5 * 60 * 1000, label: 'slow' }
+const slowRefresh = { refreshTime: 2 * 60 * 1000, label: 'slow' }
 
 const schedule: RefreshSchedule = {
   0: {

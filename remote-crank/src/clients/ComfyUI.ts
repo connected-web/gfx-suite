@@ -90,7 +90,7 @@ export class ComfyUIClient {
     const enc = (text: string): any => cls.CLIPTextEncode({ text, clip })[0]
     const [samples] = cls.KSampler({
       seed: Math.floor(Math.random() * 2 ** 32),
-      steps: 24,
+      steps: 18,
       cfg: 7.5,
       sampler_name: 'euler',
       scheduler: 'karras',
@@ -108,7 +108,7 @@ export class ComfyUIClient {
     const now = new Date()
     const datePrefix = now.toISOString().substring(0, 10)
     cls.SaveImage({
-      filename_prefix: `${datePrefix}/${String(imageRequest?.requestId)}/gfxs`,
+      filename_prefix: `${datePrefix}/gfxs/gfxs`,
       images: cls.VAEDecode({ samples, vae })[0]
     })
 

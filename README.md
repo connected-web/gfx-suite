@@ -63,7 +63,7 @@ Private planning board on Miro:
 
 - ✅ Setup FTP Server
 - ✅ Create FTP Server user accounts
-- 🚧 Create FTP Server directories
+- ✅ Create initial FTP Server directories
 
 ## Contributing
 
