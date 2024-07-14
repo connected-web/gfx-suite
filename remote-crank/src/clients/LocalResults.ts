@@ -21,7 +21,7 @@ export class LocalResults extends LocalData {
     return await this.readJson(filename)
   }
 
-  async listDateCodes(): Promise<string[]> {
+  async listDateCodes (): Promise<string[]> {
     const resultsPath = path.join(this.localDataPath, 'results')
     const fileList = fs.readdirSync(resultsPath)
     return fileList.filter(folder => folder.match(/\d{4}-\d{2}/))
@@ -33,7 +33,7 @@ export class LocalResults extends LocalData {
     return fileList.filter(file => file.endsWith('.json')).map(file => file.replace('.json', ''))
   }
 
-  async listAllResults(): Promise<ResultsIndex> {
+  async listAllResults (): Promise<ResultsIndex> {
     const resultDateCodes = await this.listDateCodes()
     const resultsList = await Promise.all(resultDateCodes.map(async (datecode: string) => {
       return {
@@ -41,13 +41,13 @@ export class LocalResults extends LocalData {
         results: await this.listResults(datecode)
       }
     }))
-    return resultsList.reduce((acc: ResultsIndex, item) => {
+    return resultsList.reduce<ResultsIndex>((acc: ResultsIndex, item) => {
       acc[item.datecode] = item.results
       return acc
-    }, {} as ResultsIndex)
+    }, {})
   }
 
-  async deleteResult (datecode:string, resultId: string): Promise<void> {
+  async deleteResult (datecode: string, resultId: string): Promise<void> {
     const filepath = path.join(this.localDataPath, 'results', datecode, `${resultId}.json`)
     try {
       return fs.unlinkSync(filepath)

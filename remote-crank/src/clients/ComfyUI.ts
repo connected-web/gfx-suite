@@ -66,7 +66,7 @@ export class ComfyUIClient {
     })
   }
 
-  safeMakeDirectory(filepath: string): void {
+  safeMakeDirectory (filepath: string): void {
     try {
       const dirpath = path.dirname(filepath)
       if (!fs.existsSync(dirpath)) {

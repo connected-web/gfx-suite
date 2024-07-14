@@ -21,4 +21,4 @@ export interface ImageResult {
 
 export type FileList = string[]
 
-export type ResultsIndex = { [key: string]: FileList }
+export interface ResultsIndex { [key: string]: FileList }

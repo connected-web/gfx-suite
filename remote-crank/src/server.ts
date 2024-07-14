@@ -55,12 +55,14 @@ const localResults = new LocalResults(localDirectory)
 const imagesApiClient = new ImagesApiClient()
 const comfyUiClient = new ComfyUIClient()
 
+const resultsIndex: ResultsIndex = {}
+
 const status = {
   state: 'running',
   version: packageJson?.version ?? '0.0.0',
   uptime: 0,
   requests: [] as string[],
-  results: {} as ResultsIndex
+  results: resultsIndex
 }
 
 let currentSchedule: RefreshScheduleItem
@@ -135,8 +137,10 @@ async function processRequests (): Promise<void> {
         finished: new Date(),
         generatedFiles
       }
-      localResults.storeResult(imageResult)
-      localRequests.deleteRequest(nextRequest?.requestId)
+      await Promise.all([
+        localResults.storeResult(imageResult),
+        localRequests.deleteRequest(nextRequest?.requestId)
+      ])
     } catch (ex) {
       const error = ex as Error
       console.info('[processRequests] Unable to invoke workflow:', { error: error.message, request: nextRequest })
