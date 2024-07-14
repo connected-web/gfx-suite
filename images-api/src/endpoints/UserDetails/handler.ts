@@ -7,7 +7,8 @@ const storage = new Storage(process.env.SERVICE_BUCKET ?? 'no-bucket-set')
 
 /* This handler is executed by AWS Lambda when the endpoint is invoked */
 export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const principalId = event.requestContext.authorizer?.principalId
+  const authorizerContext = event.requestContext.authorizer
+  const principalId = authorizerContext?.principalId
 
   if (principalId === undefined) {
     return lambdaResponse(httpStatusCodes.failedDependency, JSON.stringify({ message: 'Missing principalId in request' }))

@@ -18,7 +18,7 @@ export class UserDetailsEndpoint extends OpenAPIRouteMetadata<Resources> {
 
   grantPermissions (scope: Construct, endpoint: NodejsFunction, resources: Resources): void {
     const serviceBucket = resources.serviceBucket
-    serviceBucket.grantRead(endpoint)
+    serviceBucket.grantReadWrite(endpoint)
   }
 
   get operationId (): string {
