@@ -22,11 +22,11 @@ export class UserDetailsEndpoint extends OpenAPIRouteMetadata<Resources> {
   }
 
   get operationId (): string {
-    return 'userByUserId'
+    return 'userDetails'
   }
 
   get restSignature (): string {
-    return 'GET /user/:userId'
+    return 'GET /user/details'
   }
 
   get routeEntryPoint (): string {

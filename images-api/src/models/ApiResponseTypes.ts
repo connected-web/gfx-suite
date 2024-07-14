@@ -5,6 +5,7 @@ export interface ApiResponseType {
 }
 
 export interface ImageRequestType {
+  userId: string
   requestId: string
   type: string
   positive: string
