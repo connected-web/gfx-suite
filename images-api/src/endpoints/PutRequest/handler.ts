@@ -2,6 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import { httpStatusCodes, lambdaResponse } from '../../helpers/Response'
 
 import Queues from '../helpers/queues'
+import { ImageRequestType } from '../../models/ApiResponseTypes'
 
 const queueUrl = process.env.REQUESTS_QUEUE_URL ?? 'no-queue-url-set'
 const requestsQueue = new Queues(queueUrl)
@@ -18,8 +19,9 @@ function parseEvent (body: string): any {
 export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const now = new Date()
   const rawRequest = parseEvent(event?.body ?? '{}')
-  const requestMessage = {
-    requestId: event?.pathParameters?.requestId,
+  const requestMessage: ImageRequestType = {
+    userId: event?.requestContext?.authorizer?.principalId ?? 'no-user-id-from-authorizer',
+    requestId: String(event?.pathParameters?.requestId),
     type: 'image-batch',
     positive: rawRequest?.positive,
     negative: rawRequest?.negative,
