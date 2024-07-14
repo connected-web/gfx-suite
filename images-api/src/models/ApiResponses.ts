@@ -181,4 +181,34 @@ export class ApiResponse extends OpenAPIBasicModels {
       required: ['message']
     }) as IModel
   }
+
+  static get userDetails (): IModel {
+    return OpenAPIBasicModels.modelFactory?.create('UserDetails', {
+      schema: JsonSchemaVersion.DRAFT7,
+      title: 'User Details Response',
+      type: JsonSchemaType.OBJECT,
+      properties: {
+        message: {
+          type: JsonSchemaType.STRING,
+          description: 'The message content describing the response'
+        },
+        user: {
+          type: JsonSchemaType.OBJECT,
+          description: 'The user details',
+          properties: {
+            userId: {
+              type: JsonSchemaType.STRING,
+              description: 'The unique identifier for the user'
+            },
+            decryptionKey: {
+              type: JsonSchemaType.STRING,
+              description: 'The user\'s decryption key for secure data storage'
+            }
+          },
+          required: ['userId', 'decryptionKey']
+        }
+      },
+      required: ['message', 'user']
+    }) as IModel
+  }
 }
