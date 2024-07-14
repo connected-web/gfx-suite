@@ -121,7 +121,10 @@ describe('Open API Spec', () => {
         '/request',
         '/request/{requestId}',
         '/requests',
-        '/status'
+        '/status',
+        '/user',
+        '/user/details',
+        '/user/{userId}'
       ])
     })
 

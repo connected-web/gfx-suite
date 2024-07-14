@@ -3,7 +3,7 @@
   "info": {
     "title": "Images API",
     "description": "Images API - https://github.com/connected-web/gfx-suite",
-    "version": "2024-07-06T10:05:52Z"
+    "version": "2024-07-14T20:23:56Z"
   },
   "servers": [
     {
@@ -11,6 +11,95 @@
     }
   ],
   "paths": {
+    "/user/{userId}": {
+      "get": {
+        "operationId": "userByUserId",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Credentials": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDetailsModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ImagesAPIImagesAPIPrivateApiRequestAuthorizerEC37AB56": []
+          }
+        ]
+      },
+      "options": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "204 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Credentials": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
     "/status": {
       "get": {
         "operationId": "getStatus",
@@ -80,7 +169,108 @@
         }
       }
     },
+    "/user/details": {
+      "get": {
+        "operationId": "userDetails",
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Credentials": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDetailsModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ImagesAPIImagesAPIPrivateApiRequestAuthorizerEC37AB56": []
+          }
+        ]
+      },
+      "options": {
+        "responses": {
+          "204": {
+            "description": "204 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Credentials": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
     "/request": {
+      "options": {
+        "responses": {
+          "204": {
+            "description": "204 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Credentials": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/user": {
       "options": {
         "responses": {
           "204": {
@@ -435,9 +625,13 @@
               ],
               "type": "object",
               "properties": {
+                "requestTime": {
+                  "type": "string",
+                  "description": "The time the request was received by the server in ISO format"
+                },
                 "negative": {
-                  "type": "array",
-                  "description": "The negative image labels"
+                  "type": "string",
+                  "description": "The negative image description"
                 },
                 "requestId": {
                   "type": "string",
@@ -455,9 +649,13 @@
                   "type": "string",
                   "description": "The unique identifier used to delete this message once handled"
                 },
+                "model": {
+                  "type": "string",
+                  "description": "The model to use for processing"
+                },
                 "positive": {
-                  "type": "array",
-                  "description": "The positive image labels"
+                  "type": "string",
+                  "description": "The positive image description"
                 },
                 "type": {
                   "type": "string",
@@ -465,7 +663,7 @@
                 },
                 "batchSize": {
                   "type": "integer",
-                  "description": "The number of images to process in a batch"
+                  "description": "The number of images to generate in a batch"
                 },
                 "height": {
                   "type": "integer",
@@ -477,6 +675,38 @@
           "message": {
             "type": "string",
             "description": "The message content describing the response"
+          }
+        }
+      },
+      "UserDetailsModel": {
+        "title": "User Details Response",
+        "required": [
+          "message",
+          "user"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "The message content describing the response"
+          },
+          "user": {
+            "required": [
+              "decryptionKey",
+              "userId"
+            ],
+            "type": "object",
+            "properties": {
+              "decryptionKey": {
+                "type": "string",
+                "description": "The user's decryption key for secure data storage"
+              },
+              "userId": {
+                "type": "string",
+                "description": "The unique identifier for the user"
+              }
+            },
+            "description": "The user details"
           }
         }
       },
@@ -497,6 +727,13 @@
           "message": {
             "type": "string",
             "description": "The message content describing the response"
+          },
+          "results": {
+            "type": "array",
+            "description": "The list of results for each message processed",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -543,8 +780,12 @@
             ],
             "type": "object",
             "properties": {
+              "requestTime": {
+                "type": "string",
+                "description": "The time the request was received by the server in ISO format"
+              },
               "negative": {
-                "type": "array",
+                "type": "string",
                 "description": "The negative image labels"
               },
               "requestId": {
@@ -555,8 +796,12 @@
                 "type": "integer",
                 "description": "The width of the image"
               },
+              "model": {
+                "type": "string",
+                "description": "The model to use for processing"
+              },
               "positive": {
-                "type": "array",
+                "type": "string",
                 "description": "The positive image labels"
               },
               "type": {
