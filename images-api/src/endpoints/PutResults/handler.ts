@@ -30,7 +30,7 @@ export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayP
       width: originalRequest?.width,
       height: originalRequest?.height,
       batchSize: originalRequest?.batchSize,
-      requestTime: originalRequest.requestTime
+      requestTime: originalRequest?.requestTime
     },
     started: rawRequest?.started,
     finished: rawRequest?.finished,
@@ -40,7 +40,7 @@ export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayP
   }
 
   const userIdBase64 = Buffer.from(userId).toString('base64')
-  const requestDateTime = new Date(originalRequest.requestTime ?? now)
+  const requestDateTime = new Date(originalRequest?.requestTime ?? now)
   const dateCode = String(requestDateTime.toISOString().slice(0, 10))
   const storagePath = `results/${userIdBase64}/${dateCode}/${String(originalRequest.requestId)}.json`
 
