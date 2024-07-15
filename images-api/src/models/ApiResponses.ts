@@ -211,4 +211,18 @@ export class ApiResponse extends OpenAPIBasicModels {
       required: ['message', 'user']
     }) as IModel
   }
+
+  static get putResults (): IModel {
+    return OpenAPIBasicModels.modelFactory?.create('PutResults', {
+      schema: JsonSchemaVersion.DRAFT7,
+      title: 'Put Results Response',
+      type: JsonSchemaType.OBJECT,
+      properties: {
+        message: {
+          type: JsonSchemaType.STRING,
+          description: 'The message content describing the response'
+        }
+      }
+    }) as IModel
+  }
 }

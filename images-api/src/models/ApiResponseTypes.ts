@@ -23,6 +23,15 @@ export interface ImageRequestMessageType extends ImageRequestType {
   receiptHandle: string
 }
 
+export interface ImageResultsType {
+  originalRequest: ImageRequestType
+  started: Date | string
+  finished: Date | string
+  uploaded: Date | string
+  generatedFiles: string[]
+  initializationVectors: string[]
+}
+
 export interface PutRequestResponseType {
   message: string
   request: ImageRequestType
