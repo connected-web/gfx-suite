@@ -281,4 +281,49 @@ describe('Open API Spec', () => {
       expect(ajv.errors ?? []).toEqual([])
     })
   })
+
+  describe('Results', () => {
+    let appClient: ApiClientUnderTest
+    beforeAll(async () => {
+      const axiosApi = new OpenAPIClientAxios({
+        definition: openapiDoc,
+        axiosConfigDefaults: {
+          headers: serverConfig.headers,
+          validateStatus: function (status) {
+            return status >= 200 // don't throw errors on non-200 codes
+          }
+        }
+      })
+
+      appClient = await axiosApi.getClient<ApiClientUnderTest>()
+      appClient.interceptors.response.use((response) => response, (error) => {
+        console.log('Caught client error:', error.message)
+      })
+    })
+
+    it('should be possible to store results for an image batch', async () => {
+      const payload = {
+        requestId: 'test-suite',
+        started: '2024-07-11T05:30:05.434Z',
+        finished: '2024-07-11T05:32:03.874Z',
+        generatedFiles: ['2024-07/test-image.jpg'],
+        initializationVectors: ['MTIzNA==']
+      }
+      const response = await appClient.putResults({}, payload)
+
+      console.log('Store Results:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/PutResultsModel' }, response.data)
+      expect(ajv.errors ?? []).toEqual([])
+    })
+
+    it('should be possible to retrieve stored results for an image batch', async () => {
+      const response = await appClient.getResults({ dateCode: '2024-07', requestId: 'test-suite' })
+
+      console.log('Get Results:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/GetResultsModel' }, response.data)
+      expect(ajv.errors ?? []).toEqual([])
+    })
+  })
 })
