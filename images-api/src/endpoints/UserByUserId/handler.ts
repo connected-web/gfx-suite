@@ -12,7 +12,7 @@ export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayP
   const userId = event.pathParameters?.userId
   const authorizerContext = event?.requestContext?.authorizer ?? {}
   const principalId = authorizerContext?.principalId
-  const groups = authorizerContext?.groups?.split('') ?? []
+  const groups = authorizerContext?.groups?.split(',') ?? []
 
   console.log('[UserbyUserId] for userId:', userId, 'Authorizer principalId:', principalId, 'groups:', groups)
 
