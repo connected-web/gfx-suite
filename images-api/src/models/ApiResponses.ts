@@ -225,4 +225,57 @@ export class ApiResponse extends OpenAPIBasicModels {
       }
     }) as IModel
   }
+
+  static get getResults (): IModel {
+    return OpenAPIBasicModels.modelFactory?.create('GetResults', {
+      schema: JsonSchemaVersion.DRAFT7,
+      title: 'Get Results Response',
+      type: JsonSchemaType.OBJECT,
+      properties: {
+        message: {
+          type: JsonSchemaType.STRING,
+          description: 'The message content describing the response'
+        },
+        originalRequest: {
+          type: JsonSchemaType.OBJECT,
+          description: 'The original request object'
+        },
+        started: {
+          type: JsonSchemaType.STRING,
+          description: 'The ISO date time string when the request began to be processed'
+        },
+        finished: {
+          type: JsonSchemaType.STRING,
+          description: 'The ISO date time string when the request finished being processed'
+        },
+        uploaded: {
+          type: JsonSchemaType.STRING,
+          description: 'The ISO date time string when the request was uploaded to the server'
+        },
+        generatedFiles: {
+          type: JsonSchemaType.ARRAY,
+          description: 'The list of paths of generated files',
+          items: {
+            type: JsonSchemaType.STRING
+          }
+        },
+        initializationVectors: {
+          type: JsonSchemaType.ARRAY,
+          description: 'The corresponding initialization vectors used to encrypt and store the generated files',
+          items: {
+            type: JsonSchemaType.STRING
+          }
+        }
+      }
+    }) as IModel
+  }
 }
+
+/**
+ *
+  started: Date | string
+  finished: Date | string
+  uploaded: Date | string
+  generatedFiles: string[]
+  initializationVectors: string[]
+ */
