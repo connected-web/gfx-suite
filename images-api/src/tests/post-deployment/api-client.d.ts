@@ -104,6 +104,41 @@ declare namespace Components {
       message: string
     }
     /**
+         * Get Results Response
+         */
+    export interface GetResultsModel {
+      /**
+             * The original request object
+             */
+      originalRequest?: {
+        [key: string]: any
+      }
+      /**
+             * The list of paths of generated files
+             */
+      generatedFiles?: string[]
+      /**
+             * The corresponding initialization vectors used to encrypt and store the generated files
+             */
+      initializationVectors?: string[]
+      /**
+             * The ISO date time string when the request was uploaded to the server
+             */
+      uploaded?: string
+      /**
+             * The ISO date time string when the request began to be processed
+             */
+      started?: string
+      /**
+             * The ISO date time string when the request finished being processed
+             */
+      finished?: string
+      /**
+             * The message content describing the response
+             */
+      message?: string
+    }
+    /**
          * Put Request Response
          */
     export interface PutRequestModel {
@@ -154,6 +189,15 @@ declare namespace Components {
       message: string
     }
     /**
+         * Put Results Response
+         */
+    export interface PutResultsModel {
+      /**
+             * The message content describing the response
+             */
+      message?: string
+    }
+    /**
          * User Details Response
          */
     export interface UserDetailsModel {
@@ -197,6 +241,19 @@ declare namespace Paths {
       export type $200 = /* Get Requests Response */ Components.Schemas.GetRequestsModel
     }
   }
+  namespace GetResults {
+    namespace Parameters {
+      export type DateCode = string
+      export type RequestId = string
+    }
+    export interface PathParameters {
+      dateCode: Parameters.DateCode
+      requestId: Parameters.RequestId
+    }
+    namespace Responses {
+      export type $200 = /* Get Results Response */ Components.Schemas.GetResultsModel
+    }
+  }
   namespace GetStatus {
     namespace Responses {
       export type $200 = /* Basic API Response */ Components.Schemas.ApiResponseModel
@@ -213,12 +270,39 @@ declare namespace Paths {
       export type $200 = /* Put Request Response */ Components.Schemas.PutRequestModel
     }
   }
+  namespace PutResults {
+    namespace Responses {
+      export type $200 = /* Put Results Response */ Components.Schemas.PutResultsModel
+    }
+  }
   namespace Request$RequestId {
     namespace Options {
       namespace Parameters {
         export type RequestId = string
       }
       export interface PathParameters {
+        requestId: Parameters.RequestId
+      }
+    }
+  }
+  namespace Results$DateCode {
+    namespace Options {
+      namespace Parameters {
+        export type DateCode = string
+      }
+      export interface PathParameters {
+        dateCode: Parameters.DateCode
+      }
+    }
+  }
+  namespace Results$DateCode$RequestId {
+    namespace Options {
+      namespace Parameters {
+        export type DateCode = string
+        export type RequestId = string
+      }
+      export interface PathParameters {
+        dateCode: Parameters.DateCode
         requestId: Parameters.RequestId
       }
     }
@@ -276,6 +360,22 @@ export interface OperationMethods {
     data?: any,
     config?: AxiosRequestConfig
   ) => OperationResponse<Paths.UserDetails.Responses.$200>
+  /**
+   * putResults
+   */
+  'putResults': (
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: any,
+    config?: AxiosRequestConfig
+  ) => OperationResponse<Paths.PutResults.Responses.$200>
+  /**
+   * getResults
+   */
+  'getResults': (
+    parameters: Parameters<Paths.GetResults.PathParameters>,
+    data?: any,
+    config?: AxiosRequestConfig
+  ) => OperationResponse<Paths.GetResults.Responses.$200>
   /**
    * getRequests
    */
@@ -341,7 +441,27 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig
     ) => OperationResponse<Paths.UserDetails.Responses.$200>
   }
+  ['/results']: {
+    /**
+     * putResults
+     */
+    'put': (
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: any,
+      config?: AxiosRequestConfig
+    ) => OperationResponse<Paths.PutResults.Responses.$200>
+  }
   ['/request']: {
+  }
+  ['/results/{dateCode}/{requestId}']: {
+    /**
+     * getResults
+     */
+    'get': (
+      parameters: Parameters<Paths.GetResults.PathParameters>,
+      data?: any,
+      config?: AxiosRequestConfig
+    ) => OperationResponse<Paths.GetResults.Responses.$200>
   }
   ['/user']: {
   }
@@ -372,6 +492,8 @@ export interface PathsDictionary {
       data?: any,
       config?: AxiosRequestConfig
     ) => OperationResponse<Paths.GetOpenAPISpec.Responses.$200>
+  }
+  ['/results/{dateCode}']: {
   }
   ['/']: {
   }

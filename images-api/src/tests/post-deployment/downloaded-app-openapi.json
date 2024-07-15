@@ -3,7 +3,7 @@
   "info": {
     "title": "Images API",
     "description": "Images API - https://github.com/connected-web/gfx-suite",
-    "version": "2024-07-14T20:23:56Z"
+    "version": "2024-07-15T11:20:26Z"
   },
   "servers": [
     {
@@ -238,8 +238,182 @@
         }
       }
     },
+    "/results": {
+      "put": {
+        "operationId": "putResults",
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Credentials": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PutResultsModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ImagesAPIImagesAPIPrivateApiRequestAuthorizerEC37AB56": []
+          }
+        ]
+      },
+      "options": {
+        "responses": {
+          "204": {
+            "description": "204 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Credentials": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
     "/request": {
       "options": {
+        "responses": {
+          "204": {
+            "description": "204 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Credentials": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/results/{dateCode}/{requestId}": {
+      "get": {
+        "operationId": "getResults",
+        "parameters": [
+          {
+            "name": "dateCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Credentials": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetResultsModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ImagesAPIImagesAPIPrivateApiRequestAuthorizerEC37AB56": []
+          }
+        ]
+      },
+      "options": {
+        "parameters": [
+          {
+            "name": "dateCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "204": {
             "description": "204 response",
@@ -477,6 +651,48 @@
         }
       }
     },
+    "/results/{dateCode}": {
+      "options": {
+        "parameters": [
+          {
+            "name": "dateCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "204 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Credentials": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
     "/": {
       "options": {
         "responses": {
@@ -678,6 +894,16 @@
           }
         }
       },
+      "PutResultsModel": {
+        "title": "Put Results Response",
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "The message content describing the response"
+          }
+        }
+      },
       "UserDetailsModel": {
         "title": "User Details Response",
         "required": [
@@ -734,6 +960,46 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "GetResultsModel": {
+        "title": "Get Results Response",
+        "type": "object",
+        "properties": {
+          "originalRequest": {
+            "type": "object",
+            "description": "The original request object"
+          },
+          "generatedFiles": {
+            "type": "array",
+            "description": "The list of paths of generated files",
+            "items": {
+              "type": "string"
+            }
+          },
+          "initializationVectors": {
+            "type": "array",
+            "description": "The corresponding initialization vectors used to encrypt and store the generated files",
+            "items": {
+              "type": "string"
+            }
+          },
+          "uploaded": {
+            "type": "string",
+            "description": "The ISO date time string when the request was uploaded to the server"
+          },
+          "started": {
+            "type": "string",
+            "description": "The ISO date time string when the request began to be processed"
+          },
+          "finished": {
+            "type": "string",
+            "description": "The ISO date time string when the request finished being processed"
+          },
+          "message": {
+            "type": "string",
+            "description": "The message content describing the response"
           }
         }
       },
