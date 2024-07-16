@@ -1,8 +1,9 @@
 
 export interface ImageRequest {
   receiptHandle: string
-  requestId: string
   messageId: string
+  requestId: string
+  userId: string
   type: string
   positive: string
   negative: string
@@ -17,6 +18,7 @@ export interface ImageResult {
   started: Date | string
   finished: Date | string
   generatedFiles: string[]
+  initializationVectors: string[]
 }
 
 export type FileList = string[]

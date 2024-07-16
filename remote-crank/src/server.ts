@@ -138,6 +138,15 @@ async function processRequests (): Promise<void> {
         return await imageUtils.compressImage(imagePath)
       })
       const compressedFiles = await Promise.all(compressionWork)
+
+      const secureUserDetails = await imagesApiClient.getUserDetailsByUserId(nextRequest.userId)
+      console.log('Retrieved user details:', secureUserDetails)
+
+      const userEncryptionKey = secureUserDetails?.user?.decryptionKey
+      const encryptionWork = compressedFiles.map(async (imagePath) => {
+        return await imageUtils.encryptImage(imagePath, userEncryptionKey)
+      })
+      const encryptedFileRecords = await Promise.all(encryptionWork)
       const deleteWork = generatedFiles.map(async (imagePath) => {
         await imageUtils.deleteImage(imagePath)
       })
@@ -146,7 +155,8 @@ async function processRequests (): Promise<void> {
         originalRequest: nextRequest,
         started,
         finished: new Date(),
-        generatedFiles: compressedFiles.filter(str => str !== undefined)
+        generatedFiles: encryptedFileRecords.map(record => record.encryptedImagePath),
+        initializationVectors: encryptedFileRecords.map(record => record.iv)
       }
       await Promise.all([
         localResults.storeResult(imageResult),
