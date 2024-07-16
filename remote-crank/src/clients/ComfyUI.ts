@@ -55,9 +55,12 @@ export class ComfyUIClient {
         try {
           const json = JSON.parse(data)
           if (json?.type === 'progress') {
-            console.log('Progress:', json?.data?.value, 'of', json?.data?.max)
+            const { value, max } = json?.data ?? {}
+            if (value % 4 === 0 || value === max) {
+              console.log('Progress:', json?.data?.value, 'of', json?.data?.max)
+            }
           } else {
-            console.log('Workflow:', json)
+            // console.log('Workflow:', json)
           }
         } catch (ex) {
           console.log('ComfyUI Message:', data)

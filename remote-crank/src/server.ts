@@ -9,6 +9,7 @@ import ImagesApiClient from './clients/ImagesApi'
 import { LocalRequests } from './clients/LocalRequests'
 import { LocalResults } from './clients/LocalResults'
 import { ImageRequest, ImageResult, ResultsIndex } from './clients/SharedTypes'
+import { ImageUtils } from './clients/ImageUtils'
 
 const app = express()
 const startDate = new Date()
@@ -131,11 +132,21 @@ async function processRequests (): Promise<void> {
       const started = new Date()
       const workflow = comfyUiClient.createWorkflow(nextRequest)
       const generatedFiles = await comfyUiClient.invokeWorkflow(workflow, nextRequest.batchSize)
+      const imageUtils = new ImageUtils()
+      console.log('[processRequests] Compress images to JPG')
+      const compressionWork = generatedFiles.map(async (imagePath) => {
+        return await imageUtils.compressImage(imagePath)
+      })
+      const compressedFiles = await Promise.all(compressionWork)
+      const deleteWork = generatedFiles.map(async (imagePath) => {
+        await imageUtils.deleteImage(imagePath)
+      })
+      await Promise.all(deleteWork)
       const imageResult: ImageResult = {
         originalRequest: nextRequest,
         started,
         finished: new Date(),
-        generatedFiles
+        generatedFiles: compressedFiles.filter(str => str !== undefined)
       }
       await Promise.all([
         localResults.storeResult(imageResult),

@@ -30,6 +30,7 @@
     "@stable-canvas/comfyui-client-cli": "^1.5.2",
     "@types/node-fetch": "^2.6.11",
     "express": "^4.19.2",
+    "jimp": "^0.22.12",
     "tsx": "^4.16.2"
   },
   "nodemonConfig": {
