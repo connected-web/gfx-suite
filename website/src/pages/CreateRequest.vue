@@ -8,16 +8,24 @@
     <textarea v-model="prompt" :disabled="sendingPrompt" placeholder="Describe the image to generate..."></textarea>
 
     <div class="row p5 stretch">
-      <label>Batch size:</label>
-      <input type="number" v-model="batchSize" placeholder="Batch size" />
-      <label>Image Dimensions</label>
-      <input type="number" v-model="imageWidth" placeholder="Image width" :step="64">
-      <input type="number" v-model="imageHeight" placeholder="Image height" :step="64">
+      <div class="row p5 top">
+        <label>Batch size:</label>
+        <div class="row p5 stretch">
+          <input type="number" v-model="batchSize" placeholder="Batch size" />
+        </div>
+      </div>
+      <div class="row p5 stretch top">
+        <label>Image Dimensions</label>
+        <div class="row p5 stretch">
+          <input type="number" v-model="imageWidth" placeholder="Image width" :step="64">
+          <input type="number" v-model="imageHeight" placeholder="Image height" :step="64">
+        </div>
+      </div>
     </div>
 
     <select v-if="promptHistory?.length > 0" v-model="prompt">
       <option value="">Choose a previous prompt...</option>
-      <option v-for="prompt in promptHistory" :value="prompt">{{ prompt }}</option>
+      <option v-for="prompt in promptHistory" :value="prompt">{{ String(prompt).substring(0, 100) }}...</option>
     </select>
     <select v-else disabled>
       <option value="">Prompt history: No previous prompts</option>
@@ -121,5 +129,14 @@ textarea {
   border: 1px solid #ccc;
   border-radius: 5px;
   font-family: monospace;
+}
+select {
+  overflow: hidden;
+  width: 100%;
+}
+@media screen and (max-width: 800px) {
+  .row.stretch {
+    flex-wrap: wrap;
+  }
 }
 </style>
