@@ -58,7 +58,7 @@ Private planning board on Miro:
 - 🚧 Integrate Remote Crank with Connected Web Images API to upload results
 - ✅ Convert PNGs into JPG files before uploading
 - ✅ Encrypt images using User's key before uploading
-- 🚧 Integrate Remote Crank with FTP Server to upload images
+- ✅ Integrate Remote Crank with FTP Server to upload images
 
 ### FTP Server
 
