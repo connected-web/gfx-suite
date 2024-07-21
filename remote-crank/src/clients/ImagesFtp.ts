@@ -1,7 +1,7 @@
 import { Client } from 'basic-ftp'
 
-export type Task = {
-  attempts: number,
+export interface Task {
+  attempts: number
   fn: () => Promise<void>
 }
 
@@ -12,6 +12,7 @@ export class ImagesFtp {
   workQueue: Task[] = []
   currentTask: Task | null = null
   checkQueueTimeout: NodeJS.Timeout | null = null
+  closeQueueTimeout: NodeJS.Timeout | null = null
 
   constructor () {
     this.client = new Client()
@@ -45,7 +46,7 @@ export class ImagesFtp {
   }
 
   createDirectory (remoteDirectory: string): void {
-    const { client, workQueue } = this
+    const { client } = this
     this.queueTask(async () => {
       console.log('[ImagesFtp] Create directory', { remoteDirectory })
       return await client.ensureDir(remoteDirectory)
@@ -57,7 +58,7 @@ export class ImagesFtp {
   }
 
   uploadFile (localFilepath: string, remoteFilename: string): void {
-    const { client, workQueue } = this
+    const { client } = this
     this.queueTask(async () => {
       console.log('[ImagesFtp] Uploading', { localFilepath, remoteFilename })
       await client.uploadFrom(localFilepath, remoteFilename)
@@ -91,12 +92,18 @@ export class ImagesFtp {
           console.error('[ImagesFtp] Unable to process task', { error: error.message })
           if (task.attempts < 3) {
             console.log('[ImagesFtp] Re-queueing task')
-            setTimeout(() => {
+            /* eslint-disable-next-line @typescript-eslint/no-misused-promises */
+            this.checkQueueTimeout = setTimeout(async () => {
+              clearTimeout(this.checkQueueTimeout ?? 0)
               workQueue.push(task)
-            }, 2000)
+              this.checkWorkQueue().catch((ex) => {
+                const error = ex as Error
+                console.log('[ImagesFTP] Unable to process work queue after requeue', error)
+              })
+            }, 5000)
           }
         }
-        clearTimeout(this.checkQueueTimeout as NodeJS.Timeout)
+        clearTimeout(this.checkQueueTimeout ?? 0)
         /* eslint-disable-next-line @typescript-eslint/no-misused-promises */
         this.checkQueueTimeout = setTimeout(() => {
           this.checkWorkQueue().catch((ex) => {
@@ -106,8 +113,12 @@ export class ImagesFtp {
         }, 10)
         this.currentTask = null
         if (workQueue.length === 0) {
-          console.log('[ImagesFtp] Work queue empty, closing connection')
-          await this.close()
+          clearTimeout(this.closeQueueTimeout ?? 0)
+          /* eslint-disable-next-line @typescript-eslint/no-misused-promises */
+          this.closeQueueTimeout = setTimeout(async () => {
+            console.log('[ImagesFtp] Work queue empty, closing connection')
+            await this.close()
+          }, 5000)
         }
       }
     }

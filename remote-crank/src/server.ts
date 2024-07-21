@@ -143,8 +143,8 @@ async function processRequests (): Promise<void> {
 
       const encryptedFileRecords: EncryptedFileRecord[] = []
       await comfyUiClient.invokeWorkflow(workflow, nextRequest.batchSize, async (sourceImageFile: string) => {
-        let compressedFile: string | undefined = undefined
-        let encrypedFileRecord: EncryptedFileRecord | undefined = undefined
+        let compressedFile: string | undefined
+        let encryptedFileRecord: EncryptedFileRecord | undefined
         try {
           console.log('[processRequests] Compress image to JPG')
           compressedFile = await imageUtils.compressImage(sourceImageFile)
@@ -160,44 +160,56 @@ async function processRequests (): Promise<void> {
           console.info('[processRequests] Unable to delete image:', { error: error.message, imageFile: sourceImageFile })
         }
         try {
-          console.log('[processRequests] Encrypt image')
-          encrypedFileRecord = await imageUtils.encryptImage(String(compressedFile), userEncryptionKey)
-          encryptedFileRecords.push(encrypedFileRecord)
+          console.log('[processRequests] Encrypting image', path.basename(String(compressedFile)))
+          encryptedFileRecord = await imageUtils.encryptImage(String(compressedFile), userEncryptionKey)
+          encryptedFileRecords.push(encryptedFileRecord)
+          console.log('[processRequests] Encrypted image', path.basename(encryptedFileRecord?.encryptedImagePath))
         } catch (ex) {
           const error = ex as Error
           console.info('[processRequests] Unable to encrypt image:', { error: error.message, sourceImageFile: compressedFile })
         }
-        if (encrypedFileRecord !== undefined) {
+        if (encryptedFileRecord !== undefined) {
           try {
-            const remoteFilename = path.basename(encrypedFileRecord.encryptedImagePath)
+            const remoteFilename = path.basename(encryptedFileRecord.encryptedImagePath)
             const remoteFilepath = path.join(remoteDirectory, remoteFilename)
             console.log('[processRequests] Upload image to FTP', remoteFilename)
-            ftpClient.uploadFile(encrypedFileRecord.encryptedImagePath, remoteFilepath)
+            ftpClient.uploadFile(encryptedFileRecord.encryptedImagePath, remoteFilepath)
           } catch (ex) {
             const error = ex as Error
             console.info('[processRequests] Unable to upload image:', { error: error.message, imageFile: sourceImageFile })
           }
         }
+        if (encryptedFileRecords.length === nextRequest?.batchSize) {
+          try {
+            await storeProgressResults(nextRequest, started, encryptedFileRecords, remoteDirectory)
+          } catch (ex) {
+            const error = ex
+            console.log('[processRequests] Store progress results', encryptedFileRecords?.length, 'items')
+          }
+        }
       })
 
-      const imageResult: ImageResult = {
-        originalRequest: nextRequest,
-        started,
-        finished: new Date(),
-        generatedFiles: encryptedFileRecords.map(record => {
-          return path.join(remoteDirectory, path.basename(record.encryptedImagePath))
-        }),
-        initializationVectors: encryptedFileRecords.map(record => record.iv)
-      }
-      await Promise.all([
-        localResults.storeResult(imageResult),
-        localRequests.deleteRequest(nextRequest?.requestId)
-      ])
     } catch (ex) {
       const error = ex as Error
       console.info('[processRequests] Unable to invoke workflow:', { error: error.message, request: nextRequest })
     }
   }
+}
+
+async function storeProgressResults(originalRequest: ImageRequest, started: Date, encryptedFileRecords: EncryptedFileRecord[], remoteDirectory: string): Promise<void> {
+  const imageResult: ImageResult = {
+    originalRequest,
+    started,
+    finished: new Date(),
+    generatedFiles: encryptedFileRecords.map(record => {
+      return path.join(remoteDirectory, path.basename(record.encryptedImagePath))
+    }),
+    initializationVectors: encryptedFileRecords.map(record => record.iv)
+  }
+  await Promise.all([
+    localResults.storeResult(imageResult),
+    localRequests.deleteRequest(originalRequest?.requestId)
+  ])
 }
 
 app.get('/', (req, res) => {
