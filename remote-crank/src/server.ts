@@ -9,7 +9,8 @@ import ImagesApiClient from './clients/ImagesApi'
 import { LocalRequests } from './clients/LocalRequests'
 import { LocalResults } from './clients/LocalResults'
 import { ImageRequest, ImageResult, ResultsIndex } from './clients/SharedTypes'
-import { ImageUtils } from './clients/ImageUtils'
+import { EncryptedFileRecord, ImageUtils } from './clients/ImageUtils'
+import { ImagesFtp } from './clients/ImagesFtp'
 
 const app = express()
 const startDate = new Date()
@@ -130,32 +131,62 @@ async function processRequests (): Promise<void> {
 
     try {
       const started = new Date()
-      const workflow = comfyUiClient.createWorkflow(nextRequest)
-      const generatedFiles = await comfyUiClient.invokeWorkflow(workflow, nextRequest.batchSize)
       const imageUtils = new ImageUtils()
-      console.log('[processRequests] Compress images to JPG')
-      const compressionWork = generatedFiles.map(async (imagePath) => {
-        return await imageUtils.compressImage(imagePath)
-      })
-      const compressedFiles = await Promise.all(compressionWork)
+      const ftpClient = new ImagesFtp()
+      const remoteDirectory = ['users', btoa(nextRequest.userId), started.toISOString().slice(0, 10)].join('/')
+      ftpClient.createDirectory(remoteDirectory)
+      const workflow = comfyUiClient.createWorkflow(nextRequest)
 
       const secureUserDetails = await imagesApiClient.getUserDetailsByUserId(nextRequest.userId)
       console.log('Retrieved user details:', secureUserDetails)
-
       const userEncryptionKey = secureUserDetails?.user?.decryptionKey
-      const encryptionWork = compressedFiles.map(async (imagePath) => {
-        return await imageUtils.encryptImage(imagePath, userEncryptionKey)
+
+      const encryptedFileRecords: EncryptedFileRecord[] = []
+      await comfyUiClient.invokeWorkflow(workflow, nextRequest.batchSize, async (sourceImageFile: string) => {
+        let compressedFile: string | undefined = undefined
+        let encrypedFileRecord: EncryptedFileRecord | undefined = undefined
+        try {
+          console.log('[processRequests] Compress image to JPG')
+          compressedFile = await imageUtils.compressImage(sourceImageFile)
+        } catch (ex) {
+          const error = ex as Error
+          console.info('[processRequests] Unable to compress image:', { error: error.message, sourceImageFile })
+        }
+        try {
+          console.log('[processRequests] Deleting image:', sourceImageFile)
+          await imageUtils.deleteImage(sourceImageFile)
+        } catch (ex) {
+          const error = ex as Error
+          console.info('[processRequests] Unable to delete image:', { error: error.message, imageFile: sourceImageFile })
+        }
+        try {
+          console.log('[processRequests] Encrypt image')
+          encrypedFileRecord = await imageUtils.encryptImage(String(compressedFile), userEncryptionKey)
+          encryptedFileRecords.push(encrypedFileRecord)
+        } catch (ex) {
+          const error = ex as Error
+          console.info('[processRequests] Unable to encrypt image:', { error: error.message, sourceImageFile: compressedFile })
+        }
+        if (encrypedFileRecord !== undefined) {
+          try {
+            const remoteFilename = path.basename(encrypedFileRecord.encryptedImagePath)
+            const remoteFilepath = path.join(remoteDirectory, remoteFilename)
+            console.log('[processRequests] Upload image to FTP', remoteFilename)
+            ftpClient.uploadFile(encrypedFileRecord.encryptedImagePath, remoteFilepath)
+          } catch (ex) {
+            const error = ex as Error
+            console.info('[processRequests] Unable to upload image:', { error: error.message, imageFile: sourceImageFile })
+          }
+        }
       })
-      const encryptedFileRecords = await Promise.all(encryptionWork)
-      const deleteWork = generatedFiles.map(async (imagePath) => {
-        await imageUtils.deleteImage(imagePath)
-      })
-      await Promise.all(deleteWork)
+
       const imageResult: ImageResult = {
         originalRequest: nextRequest,
         started,
         finished: new Date(),
-        generatedFiles: encryptedFileRecords.map(record => record.encryptedImagePath),
+        generatedFiles: encryptedFileRecords.map(record => {
+          return path.join(remoteDirectory, path.basename(record.encryptedImagePath))
+        }),
         initializationVectors: encryptedFileRecords.map(record => record.iv)
       }
       await Promise.all([

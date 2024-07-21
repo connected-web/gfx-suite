@@ -1,14 +1,13 @@
 import fs from 'fs'
 import path, { dirname as pathDirname } from 'path'
 import WebSocket from 'ws'
-import { pipeline, Readable } from 'stream'
-import { promisify } from 'util'
+import { Readable } from 'stream'
+import { pipeline } from 'node:stream/promises'
 import { fileURLToPath } from 'url'
 
 import { ComfyUIApiClient, ComfyUIWorkflow, WorkflowOutput } from '@stable-canvas/comfyui-client'
 import { ImageRequest, FileList } from './SharedTypes'
 
-const pipelineAsync = promisify(pipeline)
 const filename = fileURLToPath(import.meta.url)
 const dirname = pathDirname(filename)
 
@@ -50,7 +49,7 @@ export class ComfyUIClient {
     client.on('message', (event) => {
       const { data } = event
       if (data instanceof Buffer || data instanceof ArrayBuffer) {
-        console.log('Received image data')
+        console.log('[ComfyUI Client] Received image data')
       } else {
         try {
           const json = JSON.parse(data)
@@ -63,7 +62,7 @@ export class ComfyUIClient {
             // console.log('Workflow:', json)
           }
         } catch (ex) {
-          console.log('ComfyUI Message:', data)
+          console.log('[ComfyUI Client] ComfyUI Message:', data)
         }
       }
     })
@@ -77,7 +76,7 @@ export class ComfyUIClient {
       }
     } catch (ex) {
       const error = ex as Error
-      console.error(`Error creating directory: ${error.message}`)
+      console.error(`[ComfyUI Client] Error creating directory: ${error.message}`)
     }
   }
 
@@ -119,11 +118,11 @@ export class ComfyUIClient {
   }
 
   async saveUrlToFile (url: string, filepath: string): Promise<void> {
-    console.log('Saving file from URL', url, 'to', filepath)
+    console.log('[ComfyUI Client] Saving file from URL', url, 'to', filepath)
 
     const res = await fetch(url)
     if (!res.ok || res.body === null) {
-      throw new Error(`Failed to fetch ${url}: ${res.statusText}`)
+      throw new Error(`[ComfyUI Client] Failed to fetch ${url}: ${res.statusText}`)
     }
 
     this.safeMakeDirectory(filepath)
@@ -131,17 +130,19 @@ export class ComfyUIClient {
     try {
       const fileStream = fs.createWriteStream(filepath)
       const readable = responseToReadable(res)
-      await pipelineAsync(readable, fileStream)
-      console.log(`File saved to ${filepath}`)
+      await pipeline(readable, fileStream)
+      console.log(`[ComfyUI Client] File saved to ${filepath}`, {
+        writableFinished: fileStream?.writableFinished
+      })
     } catch (ex) {
       const error = ex as Error
-      console.error(`Error saving file: ${error.message}`)
+      console.error(`[ComfyUI Client] Error saving file: ${error.message}`)
       throw error
     }
   }
 
   async saveWorkflowOutputs (outputs: WorkflowOutput): Promise<FileList> {
-    console.log('Saving outputs:', Object.keys(outputs), outputs?.images?.length ?? 0, 'images')
+    console.log('[ComfyUI Client] Saving outputs:', Object.keys(outputs), outputs?.images?.length ?? 0, 'images')
     const images = outputs.images ?? []
     const work = images.map(async (image, index) => {
       console.log(`[${index}] Dealing with ${image.type}`)
@@ -152,15 +153,15 @@ export class ComfyUIClient {
           const filename = params.get('filename')
           const subfolder = params.get('subfolder')
           if (isNone(filename)) {
-            console.error('No filename in received URL', { url })
+            console.error('[ComfyUI Client] No filename in received URL', { url })
             return `Error: No filename in received URL ${String(url)}`
           }
           if (isNone(subfolder)) {
-            console.error('No subfolder in received URL', { url })
+            console.error('[ComfyUI Client] No subfolder in received URL', { url })
             return `Error: No subfolder in received URL ${String(url)}`
           }
           const filepath = path.join(dirname, '../../outputs', subfolder, filename)
-          console.log('Using filename from URL', { filename, filepath })
+          console.log('[ComfyUI Client] Using filename from URL:', filename)
           await this.saveUrlToFile(url, filepath)
           return filepath
         } else if (image.type === 'buff') {
@@ -169,34 +170,50 @@ export class ComfyUIClient {
           fs.writeFileSync(filepath, Buffer.from(image.data))
           return filepath
         } else {
-          return `Error: Unrecognised type ${String((image as any)?.type)}`
+          return `[ComfyUI Client] Error: Unrecognised type ${String((image as any)?.type)}`
         }
       } catch (ex) {
         const error = ex as Error
-        console.log('Unable to save workflow outputs', { error: error.message, image })
+        console.log('[ComfyUI Client] Unable to save workflow outputs', { error: error.message, image })
         return `Error: ${String(error.message)}`
       }
     })
+    console.log('Saving workflow outputs', images?.length, 'images')
     const results = await Promise.allSettled(work)
+    // console.log('Saved workflow outputs', { results })
     return results.map((result: any) => result?.value ?? `Error: ${String(result?.reason)}`)
   }
 
-  async invokeWorkflow (workflow: ComfyUIWorkflow, workflowRuns: number): Promise<FileList> {
+  async invokeWorkflow (workflow: ComfyUIWorkflow, workflowRuns: number, fileSavedCallback: (file: string) => Promise<void>): Promise<FileList> {
     const files = []
     while (files.length < workflowRuns) {
       const { client } = this
       try {
         const comfyResponse = await workflow.invoke(client)
         const newFiles = await this.saveWorkflowOutputs(comfyResponse)
+        // console.log('New list of files:', { newFiles })
         while (newFiles.length > 0) {
           const file = newFiles.shift()
           if (file !== undefined) {
             files.push(file)
+            if (typeof fileSavedCallback === 'function') {
+              const futureFn = (): void => {
+                const futureFile = file
+                /* eslint-disable-next-line @typescript-eslint/no-misused-promises */
+                setTimeout(async () => {
+                  fileSavedCallback(futureFile).catch((ex) => {
+                    const error = ex as Error
+                    console.error('[ComfyUI Client] Error processing saved file:', { error: error.message, file: futureFile })
+                  })
+                }, 1000)
+              }
+              futureFn()
+            }
           }
         }
       } catch (ex) {
         const error = ex as Error
-        console.log('Unable to invoke workflow:', { error: error.message, workflow })
+        console.log('[ComfyUI Client] Unable to invoke workflow:', { error: error.message, workflow })
         files.push(`Error: ${String(error?.message)}`)
       }
     }

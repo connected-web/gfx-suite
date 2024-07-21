@@ -1,5 +1,7 @@
 import Jimp from 'jimp'
 import fs from 'fs'
+import path from 'path'
+import { pipeline } from 'node:stream/promises'
 import crypto from 'crypto'
 
 export interface EncryptedFileRecord {
@@ -11,7 +13,9 @@ export class ImageUtils {
   async compressImage (imagePath: string): Promise<string> {
     const image = await Jimp.read(imagePath)
     const newImagePath = imagePath.replace('.png', '.jpg')
+    console.log('Compressing image to', newImagePath)
     await image.quality(90).write(newImagePath)
+    console.log('Compressed image to', newImagePath)
     return newImagePath
   }
 
@@ -21,14 +25,18 @@ export class ImageUtils {
 
   async encryptImage (imagePath: string, encryptionKey: string): Promise<EncryptedFileRecord> {
     const algorithm = 'aes-256-cbc'
-    const outputPath = imagePath.replace('.jpg', '.jpg.enc')
+    const fileDir = path.dirname(imagePath)
+    const fileName = path.basename(imagePath)
+    const guid = crypto.randomBytes(16).toString('hex')
+    const encFileName = btoa(guid + fileName).replace(/=/g, '').slice(0, 16) + '.enc'
+    const outputPath = path.join(fileDir, encFileName)
     const iv = crypto.randomBytes(16)
     const keyInBytes = Buffer.from(encryptionKey, 'base64')
     const cipher = crypto.createCipheriv(algorithm, keyInBytes, iv)
     const input = fs.createReadStream(imagePath)
     const output = fs.createWriteStream(outputPath)
 
-    input.pipe(cipher).pipe(output)
+    await pipeline(input, cipher, output)
 
     return { encryptedImagePath: outputPath, iv: iv.toString('hex') }
   }

@@ -56,7 +56,8 @@ Private planning board on Miro:
 - ✅ Integrate Remote Crank with Connected Web Images API to download image requests
 - ✅ Integrate Remote Crank with ComfyUI Server to generate images
 - 🚧 Integrate Remote Crank with Connected Web Images API to upload results
-- 🚧 Convert PNGs into JPG files before uploading
+- ✅ Convert PNGs into JPG files before uploading
+- ✅ Encrypt images using User's key before uploading
 - 🚧 Integrate Remote Crank with FTP Server to upload images
 
 ### FTP Server
