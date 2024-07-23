@@ -45,17 +45,17 @@ Private planning board on Miro:
   - ✅ Host Image API via Connected Web Services AWS
   - ✅ Create Image Request API endpoints to accept requests
   - 🚧 Create Image Request API progress endpoints to monitor requests
-  - 🚧 Create Image Request API results endpoints to browse images
+  - ✅ Create Image Request API results endpoints to browse images
 - Internal
   - ✅ Create Image Request API requests endpoints to download Remote Crank image requests
-  - 🚧 Create Image Request API update endpoints to receive Remote Crank results
+  - ✅ Create Image Request API update endpoints to receive Remote Crank results
 
 ### GFX Suite Remote Crank
 
 - ✅ Run service locally 
 - ✅ Integrate Remote Crank with Connected Web Images API to download image requests
 - ✅ Integrate Remote Crank with ComfyUI Server to generate images
-- 🚧 Integrate Remote Crank with Connected Web Images API to upload results
+- ✅ Integrate Remote Crank with Connected Web Images API to upload results
 - ✅ Convert PNGs into JPG files before uploading
 - ✅ Encrypt images using User's key before uploading
 - ✅ Integrate Remote Crank with FTP Server to upload images
