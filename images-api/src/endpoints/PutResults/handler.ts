@@ -18,6 +18,7 @@ function parseResults (body: string): any {
 export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const now = new Date()
   const rawRequest = parseResults(event?.body ?? '{}')
+  console.log('[PutResults]', { rawRequest })
   const { originalRequest } = rawRequest
   const userId = originalRequest?.userId ?? 'no-user-id-from-result'
   const resultsDataToStore: ImageResultsType = {
@@ -48,7 +49,7 @@ export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayP
     await storage.putJson(storagePath, resultsDataToStore)
   } catch (ex) {
     const error = ex as Error
-    console.log('Unable to handle result data', error?.message, rawRequest)
+    console.log('[PutResults] Unable to handle result data', error?.message, rawRequest)
   }
 
   return lambdaResponse(httpStatusCodes.success, JSON.stringify({
