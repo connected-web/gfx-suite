@@ -1,4 +1,5 @@
 import { Client } from 'basic-ftp'
+import path from 'path'
 
 export interface Task {
   attempts: number
@@ -57,10 +58,14 @@ export class ImagesFtp {
     })
   }
 
-  uploadFile (localFilepath: string, remoteFilename: string): void {
+  uploadFile (localFilepath: string, remotePath: string): void {
     const { client } = this
     this.queueTask(async () => {
-      console.log('[ImagesFtp] Uploading', { localFilepath, remoteFilename })
+      const remoteDirectory = path.dirname(remotePath)
+      const remoteFilename = path.basename(remotePath)
+      console.log('[ImagesFtp] Uploading', { localFilepath, remoteDirectory, remoteFilename })
+      await client.cd('/')
+      await client.cd(remoteDirectory)
       await client.uploadFrom(localFilepath, remoteFilename)
     })
     this.checkWorkQueue().catch((ex) => {
@@ -71,6 +76,7 @@ export class ImagesFtp {
 
   async checkWorkQueue (): Promise<void> {
     const { workQueue } = this
+    clearTimeout(this.checkQueueTimeout ?? 0)
     if (this.currentTask !== null) {
       return
     }
@@ -103,7 +109,6 @@ export class ImagesFtp {
             }, 5000)
           }
         }
-        clearTimeout(this.checkQueueTimeout ?? 0)
         /* eslint-disable-next-line @typescript-eslint/no-misused-promises */
         this.checkQueueTimeout = setTimeout(() => {
           this.checkWorkQueue().catch((ex) => {

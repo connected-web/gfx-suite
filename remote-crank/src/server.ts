@@ -183,12 +183,11 @@ async function processRequests (): Promise<void> {
           try {
             await storeProgressResults(nextRequest, started, encryptedFileRecords, remoteDirectory)
           } catch (ex) {
-            const error = ex
-            console.log('[processRequests] Store progress results', encryptedFileRecords?.length, 'items')
+            const error = ex as Error
+            console.log('[processRequests] Unable to store progress results', encryptedFileRecords?.length, 'items, Reason:', error?.message)
           }
         }
       })
-
     } catch (ex) {
       const error = ex as Error
       console.info('[processRequests] Unable to invoke workflow:', { error: error.message, request: nextRequest })
@@ -196,7 +195,7 @@ async function processRequests (): Promise<void> {
   }
 }
 
-async function storeProgressResults(originalRequest: ImageRequest, started: Date, encryptedFileRecords: EncryptedFileRecord[], remoteDirectory: string): Promise<void> {
+async function storeProgressResults (originalRequest: ImageRequest, started: Date, encryptedFileRecords: EncryptedFileRecord[], remoteDirectory: string): Promise<void> {
   const imageResult: ImageResult = {
     originalRequest,
     started,
