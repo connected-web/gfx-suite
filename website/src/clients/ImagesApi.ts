@@ -1,6 +1,8 @@
 import Auth from '../Auth'
 
 export interface ImageRequest {
+  requestId: string
+  dateCode: string
   type: string
   positive: string
   negative: string
@@ -79,6 +81,18 @@ export default class ImagesApiClient {
 
   async getResults (dateCode: string, requestId: string): Promise<any> {
     const endpointUrl = `${this.baseUrl}/results/${dateCode}/${requestId}`
+    const accessToken = await Auth.instance?.getLatestAccessToken()
+    const response = await fetch(endpointUrl, {
+      headers: {
+        Authorization: `Bearer ${String(accessToken)}`
+      }
+    })
+
+    return await response.json()
+  }
+
+  async getUserDetails (): Promise<any> {
+    const endpointUrl = `${this.baseUrl}/user/details`
     const accessToken = await Auth.instance?.getLatestAccessToken()
     const response = await fetch(endpointUrl, {
       headers: {

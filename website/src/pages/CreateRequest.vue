@@ -54,6 +54,7 @@
 
 import ImagesApiClient from '../clients/ImagesApi'
 import promptHistory from '../components/PromptHistory'
+import RequestHistory from '../components/RequestHistory'
 
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 
@@ -92,7 +93,11 @@ export default {
       this.sendingPrompt = true
       try {
         const requestId = guid()
-        const request = {
+        const now = new Date()
+        const dateCode = now.toISOString().slice(0, 10)
+        const requestItem = {
+          requestId,
+          dateCode,
           positive: this.prompt,
           negative: defaultNegativePrompt,
           batchSize: this.batchSize,
@@ -100,10 +105,15 @@ export default {
           width: this.imageWidth,
           height: this.imageHeight
         }
-        await this.imagesApi.putRequest(requestId, request)
+        await this.imagesApi.putRequest(requestId, requestItem)
+        RequestHistory.add(requestItem)
         this.promptHistory = promptHistory.add(this.prompt)
         this.promptIcon = 'check'
         this.promptStatus = 'Prompt sent successfully.'
+        const { $router } = this
+        setTimeout(() => {
+          $router.push(`/browse/${dateCode}/${requestId}`)
+        }, 2000)
       } catch (error) {
         this.promptIcon = 'exclamation-triangle'
         this.promptStatus = 'Failed to send prompt.'

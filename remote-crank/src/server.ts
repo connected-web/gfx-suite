@@ -178,6 +178,11 @@ async function processRequests (): Promise<void> {
             const error = ex as Error
             console.info('[processRequests] Unable to upload image:', { error: error.message, imageFile: sourceImageFile })
           }
+        } else {
+          encryptedFileRecords.push({
+            encryptedImagePath: 'unable-to-encrypt',
+            iv: 'unable-to-encrypt-no-iv-set'
+          })
         }
         if (encryptedFileRecords.length === nextRequest?.batchSize) {
           try {
