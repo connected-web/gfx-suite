@@ -11,6 +11,15 @@ export interface ImageRequest {
   [key: string]: string | number | undefined
 }
 
+export interface ImageResults {
+  originalRequest: ImageRequest
+  started: Date | string
+  finished: Date | string
+  uploaded: Date | string
+  generatedFiles: string[]
+  initializationVectors: string[]
+}
+
 export default class ImagesApiClient {
   baseUrl = 'https://images.dev.connected-web.services'
 
@@ -63,6 +72,18 @@ export default class ImagesApiClient {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify([{ receiptHandle }])
+    })
+
+    return await response.json()
+  }
+
+  async getResults (dateCode: string, requestId: string): Promise<any> {
+    const endpointUrl = `${this.baseUrl}/results/${dateCode}/${requestId}`
+    const accessToken = await Auth.instance?.getLatestAccessToken()
+    const response = await fetch(endpointUrl, {
+      headers: {
+        Authorization: `Bearer ${String(accessToken)}`
+      }
     })
 
     return await response.json()
