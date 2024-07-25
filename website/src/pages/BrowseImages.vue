@@ -19,9 +19,9 @@
       <label>Loading results...</label>
     </div>
     <div v-else>
-      <div v-if="(resultsItem as Error)?.message" class="row p5 key-value">
+      <div v-if="resultsError?.message" class="row p5 key-value">
         <label>Error:</label>
-        <span>{{ resultsItem?.message }}</span>
+        <span>{{ resultsError?.message }}</span>
       </div>
       <div v-else class="column p10">
         <h3 class="row">
@@ -140,7 +140,11 @@ export default {
   computed: {
     resultsItem() {
       const { results, requestId } = this
-      return results[requestId]
+      return results[requestId] as ImageResults
+    },
+    resultsError() {
+      const { results, requestId } = this
+      return results[requestId] as Error
     }
   },
   async mounted(): Promise<void> {
@@ -188,7 +192,7 @@ export default {
     },
     async loadImages(requestId: string) {
       const { decryptedImages } = this
-      const resultsItem = this.results[requestId]
+      const resultsItem = this.results[requestId] as ImageResults
       if (resultsItem?.generatedFiles?.length > 0) {
         const imagePaths = resultsItem?.generatedFiles
         const imageIVs = resultsItem?.initializationVectors

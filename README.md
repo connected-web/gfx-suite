@@ -36,7 +36,7 @@ Private planning board on Miro:
 - ✅ Add user authentication via Connected Web Identity
 - ✅ Create Image Request Form
 - ✅ Create Page to Diagnose Requests
-- 🚧 Create Image Browser
+- ✅ Create Image Browser
 - 🚧 Create Status Page
 
 ### Connected Web Images API
