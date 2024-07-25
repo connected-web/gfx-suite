@@ -36,7 +36,7 @@ import Navigation from './components/Navigation.vue'
 import LoadingSpinner from './components/LoadingSpinner.vue';
 import pages from './pages'
 
-const navigationItems = pages.filter(item => item.primaryNav).map(item => {
+const navigationItems = pages.filter(item => (item as any)?.primaryNav).map(item => {
   return {
     title: item.navTitle ?? 'Untitled',
     path: item.path ?? '/',

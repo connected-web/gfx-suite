@@ -1,24 +1,45 @@
 <template>
   <div class="column p5">
+    <div v-if="requestId" class="breadcrumbs">
+      <router-link to="/browse" class="row p5 left">
+        <Icon icon="circle-chevron-left" />
+        <label>Back</label>
+      </router-link>
+    </div>
+
     <h2 class="row p5">
       <Icon icon="image" />
       <label>Browse Images</label>
     </h2>
 
-    <div class="links">
-      <div v-for="requestItem in requestHistory">
-        <router-link :to="`/browse/${requestItem?.dateCode}/${requestItem?.requestId}`">{{ requestItem?.dateCode }} / {{ requestItem?.requestId }}</router-link>
+    <div v-if="!requestId" class="column p5">
+      <h3>Recent Images</h3>
+      <p>Recently made requests.</p>
+      <div class="column p5 links">
+        <div v-for="requestItem in requestHistory">
+          <router-link :to="`/browse/${requestItem?.dateCode}/${requestItem?.requestId}`" class="row p5">
+            <label>{{ requestItem?.dateCode }}</label> /
+            <label><code>{{ (requestItem?.requestId ?? '').slice(0, 8).toUpperCase() }}</code></label> /
+            <label>{{ promptSummary(requestItem) }}</label>
+            <label>({{ requestItem.batchSize  }})</label> 
+          </router-link>
+        </div>
       </div>
       <div v-if="requestHistory?.length === 0">
         <label>No request history to browse.</label>
       </div>
+      <h3>Remote Images</h3>
+      <p>Images available on the server.</p>
+      <div v-if="remoteResults?.length === 0">
+        <label>No remote image results to browse.</label>
+      </div>
     </div>
 
-    <div v-if="loadingResults" class="loading row p5 left">
+    <div v-if="loadingResults && !resultsItem" class="loading row p5 left">
       <LoadingSpinner />
       <label>Loading results...</label>
     </div>
-    <div v-else>
+    <div v-else-if="requestId">
       <div v-if="resultsError?.message" class="row p5 key-value">
         <label>Error:</label>
         <span>{{ resultsError?.message }}</span>
@@ -89,8 +110,11 @@
               <LoadingSpinner />
               <label>Loading image...</label>
             </div>
-            <div v-else-if="(decryptedImages[imagePath] as Error)?.message">
-              <pre><code>{{ (decryptedImages[imagePath] as Error)?.message }}</code></pre>
+            <div v-else-if="expectedError(decryptedImages[imagePath])?.name ?? expectedError(decryptedImages[imagePath])?.message">
+              <center>
+                <pre><code>{{ expectedError(decryptedImages[imagePath])?.name }}</code></pre>
+                <pre><code>{{ expectedError(decryptedImages[imagePath])?.message }}</code></pre>
+              </center>
             </div>
             <img v-else-if="decryptedImages[imagePath]" :src="String(decryptedImages[imagePath])" :width="imageWidth(resultsItem)" :height="imageHeight(resultsItem)" />
             <div v-else>
@@ -109,8 +133,6 @@ import { ImageUtils } from '../clients/ImageUtils'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import RequestHistory from '../components/RequestHistory'
 
-const stubRequestId = '9f82675e-8116-4fc6-88d7-39b4050045d9'
-const stubDateCode = '2024-07-24'
 const imagesApiClient = new ImagesApiClient()
 
 let imageUtils: ImageUtils
@@ -121,11 +143,11 @@ export default {
   props: {
     dateCode: {
       type: String,
-      default: stubDateCode
+      default: undefined
     },
     requestId: {
       type: String,
-      default: stubRequestId
+      default: undefined
     }
   },
   data() {
@@ -133,6 +155,7 @@ export default {
       userDetails: {} as any,
       requestHistory: [] as ImageRequest[],
       results: {} as Record<string, ImageResults | Error>,
+      remoteResults: [] as ImageRequest[],
       loadingResults: false,
       decryptedImages: {} as Record<string, string | Error>
     }
@@ -140,11 +163,11 @@ export default {
   computed: {
     resultsItem() {
       const { results, requestId } = this
-      return results[requestId] as ImageResults
+      return results[String(requestId)] as ImageResults
     },
     resultsError() {
       const { results, requestId } = this
-      return results[requestId] as Error
+      return results[String(requestId)] as Error
     }
   },
   async mounted(): Promise<void> {
@@ -162,7 +185,7 @@ export default {
   methods: {
     async loadImagesForRequestId(dateCode: string, requestId: string) {
       await this.loadResults(dateCode, requestId)
-      await this.loadImages(requestId)
+      await this.loadImages(requestId,)
     },
     async fetchUserDetails() {
       const userDetails = await imagesApiClient.getUserDetails()
@@ -171,11 +194,11 @@ export default {
     },
     async loadResults(dateCode: string, requestId: string) {
       this.loadingResults = true
-      const resultsEntry = await imagesApiClient.getResults(dateCode, requestId)
+      const resultsEntry: ImageResults = await imagesApiClient.getResults(dateCode, requestId)
       console.log('[Load Results]', { resultsEntry, dateCode, requestId })
       clearTimeout(reloadTimeout)
-      if (resultsEntry?.message === 'The specified key does not exist.') {
-        this.results[requestId] = { name: 'Key not found', message: 'The specified key does not exist.' }
+      if (this.expectedError(resultsEntry)?.message === 'The specified key does not exist.') {
+        this.results[requestId] = { name: 'Key not found', message: 'Waiting for progress update from server...' }
         const self = this
         reloadTimeout = setTimeout(async () => {
           try {
@@ -183,6 +206,17 @@ export default {
           } catch (ex) {
             const error = ex as Error
             console.log('[Retry results]', error?.message)
+          }
+        }, 6000 + Math.floor(4000 * Math.random()))
+      } else if (resultsEntry?.originalRequest?.batchSize !== resultsEntry?.generatedFiles?.length) {
+        this.results[requestId] = resultsEntry
+        const self = this
+        reloadTimeout = setTimeout(async () => {
+          try {
+            self.loadImagesForRequestId(dateCode, requestId)
+          } catch (ex) {
+            const error = ex as Error
+            console.log('[Find more images]', error?.message)
           }
         }, 4000 + Math.floor(4000 * Math.random()))
       } else {
@@ -209,8 +243,13 @@ export default {
             this.decryptedImages = decryptedImages
           } catch (ex) {
             const error = ex as Error
-            decryptedImages[imagePath] = error
-            this.decryptedImages = decryptedImages
+            if (error.name === 'OperationError') {
+              decryptedImages[imagePath] = { name: 'Image Unavailable', message: 'Image may still be generating'}
+            } else {
+              decryptedImages[imagePath] = error
+              console.log('Image load error:', { error })
+              this.decryptedImages = decryptedImages
+            }
           }
         })
 
@@ -225,12 +264,26 @@ export default {
     },
     imageHeight(resultsEntry: ImageResults, suffix?: string) {
       return (resultsEntry?.originalRequest?.height ?? 100) + (suffix ?? '')
+    },
+    firstWords(requestItem: ImageRequest) {
+      return (requestItem?.positive ?? '').split(' ').slice(0, 2)
+    },
+    lastWords(requestItem: ImageRequest) {
+      return (requestItem?.positive ?? '').split(' ').reverse().slice(0, 2).reverse()
+    },
+    promptSummary(requestItem: ImageRequest) {
+      const firstWords = this.firstWords(requestItem)
+      const lastWords = this.lastWords(requestItem)
+      return Array.from(new Set([...firstWords, ...lastWords])).join(' ')
+    },
+    expectedError(item: any) {
+      return item as Error
     }
   },
   watch: {
     async requestId(newVal: string) {
       const { dateCode, requestId } = this
-      return this.loadImagesForRequestId(dateCode, requestId ?? newVal)
+      return this.loadImagesForRequestId(String(dateCode), requestId ?? newVal)
     }
   }
 }
@@ -267,6 +320,16 @@ pre {
   gap: 5px;
 }
 
+a {
+  background: #eee;
+  padding: 2px;
+  transition: background-color 200ms ease-in;
+}
+a:hover {
+  background: #def;
+  padding: 2px;
+  transition: background-color 200ms ease-out;
+}
 
 @media screen and (max-width: 800px) {
   .image-browser {
@@ -284,4 +347,5 @@ pre {
     height: 100%;
   }
 }
+
 </style>

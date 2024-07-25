@@ -7,6 +7,7 @@ export interface EncryptedFileRecord {
 
 export class ImageUtils {
   private readonly decryptionKey: string
+  private successCache: Record<string, string> = {}
 
   constructor (decryptionKey: string) {
     this.decryptionKey = decryptionKey
@@ -15,6 +16,11 @@ export class ImageUtils {
   async createImageFromEncryptedUrl (imagePath: string, iv: string): Promise<string> {
     const { decryptionKey } = this
 
+    const cachedRecord = this.successCache[imagePath]
+    if (cachedRecord !== undefined) {
+      return cachedRecord
+    }
+
     // Fetch the encrypted image data
     const response = await fetch(imagePath)
     const encryptedBlob = await response.blob()
@@ -22,8 +28,12 @@ export class ImageUtils {
     // Decrypt the image
     const decryptedBlob = await this.decryptImage(encryptedBlob, decryptionKey, iv)
 
+    console.log('Decrypted blob:', { decryptedBlob })
+
     // Create a URL for the decrypted blob to be used as the source of the image element
-    return URL.createObjectURL(decryptedBlob)
+    const objectUrl = URL.createObjectURL(decryptedBlob)
+    this.successCache[imagePath] = objectUrl
+    return objectUrl
   }
 
   async decryptImage (encryptedBlob: Blob, keyHex: string, ivHex: string): Promise<Blob> {

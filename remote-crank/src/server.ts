@@ -186,6 +186,13 @@ async function processRequests (): Promise<void> {
         }
         if (encryptedFileRecords.length === nextRequest?.batchSize) {
           try {
+            await storeFinalResults(imageUtils, nextRequest, started, encryptedFileRecords, remoteDirectory)
+          } catch (ex) {
+            const error = ex as Error
+            console.log('[processRequests] Unable to store final results', encryptedFileRecords?.length, 'items, Reason:', error?.message)
+          }
+        } else {
+          try {
             await storeProgressResults(imageUtils, nextRequest, started, encryptedFileRecords, remoteDirectory)
           } catch (ex) {
             const error = ex as Error
@@ -204,30 +211,43 @@ async function storeProgressResults (imageUtils: ImageUtils, originalRequest: Im
   const imageResult: ImageResult = {
     originalRequest,
     started,
+    finished: 'in-progress',
+    generatedFiles: encryptedFileRecords.map(record => {
+      return path.join(remoteDirectory, path.basename(record.encryptedImagePath))
+    }),
+    initializationVectors: encryptedFileRecords.map(record => record.iv)
+  }
+  console.log('Storing progress result:', imageResult)
+  await Promise.allSettled([
+    imagesApiClient.putResults(imageResult)
+  ])
+  console.log('Stored progress result:', imageResult?.originalRequest?.requestId, 'with', imageResult?.generatedFiles?.length, 'files')
+}
+
+async function storeFinalResults (imageUtils: ImageUtils, originalRequest: ImageRequest, started: Date, encryptedFileRecords: EncryptedFileRecord[], remoteDirectory: string): Promise<void> {
+  const imageResult: ImageResult = {
+    originalRequest,
+    started,
     finished: new Date(),
     generatedFiles: encryptedFileRecords.map(record => {
       return path.join(remoteDirectory, path.basename(record.encryptedImagePath))
     }),
     initializationVectors: encryptedFileRecords.map(record => record.iv)
   }
-  console.log('Storing result:', imageResult)
+  console.log('Storing final result:', imageResult)
   await Promise.allSettled([
     imagesApiClient.putResults(imageResult),
     localResults.storeResult(imageResult),
     localRequests.deleteRequest(originalRequest?.requestId)
   ])
-  console.log('Stored result:', imageResult?.originalRequest?.requestId, 'with', imageResult?.generatedFiles?.length, 'files')
+  console.log('Stored final result:', imageResult?.originalRequest?.requestId, 'with', imageResult?.generatedFiles?.length, 'files')
 
-  const dateCode = started.toISOString().slice(0, 10)
-  const storedRemoteResult = await imagesApiClient.getResults(dateCode, originalRequest?.requestId)
-  console.log('Retrieved remote result:', storedRemoteResult)
-  if (JSON.stringify(storedRemoteResult?.originalRequest) === JSON.stringify(imageResult?.originalRequest)) {
-    console.log('Stored remote result success:', storedRemoteResult)
-    await Promise.allSettled([
-      ...encryptedFileRecords.map(async record => await imageUtils.deleteImage(record.encryptedImagePath))
-    ])
-    console.log('Deleted encrypted files from local:', encryptedFileRecords)
-  }
+  /*
+  await Promise.allSettled([
+    ...encryptedFileRecords.map(async record => await imageUtils.deleteImage(record.encryptedImagePath))
+  ])
+  console.log('Deleted encrypted files from local:', encryptedFileRecords)
+  */
 }
 
 app.get('/', (req, res) => {
