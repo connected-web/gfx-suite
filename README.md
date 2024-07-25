@@ -37,7 +37,7 @@ Private planning board on Miro:
 - ✅ Create Image Request Form
 - ✅ Create Page to Diagnose Requests
 - ✅ Create Image Browser
-- 🚧 Create Status Page
+- ✅ Create Status Page
 
 ### Connected Web Images API
 
