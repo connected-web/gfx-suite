@@ -44,7 +44,7 @@ Private planning board on Miro:
 - Client facing
   - ✅ Host Image API via Connected Web Services AWS
   - ✅ Create Image Request API endpoints to accept requests
-  - 🚧 Create Image Request API progress endpoints to monitor requests
+  - ✅ Create Image Request API progress endpoints to monitor requests
   - ✅ Create Image Request API results endpoints to browse images
 - Internal
   - ✅ Create Image Request API requests endpoints to download Remote Crank image requests
