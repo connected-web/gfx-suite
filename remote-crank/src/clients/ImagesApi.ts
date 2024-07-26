@@ -3,7 +3,7 @@ import Auth from '../Auth'
 import { ImageRequest, ImageResult } from './SharedTypes'
 
 export default class ImagesApiClient {
-  baseUrl = 'https://images.dev.connected-web.services'
+  baseUrl = 'https://images.prod.connected-web.services'
 
   async getStatus (): Promise<any> {
     const endpointUrl = `${this.baseUrl}/status`
