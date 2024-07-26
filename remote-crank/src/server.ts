@@ -43,7 +43,7 @@ const environmentSettings: { [key: string]: EnvironmentConfig } = {
   }
 }
 
-const defaultApiEnv = 'dev'
+const defaultApiEnv = 'prod'
 const apiEnv = NODE_ENV ?? defaultApiEnv
 const environment = environmentSettings[apiEnv] ?? environmentSettings[defaultApiEnv]
 const { clientId, clientSecret, oauthTokenEndpoint } = environment
