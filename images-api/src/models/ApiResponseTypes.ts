@@ -5,6 +5,7 @@ export interface ApiResponseType {
 }
 
 export interface ImageRequestType {
+  userId: string
   requestId: string
   type: string
   positive: string
@@ -13,12 +14,22 @@ export interface ImageRequestType {
   height: number
   batchSize: number
   model?: string
-  [key: string]: string | number | undefined
+  requestTime?: Date | string
+  [key: string]: string | number | undefined | Date
 }
 
 export interface ImageRequestMessageType extends ImageRequestType {
   messageId: string
   receiptHandle: string
+}
+
+export interface ImageResultsType {
+  originalRequest: ImageRequestType
+  started: Date | string
+  finished: Date | string
+  uploaded: Date | string
+  generatedFiles: string[]
+  initializationVectors: string[]
 }
 
 export interface PutRequestResponseType {
@@ -33,4 +44,5 @@ export interface GetRequestResponseType {
 
 export interface DeleteRequestResponseType {
   message: string
+  results: string[]
 }

@@ -8,11 +8,7 @@ const requestsQueue = new Queues(queueUrl)
 
 function parseMessages (body: string): any {
   try {
-    const message = JSON.parse(body)
-    if (message?.receiptHandle !== undefined) {
-      message.ReceiptHandle = message.receiptHandle
-    }
-    return message
+    return JSON.parse(body)
   } catch (ex) {
     return {}
   }
@@ -21,9 +17,10 @@ function parseMessages (body: string): any {
 /* This handler is executed by AWS Lambda when the endpoint is invoked */
 export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const messages: MessageWithReceiptType[] = parseMessages(event?.body ?? '[]')
-  const result = await requestsQueue.deleteMessages(messages)
+  const results = await requestsQueue.deleteMessages(messages)
   const response = {
-    message: `Removed ${String(result.length)} messages from queue`
+    message: `Attempted to remove ${String(results.length)} messages from queue`,
+    results
   }
 
   return lambdaResponse(httpStatusCodes.success, JSON.stringify(response))

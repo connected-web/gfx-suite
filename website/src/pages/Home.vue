@@ -1,33 +1,28 @@
 <template>
   <div class="column p5">
-    <textarea v-model="prompt"></textarea>
-
-    <div class="row p5">
-      <label>Batch size:</label>
-      <input type="number" v-model="batchSize" placeholder="Batch size" />
-      <label>Image Dimensions</label>
-      <input type="number" v-model="imageWidth" placeholder="Image width" :step="64">
-      <input type="number" v-model="imageHeight" placeholder="Image height" :step="64">
+    <h2 class="row p5">
+      <Icon icon="home" />
+      <label>Home</label>
+    </h2>
+    <p>Welcome to the Connected Web GFX Suite.</p>
+    <p>This tool is for creating and manipulating images online!</p>
+    <p>The suite requires a user login.</p>
+    <hr />
+    <h3>Features</h3>
+    <p>The GFX Suite currently supports the following features:</p>
+    <div class="card">
+      <h4 class="row p5">
+        <Icon icon="paint-roller" />
+        <label>Image Generation</label>
+      </h4>
+      <p>Images are generated offline using Stable Diffusion and uploaded to a secure account.</p>
     </div>
-
-    <select v-model="prompt">
-      <option value="">Select a prompt...</option>
-      <option v-for="prompt in promptHistory" :value="prompt">{{ prompt }}</option>
-    </select>
-
-    <button @click="activateWorkflow" :disabled="invoking">Activate Workflow</button>
-
-    <div v-if="invoking" class="row p10">
-      <span class="loading-animation"></span>
-      <span>Requesting images...</span>
-    </div>
-
-    <button @click="images = []" :disabled="invoking">Reset images</button>
-    <div class="row p10">
-      Loaded {{ images.length }} images.
-    </div>
-    <div class="row p10">
-      <img v-for="image in images" :src="image" />
+    <div class="card">
+      <h4 class="row p5">
+        <Icon icon="image" />
+        <label>Image Browser</label>
+      </h4>
+      <p>Images are uploaded as JPGs to our web hosting, and browsable through this site.</p>
     </div>
   </div>
 </template>

@@ -74,6 +74,14 @@ export class ApiResponse extends OpenAPIBasicModels {
             batchSize: {
               type: JsonSchemaType.INTEGER,
               description: 'The number of images to process in a batch'
+            },
+            model: {
+              type: JsonSchemaType.STRING,
+              description: 'The model to use for processing'
+            },
+            requestTime: {
+              type: JsonSchemaType.STRING,
+              description: 'The time the request was received by the server in ISO format'
             }
           },
           required: ['requestId', 'type', 'positive', 'negative', 'width', 'height', 'batchSize']
@@ -138,6 +146,10 @@ export class ApiResponse extends OpenAPIBasicModels {
               model: {
                 type: JsonSchemaType.STRING,
                 description: 'The model to use for processing'
+              },
+              requestTime: {
+                type: JsonSchemaType.STRING,
+                description: 'The time the request was received by the server in ISO format'
               }
             },
             required: ['receiptHandle', 'requestId', 'type', 'positive', 'negative', 'width', 'height', 'batchSize']
@@ -157,9 +169,113 @@ export class ApiResponse extends OpenAPIBasicModels {
         message: {
           type: JsonSchemaType.STRING,
           description: 'The message content describing the response'
+        },
+        results: {
+          type: JsonSchemaType.ARRAY,
+          description: 'The list of results for each message processed',
+          items: {
+            type: JsonSchemaType.STRING
+          }
         }
       },
       required: ['message']
     }) as IModel
   }
+
+  static get userDetails (): IModel {
+    return OpenAPIBasicModels.modelFactory?.create('UserDetails', {
+      schema: JsonSchemaVersion.DRAFT7,
+      title: 'User Details Response',
+      type: JsonSchemaType.OBJECT,
+      properties: {
+        message: {
+          type: JsonSchemaType.STRING,
+          description: 'The message content describing the response'
+        },
+        user: {
+          type: JsonSchemaType.OBJECT,
+          description: 'The user details',
+          properties: {
+            userId: {
+              type: JsonSchemaType.STRING,
+              description: 'The unique identifier for the user'
+            },
+            decryptionKey: {
+              type: JsonSchemaType.STRING,
+              description: 'The user\'s decryption key for secure data storage'
+            }
+          },
+          required: ['userId', 'decryptionKey']
+        }
+      },
+      required: ['message', 'user']
+    }) as IModel
+  }
+
+  static get putResults (): IModel {
+    return OpenAPIBasicModels.modelFactory?.create('PutResults', {
+      schema: JsonSchemaVersion.DRAFT7,
+      title: 'Put Results Response',
+      type: JsonSchemaType.OBJECT,
+      properties: {
+        message: {
+          type: JsonSchemaType.STRING,
+          description: 'The message content describing the response'
+        }
+      }
+    }) as IModel
+  }
+
+  static get getResults (): IModel {
+    return OpenAPIBasicModels.modelFactory?.create('GetResults', {
+      schema: JsonSchemaVersion.DRAFT7,
+      title: 'Get Results Response',
+      type: JsonSchemaType.OBJECT,
+      properties: {
+        message: {
+          type: JsonSchemaType.STRING,
+          description: 'The message content describing the response'
+        },
+        originalRequest: {
+          type: JsonSchemaType.OBJECT,
+          description: 'The original request object'
+        },
+        started: {
+          type: JsonSchemaType.STRING,
+          description: 'The ISO date time string when the request began to be processed'
+        },
+        finished: {
+          type: JsonSchemaType.STRING,
+          description: 'The ISO date time string when the request finished being processed'
+        },
+        uploaded: {
+          type: JsonSchemaType.STRING,
+          description: 'The ISO date time string when the request was uploaded to the server'
+        },
+        generatedFiles: {
+          type: JsonSchemaType.ARRAY,
+          description: 'The list of paths of generated files',
+          items: {
+            type: JsonSchemaType.STRING
+          }
+        },
+        initializationVectors: {
+          type: JsonSchemaType.ARRAY,
+          description: 'The corresponding initialization vectors used to encrypt and store the generated files',
+          items: {
+            type: JsonSchemaType.STRING
+          }
+        }
+      }
+    }) as IModel
+  }
 }
+
+/**
+ *
+  started: Date | string
+  finished: Date | string
+  uploaded: Date | string
+  generatedFiles: string[]
+  initializationVectors: string[]
+ */

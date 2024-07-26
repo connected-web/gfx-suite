@@ -1,9 +1,10 @@
 <template>
-  <div class="pt-4">
+  <div class="column p10">
+    <h2>Your Details</h2>
     <div v-if="loggedIn">
-      <h3>Your Details</h3>
       <p>Hi {{ firstName }}!</p>
-      <pre>Principal ID: <b>{{ principalId }}</b></pre>
+      <p>The only information we keep on file is your user ID; this is used to track which accounts are using our systems and how often.</p>
+      <pre>User ID: <b>{{ principalId }}</b></pre>
     </div>
     <div v-else>
       <h3>Guest</h3>
@@ -14,27 +15,36 @@
     <h3>Account actions</h3>
     <p v-if="loggedIn">If you're using a public computer; or need to switch accounts (for whatever reason!) you can logout below when finishing a session:</p>
     <p v-else>If you have an account you can login, or create an account below:</p>
-    <button @click="loginOrLogout" :disabled="processingAuthAction">
-      <LoadingSpinner v-if="processingAuthAction" />
-      <Icon :icon="processingAuthAction ? 'mdi-account' : 'mdi-shield-account'" />
-      <label>{{ loggedIn ? 'Logout' : 'Login' }}</label>
-    </button>
+    <div class="row center">
+      <button @click="loginOrLogout" :disabled="processingAuthAction" class="row p5">
+        <LoadingSpinner v-if="processingAuthAction" />
+        <Icon :icon="loggedIn ? 'lock' : 'key'" />
+        <label>{{ loggedIn ? 'Logout' : 'Login' }}</label>
+      </button>
+    </div>
+    <div class="warning column p5 left">
+      <h3>Server status</h3>
+      <pre><code>{{ serverStatus }}</code></pre>
+    </div>
   </div>
 </template>
 
-<script type="ts">
+<script lang="ts">
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import Auth from '../Auth'
+import ImagesApiClient from '../clients/ImagesApi'
 
 export default {
   components: { LoadingSpinner },
   data() {
     return {
-      processingAuthAction: false
+      processingAuthAction: false,
+      serverStatus: 'unknown',
+      imagesApi: new ImagesApiClient()
     }
   },
   async mounted() {
-    this.refreshData()
+    this.refreshStatus()
     const self = this
     Auth.instance?.onInitialized(() => {
       console.log('Auth initialized in user/Details.vue')
@@ -67,22 +77,15 @@ export default {
       this.processingAuthAction = false
       this.$forceUpdate()
     },
-    async refreshData() {
-      const accessToken = await Auth.instance.getLatestAccessToken()
+    async refreshStatus() {
       try {
-        const result = await fetch('https://images.dev.connected-web.services/status', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'content-type': 'application/json'
-          }
-        })
-        if (result.ok) {
-          const data = await result.json()
-          console.log('Data:', data)
-        }
-      } catch (error) {
-        console.error('Unable to refresh data:', error)
+        this.serverStatus = 'Loading server status...'
+        const statusResponse = await this.imagesApi.getStatus()
+        this.serverStatus = statusResponse
+      } catch (ex) {
+        const error = ex as Error
+        console.error('Unable to load status:', error)
+        this.serverStatus = `Unable to load status: ${error.message}`
       }
     }
   }

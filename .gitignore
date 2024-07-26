@@ -15,3 +15,9 @@ coverage
 step-summary.md
 cdk.out
 template.json
+
+remote-crank/localdata/**/*.json
+remote-crank/outputs/**/*.png
+remote-crank/outputs/**/*.jpg
+remote-crank/outputs/**/*.jpg.enc
+remote-crank/outputs/**/*.enc

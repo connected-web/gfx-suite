@@ -18,7 +18,7 @@ export class PromptHistory {
     }
   }
 
-  public add (prompt: string): void {
+  public add (prompt: string): string[] {
     if (this.history.some((p) => p === prompt)) {
       this.history = this.history.filter((p) => p !== prompt)
     }
@@ -28,6 +28,8 @@ export class PromptHistory {
     }
     // save to local storage
     localStorage.setItem('promptHistory', JSON.stringify(this.history))
+
+    return this.history
   }
 
   public getHistory (): string[] {

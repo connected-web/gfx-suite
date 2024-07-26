@@ -121,7 +121,13 @@ describe('Open API Spec', () => {
         '/request',
         '/request/{requestId}',
         '/requests',
-        '/status'
+        '/results',
+        '/results/{dateCode}',
+        '/results/{dateCode}/{requestId}',
+        '/status',
+        '/user',
+        '/user/details',
+        '/user/{userId}'
       ])
     })
 
@@ -221,7 +227,7 @@ describe('Open API Spec', () => {
 
       const requests: any = (response.data as any)?.requests ?? []
       requests.forEach((request: any) => {
-        receiptHandles.push({ ReceiptHandle: request.ReceiptHandle })
+        receiptHandles.push({ ReceiptHandle: request.receiptHandle })
       })
 
       ajv.validate({ $ref: 'app-openapi.json#/components/schemas/GetRequestsModel' }, response.data)
@@ -234,6 +240,89 @@ describe('Open API Spec', () => {
       console.log('Delete Requests:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
 
       ajv.validate({ $ref: 'app-openapi.json#/components/schemas/DeleteRequestsModel' }, response.data)
+      expect(ajv.errors ?? []).toEqual([])
+    })
+  })
+
+  describe('User Endpoints', () => {
+    let appClient: ApiClientUnderTest
+    beforeAll(async () => {
+      const axiosApi = new OpenAPIClientAxios({
+        definition: openapiDoc,
+        axiosConfigDefaults: {
+          headers: serverConfig.headers,
+          validateStatus: function (status) {
+            return status >= 200 // don't throw errors on non-200 codes
+          }
+        }
+      })
+
+      appClient = await axiosApi.getClient<ApiClientUnderTest>()
+      appClient.interceptors.response.use((response) => response, (error) => {
+        console.log('Caught client error:', error.message)
+      })
+    })
+
+    it('should be possible to get user details for the current user', async () => {
+      const response = await appClient.userDetails()
+
+      console.log('Get User Details:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/UserDetailsModel' }, response.data)
+      expect(ajv.errors ?? []).toEqual([])
+    })
+
+    it('should be possible to get user details for a specific user', async () => {
+      const response = await appClient.userByUserId({ userId: 'test-suite' })
+
+      console.log('Get User:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/UserDetailsModel' }, response.data)
+      expect(ajv.errors ?? []).toEqual([])
+    })
+  })
+
+  describe('Results', () => {
+    let appClient: ApiClientUnderTest
+    beforeAll(async () => {
+      const axiosApi = new OpenAPIClientAxios({
+        definition: openapiDoc,
+        axiosConfigDefaults: {
+          headers: serverConfig.headers,
+          validateStatus: function (status) {
+            return status >= 200 // don't throw errors on non-200 codes
+          }
+        }
+      })
+
+      appClient = await axiosApi.getClient<ApiClientUnderTest>()
+      appClient.interceptors.response.use((response) => response, (error) => {
+        console.log('Caught client error:', error.message)
+      })
+    })
+
+    it('should be possible to store results for an image batch', async () => {
+      const payload = {
+        requestId: 'test-suite',
+        started: '2024-07-11T05:30:05.434Z',
+        finished: '2024-07-11T05:32:03.874Z',
+        generatedFiles: ['2024-07/test-image.jpg'],
+        initializationVectors: ['MTIzNA==']
+      }
+      const response = await appClient.putResults({}, payload)
+
+      console.log('Store Results:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/PutResultsModel' }, response.data)
+      expect(ajv.errors ?? []).toEqual([])
+    })
+
+    it('should be possible to retrieve stored results for an image batch', async () => {
+      const response = await appClient.getResults({ dateCode: '2024-07', requestId: 'test-suite' })
+
+      console.log('Get Results:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/GetResultsModel' }, response.data)
       expect(ajv.errors ?? []).toEqual([])
     })
   })
