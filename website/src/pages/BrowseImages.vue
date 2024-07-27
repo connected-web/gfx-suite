@@ -114,16 +114,18 @@
         </h3>
         <div class="image-browser">
           <div v-for="(imagePath, index) in resultsItem?.generatedFiles" :key="imagePath"
-            class="row column center image-placeholder" :style="{ width: imageWidth(resultsItem, 'px'), height: imageHeight(resultsItem, 'px')}">
+            class="row column center image-placeholder" :style="{ minWidth: imageWidth(resultsItem, 'px'), height: imageHeight(resultsItem, 'px'), aspectRatio: `auto ${imageWidth(resultsItem, '')}/${imageHeight(resultsItem, '')}` }">
             <div v-if="decryptedImages[imagePath] === 'loading'" class="row p5 left">
               <LoadingSpinner />
               <label>Loading image...</label>
             </div>
             <div v-else-if="expectedError(decryptedImages[imagePath])?.name ?? expectedError(decryptedImages[imagePath])?.message">
-              <center>
+              <div class="column center">
+                <LoadingSpinner v-if="stillGenerating(resultsItem)" />
+                <Icon v-else icon="heart-crack" />
                 <pre><code>{{ expectedError(decryptedImages[imagePath])?.name }}</code></pre>
                 <pre><code>{{ expectedError(decryptedImages[imagePath])?.message }}</code></pre>
-              </center>
+              </div>
             </div>
             <img v-else-if="decryptedImages[imagePath]" :src="String(decryptedImages[imagePath])" :width="imageWidth(resultsItem)" :height="imageHeight(resultsItem)" />
             <div v-else>
@@ -131,6 +133,18 @@
             </div>
           </div>
         </div>
+        <h3 v-if="resultsItem?.generatedFiles?.length === 0" class="row p5 center">
+          <LoadingSpinner />
+          <label>Waiting for server to pick up request...</label>
+        </h3>
+        <h3 v-else-if="resultsItem?.generatedFiles?.length < resultsItem?.originalRequest?.batchSize" class="row p5 center">
+          <LoadingSpinner />
+          <label>Generating images... {{ resultsItem?.generatedFiles?.length }} / {{ resultsItem?.originalRequest?.batchSize }}</label>
+        </h3>
+        <h3 v-else class="row p5 center">
+          <Icon icon="paint-roller" />
+          <label>{{ resultsItem?.generatedFiles?.length }} images created!</label>
+        </h3>
       </div>
     </div>
   </div>
@@ -237,6 +251,7 @@ export default {
     async loadImages(requestId: string) {
       const { decryptedImages } = this
       const resultsItem = this.results[requestId] as ImageResults
+      const stillGenerating = this.stillGenerating(resultsItem)
       if (resultsItem?.generatedFiles?.length > 0) {
         const imagePaths = resultsItem?.generatedFiles
         const imageIVs = resultsItem?.initializationVectors
@@ -254,7 +269,11 @@ export default {
           } catch (ex) {
             const error = ex as Error
             if (error.name === 'OperationError') {
-              decryptedImages[imagePath] = { name: 'Image Unavailable', message: 'Image may still be generating'}
+              if (stillGenerating) {
+                decryptedImages[imagePath] = { name: 'Generating Image', message: 'Image is currently generating...'}
+              } else {
+                decryptedImages[imagePath] = { name: 'Image Unavailable', message: 'Image not found' }
+              }
             } else {
               decryptedImages[imagePath] = error
               console.log('Image load error:', { error })
@@ -288,6 +307,9 @@ export default {
     },
     expectedError(item: any) {
       return item as Error
+    },
+    stillGenerating(resultsItem: ImageResults) {
+      return resultsItem?.generatedFiles?.length < resultsItem?.originalRequest?.batchSize
     },
     cleanHistory() {
       RequestHistory.cleanHistory()
@@ -355,7 +377,6 @@ a:hover {
   }
   .image-browser > .image-placeholder {
     flex: 1;
-    width: 100%;
   }
   .image-browser > .image-placeholder > img {
     width: 100%;

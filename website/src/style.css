@@ -81,6 +81,7 @@ p {
   border: 1px solid transparent;
   padding: 0.3em 1.2em;
   line-height: 1.0em;
+  min-height: 2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
