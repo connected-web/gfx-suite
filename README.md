@@ -27,6 +27,7 @@ Private planning board on Miro:
 - ✅ Assess Alpha and survey for user feedback
 - 🚧 Implement feedback from Alpha
 - ✅ Option to clear local prompt and request history
+- ✅ Store initial batch results when making the request
 
 ### Alpha Feedback
 

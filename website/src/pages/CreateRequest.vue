@@ -52,11 +52,12 @@
 
 <script lang="ts">
 
-import ImagesApiClient from '../clients/ImagesApi'
+import ImagesApiClient, { ImageResults } from '../clients/ImagesApi'
 import promptHistory from '../components/PromptHistory'
 import RequestHistory from '../components/RequestHistory'
 
 import LoadingSpinner from '../components/LoadingSpinner.vue'
+import Auth from '../Auth'
 
 function guid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -97,6 +98,7 @@ export default {
         const dateCode = now.toISOString().slice(0, 10)
         const requestItem = {
           requestId,
+          userId: Auth.instance?.principalId,
           dateCode,
           positive: this.prompt,
           negative: defaultNegativePrompt,
@@ -105,6 +107,15 @@ export default {
           width: this.imageWidth,
           height: this.imageHeight
         }
+        const initialResults: ImageResults = {
+          originalRequest: requestItem,
+          started: now,
+          finished: 'n/a',
+          uploaded: 'n/a',
+          generatedFiles: [],
+          initializationVectors: []
+        }
+        await this.imagesApi.putResults(initialResults)
         await this.imagesApi.putRequest(requestId, requestItem)
         RequestHistory.add(requestItem)
         this.promptHistory = promptHistory.add(this.prompt)

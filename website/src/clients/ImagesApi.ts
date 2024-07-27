@@ -79,6 +79,21 @@ export default class ImagesApiClient {
     return await response.json()
   }
 
+  async putResults (results: ImageResults): Promise<any> {
+    const endpointUrl = `${this.baseUrl}/results`
+    const accessToken = await Auth.instance?.getLatestAccessToken()
+    const response = await fetch(endpointUrl, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${String(accessToken)}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(results)
+    })
+
+    return await response.json()
+  }
+
   async getResults (dateCode: string, requestId: string): Promise<any> {
     const endpointUrl = `${this.baseUrl}/results/${dateCode}/${requestId}`
     const accessToken = await Auth.instance?.getLatestAccessToken()
