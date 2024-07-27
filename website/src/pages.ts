@@ -18,5 +18,6 @@ export default [
   { path: '/user', component: Home },
   { path: '/browse/:dateCode', props: true, component: BrowseImages },
   { path: '/browse/:dateCode/:requestId', props: true, component: BrowseImages },
+  { path: '/create/:dateCode/:requestId', props: true, component: CreateRequest },
   { path: '/queue', component: RequestQueue, icon: 'rectangle-list', navTitle: 'Requests' }
 ]

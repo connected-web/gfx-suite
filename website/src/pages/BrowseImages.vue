@@ -91,19 +91,19 @@
         <div class="column p5">
           <div class="row p5 key-value">
             <label>Request Created</label>
-            <label>{{ resultsItem?.originalRequest?.requestTime }}</label>
+            <label>{{ resultsItem?.originalRequest?.requestTime ?? 'Waiting on server...' }}</label>
           </div>
           <div class="row p5 key-value">
             <label>Processing Started</label>
-            <label>{{ resultsItem?.started }}</label>
+            <label>{{ resultsItem?.started ?? 'n/a' }}</label>
           </div>
           <div class="row p5 key-value">
             <label>Processing Finished</label>
-            <label>{{ resultsItem?.finished }}</label>
+            <label>{{ resultsItem?.finished ?? 'n/a' }}</label>
           </div>
           <div class="row p5 key-value">
             <label>Results Uploaded</label>
-            <label>{{ resultsItem?.uploaded }}</label>
+            <label>{{ resultsItem?.uploaded ?? 'n/a' }}</label>
           </div>
         </div>
         <pre v-if="false"><code>{{ resultsItem }}</code></pre>
@@ -141,10 +141,18 @@
           <LoadingSpinner />
           <label>Generating images... {{ resultsItem?.generatedFiles?.length }} / {{ resultsItem?.originalRequest?.batchSize }}</label>
         </h3>
-        <h3 v-else class="row p5 center">
-          <Icon icon="paint-roller" />
-          <label>{{ resultsItem?.generatedFiles?.length }} images created!</label>
-        </h3>
+        <div v-else class="column p10">
+          <h3 class="row p5 center">
+            <Icon icon="image" />
+            <label>{{ resultsItem?.generatedFiles?.length }} images total</label>
+          </h3>
+          <h3 class="row p5 stretch">
+            <router-link :to="`/create/${dateCode}/${requestId}`" class="button row p5 center">
+              <Icon icon="paint-roller" />
+              <label>Create more?</label>
+            </router-link>
+          </h3>
+        </div>
       </div>
     </div>
   </div>

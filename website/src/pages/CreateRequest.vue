@@ -32,7 +32,7 @@
     </select>
 
     <div class="row p5 center">
-      <button @click="sendPrompt" :disabled="sendingPrompt" class="row p5">
+      <button @click="sendPrompt" :disabled="sendingPrompt || promptSent" class="row p5">
         <LoadingSpinner v-if="sendingPrompt" />
         <Icon v-else icon="paper-plane" />
         <label>Send Prompt</label>
@@ -70,6 +70,16 @@ const defaultNegativePrompt = '((low quality)) (large) (fat) (thin) (penis) (def
 
 export default {
   components: { LoadingSpinner },
+  props: {
+    dateCode: {
+      type: String,
+      default: ''
+    },
+    requestId: {
+      type: String,
+      default: ''
+    }
+  },
   data() {
     return {
       title: 'GFX Suite',
@@ -77,19 +87,31 @@ export default {
       promptHistory: [] as string[],
       prompt: '',
       images: [] as string[],
-      batchSize: 1,
+      batchSize: 10,
       imageWidth: 512,
       imageHeight: 768,
       imagesApi: new ImagesApiClient(),
       sendingPrompt: false,
+      promptSent: false,
       promptIcon: '',
       promptStatus: ''
     }
   },
-  mounted() {
+  async mounted() {
     this.promptHistory = promptHistory.getHistory()
+    if (this.dateCode && this.requestId) {
+      await this.populatePromptFromExistingRecord(this.dateCode, this.requestId)
+    }
   },
   methods: {
+    async populatePromptFromExistingRecord(dateCode: string, requestId: string) {
+      const existingRecord: ImageResults = await this.imagesApi.getResults(dateCode, requestId)
+      const { positive, batchSize, imageWidth, imageHeight } = existingRecord?.originalRequest ?? {}
+      this.prompt = positive ?? ''
+      this.batchSize = batchSize ?? 10
+      this.imageWidth = Number.parseInt(String(imageWidth ?? 512))
+      this.imageHeight = Number.parseInt(String(imageHeight ?? 768))
+    },
     async sendPrompt() {
       this.sendingPrompt = true
       try {
@@ -121,6 +143,7 @@ export default {
         this.promptHistory = promptHistory.add(this.prompt)
         this.promptIcon = 'check'
         this.promptStatus = 'Prompt sent successfully.'
+        this.promptSent = true
         const { $router } = this
         setTimeout(() => {
           $router.push(`/browse/${dateCode}/${requestId}`)

@@ -29,7 +29,7 @@ Private planning board on Miro:
 - ✅ Option to clear local prompt and request history
 - ✅ Store initial batch results when making the request
 - ✅ Show place holders based on batch size
-- 🚧 Add button to repeat a batch by editing an existing prompt
+- ✅ Add button to repeat a batch by editing an existing prompt
 - 🚧 Display batch details in tabbed view
 
 ### Alpha Feedback

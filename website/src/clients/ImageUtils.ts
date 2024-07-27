@@ -28,7 +28,7 @@ export class ImageUtils {
     // Decrypt the image
     const decryptedBlob = await this.decryptImage(encryptedBlob, decryptionKey, iv)
 
-    console.log('Decrypted blob:', { decryptedBlob })
+    // console.log('Decrypted blob:', { decryptedBlob })
 
     // Create a URL for the decrypted blob to be used as the source of the image element
     const objectUrl = URL.createObjectURL(decryptedBlob)
