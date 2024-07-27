@@ -24,7 +24,9 @@ Private planning board on Miro:
 
 ### Beta
 
-- Assess Alpha and survey for user feedback
+- ✅ Assess Alpha and survey for user feedback
+- 🚧 Implement feedback from Alpha
+- ✅ Option to clear local prompt and request history
 
 ### Alpha Feedback
 
@@ -35,6 +37,8 @@ Private planning board on Miro:
 - Need a way to repeat a batch by editing an existing prompt
 - Want a way to build queries on mobile by using icons/emojis tied to filters
 - Want a way to build variations on a prompt by combining word lists
+- Want a way to retrieve results from server
+- Want a way to edit descriptions / summaries of results
 
 ## Change log
 

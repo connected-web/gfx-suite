@@ -1,6 +1,6 @@
 <template>
-  <div class="navigation row left">
-    <router-link v-for="item in items" :key="item.path" :to="item.path" class="nav-item row p5">
+  <div class="navigation row stretch">
+    <router-link v-for="item in items" :key="item.path" :to="item.path" class="nav-item row p5 center">
       <Icon :icon="item.icon ?? 'circle'" />
       <label>{{ item.title }}</label>
     </router-link>
@@ -34,7 +34,7 @@ export default {
   color: #333;
   background-color: #f3f3f3;
   transition: background-color 0.2s;
-  padding: 10px 20px;
+  padding: 6px 12px;
 }
 .nav-item:hover {
   background-color: #ddd;

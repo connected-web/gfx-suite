@@ -80,7 +80,6 @@ p {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.3em 1.2em;
-  min-height: 2em;
   line-height: 1.0em;
   font-size: 1em;
   font-weight: 500;
@@ -100,6 +99,17 @@ p {
 }
 .button > *, button > * {
   pointer-events: none;
+}
+
+.button:disabled, button:disabled {
+  background-color: #eee;
+  color: #ccc;
+  cursor: inherit;
+  border: #aaa;
+}
+
+.spacer {
+  flex: 1;
 }
 
 .card {

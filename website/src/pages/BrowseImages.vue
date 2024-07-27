@@ -13,8 +13,17 @@
     </h2>
 
     <div v-if="!requestId" class="column p5">
-      <h3>Recent Images</h3>
-      <p>Recently made requests.</p>
+      <h3 class="row p5">
+        <label>Recent Images</label>
+      </h3>
+      <div class="row p5">
+        <p>Recently made requests.</p>
+        <span class="spacer"></span>
+        <button class="row p5" @click="cleanHistory" :disabled="requestHistory?.length === 0">
+          <Icon icon="soap" />
+          <label>Clean history</label>
+        </button>
+      </div>
       <div class="column p5 links">
         <div v-for="requestItem in requestHistory">
           <router-link :to="`/browse/${requestItem?.dateCode}/${requestItem?.requestId}`" class="row p5">
@@ -132,6 +141,7 @@ import ImagesApiClient, { ImageResults, ImageRequest } from '../clients/ImagesAp
 import { ImageUtils } from '../clients/ImageUtils'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import RequestHistory from '../components/RequestHistory'
+import PromptHistory from '../components/PromptHistory'
 
 const imagesApiClient = new ImagesApiClient()
 
@@ -278,6 +288,11 @@ export default {
     },
     expectedError(item: any) {
       return item as Error
+    },
+    cleanHistory() {
+      RequestHistory.cleanHistory()
+      this.requestHistory = []
+      PromptHistory.cleanHistory()
     }
   },
   watch: {

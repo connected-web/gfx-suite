@@ -37,6 +37,12 @@ export class RequestHistory {
   public getHistory (): ImageRequest[] {
     return this.history
   }
+
+  public cleanHistory (): void {
+    this.history = []
+    // clear local storage
+    localStorage.removeItem('requestHistory')
+  }
 }
 
 const singleton: RequestHistory = new RequestHistory(10)

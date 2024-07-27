@@ -35,6 +35,11 @@ export class PromptHistory {
   public getHistory (): string[] {
     return this.history
   }
+
+  public cleanHistory (): void {
+    this.history = []
+    localStorage.removeItem('promptHistory')
+  }
 }
 
 const singleton: PromptHistory = new PromptHistory(10)
