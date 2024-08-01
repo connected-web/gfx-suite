@@ -6,6 +6,7 @@
     </h2>
     <p>Use this form to request an image to generate.</p>
     <textarea v-model="prompt" :disabled="sendingPrompt" placeholder="Describe the image to generate..."></textarea>
+    <textarea v-model="negativePrompt" :disabled="sendingPrompt" placeholder="Describe things not to include..."></textarea>
 
     <div class="row p5 stretch">
       <div class="row p5 top">
@@ -66,7 +67,7 @@ function guid() {
   })
 }
 
-const defaultNegativePrompt = '((low quality)) (large) (fat) (thin) (penis) (deformed) (ugly) (unhealthy)'
+const defaultNegativePrompt = '((low quality))'
 
 export default {
   components: { LoadingSpinner },
@@ -86,6 +87,7 @@ export default {
       description: 'This site provides authenticated access to the Connected Web Images API.',
       promptHistory: [] as string[],
       prompt: '',
+      negativePrompt: '',
       images: [] as string[],
       batchSize: 10,
       imageWidth: 512,
@@ -106,8 +108,9 @@ export default {
   methods: {
     async populatePromptFromExistingRecord(dateCode: string, requestId: string) {
       const existingRecord: ImageResults = await this.imagesApi.getResults(dateCode, requestId)
-      const { positive, batchSize, width, height } = existingRecord?.originalRequest ?? {}
+      const { positive, negative, batchSize, width, height } = existingRecord?.originalRequest ?? {}
       this.prompt = positive ?? ''
+      this.negativePrompt = negative ?? defaultNegativePrompt
       this.batchSize = batchSize ?? 10
       this.imageWidth = Number.parseInt(String(width ?? 512))
       this.imageHeight = Number.parseInt(String(height ?? 768))
@@ -123,7 +126,7 @@ export default {
           userId: Auth.instance?.principalId,
           dateCode,
           positive: this.prompt,
-          negative: defaultNegativePrompt,
+          negative: this.negativePrompt,
           batchSize: this.batchSize,
           type: 'image-batch',
           width: this.imageWidth,
