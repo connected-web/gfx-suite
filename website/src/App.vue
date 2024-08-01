@@ -66,8 +66,9 @@ export default {
   },
   mounted() {
     const self = this
-    Auth.instance?.onInitialized(() => {
+    Auth.instance?.onInitialized(async () => {
       console.log('Auth initialized in App.vue')
+      await Auth.instance?.getLatestAccessToken()
       self.$forceUpdate()
     })
   },
