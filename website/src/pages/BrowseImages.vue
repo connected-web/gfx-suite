@@ -24,34 +24,9 @@
         <label>Error:</label>
         <span>{{ resultsError?.message }}</span>
       </div>
-      <div v-else class="column p10">
+      <div v-else class="column p5">
         <RequestDetails :resultsItem="resultsItem" />
-        
-        <h3 class="row">
-          <Icon icon="image" />
-          <label>Images</label>
-        </h3>
-        <div class="image-browser">
-          <div v-for="(imagePath, index) in resultsItem?.generatedFiles" :key="imagePath"
-            class="row column center image-placeholder" :style="{ minWidth: imageWidth(resultsItem, 'px'), height: imageHeight(resultsItem, 'px'), aspectRatio: `auto ${imageWidth(resultsItem, '')}/${imageHeight(resultsItem, '')}` }">
-            <div v-if="decryptedImages[imagePath] === 'loading'" class="row p5 left">
-              <LoadingSpinner />
-              <label>Loading image...</label>
-            </div>
-            <div v-else-if="expectedError(decryptedImages[imagePath])?.name ?? expectedError(decryptedImages[imagePath])?.message">
-              <div class="column center">
-                <LoadingSpinner v-if="stillGenerating(resultsItem)" />
-                <Icon v-else icon="heart-crack" />
-                <pre><code>{{ expectedError(decryptedImages[imagePath])?.name }}</code></pre>
-                <pre><code>{{ expectedError(decryptedImages[imagePath])?.message }}</code></pre>
-              </div>
-            </div>
-            <img v-else-if="decryptedImages[imagePath]" :src="String(decryptedImages[imagePath])" :width="imageWidth(resultsItem)" :height="imageHeight(resultsItem)" />
-            <div v-else>
-              <Icon icon="image" />
-            </div>
-          </div>
-        </div>
+        <ImageBrowser :resultsItem="resultsItem" :decryptedImages="decryptedImages" />
         <h3 v-if="resultsItem?.generatedFiles?.length === 0" class="row p5 center">
           <LoadingSpinner />
           <label>Waiting for server to pick up request...</label>
@@ -84,6 +59,7 @@ import { ImageUtils } from '../clients/ImageUtils'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import RequestBrowser from './components/RequestBrowser.vue'
 import RequestDetails from './components/RequestDetails.vue'
+import ImageBrowser from './components/ImageBrowser.vue'
 
 const imagesApiClient = new ImagesApiClient()
 
@@ -91,7 +67,7 @@ let imageUtils: ImageUtils
 let reloadTimeout: number
 
 export default {
-  components: { LoadingSpinner, RequestBrowser, RequestDetails },
+  components: { LoadingSpinner, RequestBrowser, RequestDetails, ImageBrowser },
   props: {
     dateCode: {
       type: String,
@@ -147,7 +123,7 @@ export default {
       const resultsEntry: ImageResults = await imagesApiClient.getResults(dateCode, requestId)
       console.log('[Load Results]', { resultsEntry, dateCode, requestId })
       clearTimeout(reloadTimeout)
-      if (this.expectedError(resultsEntry)?.message === 'The specified key does not exist.') {
+      if (this.expectedError(resultsEntry as any)?.message === 'The specified key does not exist.') {
         this.results[requestId] = { name: 'Key not found', message: 'Waiting for progress update from server...' }
         const self = this
         reloadTimeout = setTimeout(async () => {
@@ -214,17 +190,14 @@ export default {
         this.$forceUpdate()
       }
     },
-    imageWidth(resultsEntry: ImageResults, suffix?: string) {
-      return (resultsEntry?.originalRequest?.width ?? 100) + (suffix ?? '')
-    },
-    imageHeight(resultsEntry: ImageResults, suffix?: string) {
-      return (resultsEntry?.originalRequest?.height ?? 100) + (suffix ?? '')
-    },
-    expectedError(item: any) {
-      return item as Error
-    },
     stillGenerating(resultsItem: ImageResults) {
       return resultsItem?.generatedFiles?.length < resultsItem?.originalRequest?.batchSize
+    },
+    expectedError(image: string | Error) {
+      if (image instanceof Error) {
+        return image
+      }
+      return null
     }
   },
   watch: {
@@ -238,30 +211,5 @@ export default {
 </script>
 
 <style scoped>
-.image-placeholder {
-  background: #f0f0f0;
-}
-
-.image-browser {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-@media screen and (max-width: 800px) {
-  .image-browser {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    gap: 5px;
-  }
-  .image-browser > .image-placeholder {
-    flex: 1;
-  }
-  .image-browser > .image-placeholder > img {
-    width: 100%;
-    height: 100%;
-  }
-}
 
 </style>
