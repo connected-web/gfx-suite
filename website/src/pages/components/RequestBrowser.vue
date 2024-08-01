@@ -69,16 +69,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-a {
-  background: #eee;
-  padding: 2px;
-  transition: background-color 200ms ease-in;
-}
-a:hover {
-  background: #def;
-  padding: 2px;
-  transition: background-color 200ms ease-out;
-}
-</style>

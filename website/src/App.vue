@@ -38,9 +38,9 @@ import pages from './pages'
 
 const navigationItems = pages.filter(item => (item as any)?.primaryNav).map(item => {
   return {
-    title: item.navTitle ?? 'Untitled',
-    path: item.path ?? '/',
-    icon: item.icon ?? 'star'
+    title: item?.navTitle ?? 'Untitled',
+    path: item?.path ?? '/',
+    icon: item?.icon ?? 'star'
   }
 })
 

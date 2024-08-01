@@ -15,18 +15,20 @@
 
     <RequestBrowser v-if="!requestId" />
 
-    <div v-if="loadingResults && !resultsItem" class="loading row p5 left">
+    <div v-else-if="loadingResults && !resultsItem" class="loading row p5 left">
       <LoadingSpinner />
       <label>Loading results...</label>
     </div>
     <div v-else-if="requestId">
-      <div v-if="resultsError?.message" class="row p5 key-value">
+      <div v-if="resultsError?.message" class="row p5 key-value warning">
         <label>Error:</label>
         <span>{{ resultsError?.message }}</span>
       </div>
       <div v-else class="column p5">
-        <RequestDetails :resultsItem="resultsItem" />
-        <ImageBrowser :resultsItem="resultsItem" :decryptedImages="decryptedImages" />
+        <Navigation :items="tabItems" />
+        <RequestDetails v-if="tab === 'details'" :resultsItem="resultsItem" />
+        <ImageBrowser v-if="tab === '' || tab === 'images'" :resultsItem="resultsItem" :decryptedImages="decryptedImages" />
+
         <h3 v-if="resultsItem?.generatedFiles?.length === 0" class="row p5 center">
           <LoadingSpinner />
           <label>Waiting for server to pick up request...</label>
@@ -57,6 +59,8 @@ import ImagesApiClient, { ImageResults, ImageRequest } from '../clients/ImagesAp
 import { ImageUtils } from '../clients/ImageUtils'
 
 import LoadingSpinner from '../components/LoadingSpinner.vue'
+import Navigation from '../components/Navigation.vue'
+
 import RequestBrowser from './components/RequestBrowser.vue'
 import RequestDetails from './components/RequestDetails.vue'
 import ImageBrowser from './components/ImageBrowser.vue'
@@ -66,8 +70,24 @@ const imagesApiClient = new ImagesApiClient()
 let imageUtils: ImageUtils
 let reloadTimeout: number
 
+const tabItems = [{
+  title: 'Images ({{imageCount}})',
+  path: '?',
+  subpath: 'images',
+  icon: 'image'
+}, {
+  title: 'Details',
+  path: '?',
+  subpath: 'details',
+  icon: 'list'
+}]
+
+function clone(data: any): any {
+  return JSON.parse(JSON.stringify(data))
+}
+
 export default {
-  components: { LoadingSpinner, RequestBrowser, RequestDetails, ImageBrowser },
+  components: { LoadingSpinner, Navigation, RequestBrowser, RequestDetails, ImageBrowser },
   props: {
     dateCode: {
       type: String,
@@ -76,6 +96,10 @@ export default {
     requestId: {
       type: String,
       default: undefined
+    },
+    tab: {
+      type: String,
+      default: 'images'
     }
   },
   data() {
@@ -88,6 +112,15 @@ export default {
     }
   },
   computed: {
+    tabItems() {
+      const { dateCode, requestId, resultsItem } = this
+      return clone(tabItems).map((item: any) => {
+        console.log({ dateCode, requestId, subpath: item.subpath })
+        item.path = '/browse/' + [dateCode, requestId, item.subpath].join('/')
+        item.title = item.title.replaceAll('{{imageCount}}', resultsItem?.generatedFiles?.length ?? '?')
+        return item
+      })
+    },
     resultsItem() {
       const { results, requestId } = this
       return results[String(requestId)] as ImageResults

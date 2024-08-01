@@ -50,10 +50,12 @@ export default {
   },
   methods: {
     imageWidth(resultsItem: Partial<ImageResults>, unit = 'px') {
-      return `${resultsItem?.originalRequest?.width ?? 0}${unit}`
+      const width = Math.floor((resultsItem?.originalRequest?.width ?? 100) / 2)
+      return `${width ?? 0}${unit}`
     },
     imageHeight(resultsItem: Partial<ImageResults>, unit = 'px') {
-      return `${resultsItem?.originalRequest?.height ?? 0}${unit}`
+      const height = Math.floor((resultsItem?.originalRequest?.height ?? 100) / 2)
+      return `${height ?? 0}${unit}`
     },
     stillGenerating(resultsItem: ImageResults) {
       return resultsItem?.generatedFiles?.length < resultsItem?.originalRequest?.batchSize
@@ -80,6 +82,23 @@ export default {
 }
 
 @media screen and (max-width: 800px) {
+  .image-browser {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+  .image-browser > .image-placeholder {
+    flex: 1;
+  }
+  .image-browser > .image-placeholder > img {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+
+@media screen and (max-width: 512px) {
   .image-browser {
     display: flex;
     flex-direction: column;
