@@ -106,11 +106,11 @@ export default {
   methods: {
     async populatePromptFromExistingRecord(dateCode: string, requestId: string) {
       const existingRecord: ImageResults = await this.imagesApi.getResults(dateCode, requestId)
-      const { positive, batchSize, imageWidth, imageHeight } = existingRecord?.originalRequest ?? {}
+      const { positive, batchSize, width, height } = existingRecord?.originalRequest ?? {}
       this.prompt = positive ?? ''
       this.batchSize = batchSize ?? 10
-      this.imageWidth = Number.parseInt(String(imageWidth ?? 512))
-      this.imageHeight = Number.parseInt(String(imageHeight ?? 768))
+      this.imageWidth = Number.parseInt(String(width ?? 512))
+      this.imageHeight = Number.parseInt(String(height ?? 768))
     },
     async sendPrompt() {
       this.sendingPrompt = true
