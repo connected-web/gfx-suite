@@ -71,11 +71,10 @@ export default {
 </script>
 
 <style scoped>
-.key-value > *:first-child {
+.key-value > * {
   flex: 1;
 }
 .key-value > * {
-  min-width: 20vw;
   font-family: monospace;
   padding: 4px;
   background: #eee;
@@ -83,6 +82,7 @@ export default {
 
 .key-value > label:nth-child(2) {
   font-weight: bold;
+  text-align: right;
 }
 
 pre {
