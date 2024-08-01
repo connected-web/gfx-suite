@@ -1,5 +1,11 @@
 <template>
   <div class="column p5">
+
+    <h2 class="row p5">
+      <Icon icon="image" />
+      <label>Browse Images</label>
+    </h2>
+
     <div v-if="requestId" class="breadcrumbs">
       <router-link to="/browse" class="row p5 left">
         <Icon icon="circle-chevron-left" />
@@ -7,42 +13,7 @@
       </router-link>
     </div>
 
-    <h2 class="row p5">
-      <Icon icon="image" />
-      <label>Browse Images</label>
-    </h2>
-
-    <div v-if="!requestId" class="column p5">
-      <h3 class="row p5">
-        <label>Recent Images</label>
-      </h3>
-      <div class="row p5">
-        <p>Recently made requests.</p>
-        <span class="spacer"></span>
-        <button class="row p5" @click="cleanHistory" :disabled="requestHistory?.length === 0">
-          <Icon icon="soap" />
-          <label>Clean history</label>
-        </button>
-      </div>
-      <div class="column p5 links">
-        <div v-for="requestItem in requestHistory">
-          <router-link :to="`/browse/${requestItem?.dateCode}/${requestItem?.requestId}`" class="row p5">
-            <label>{{ requestItem?.dateCode }}</label> /
-            <label><code>{{ (requestItem?.requestId ?? '').slice(0, 8).toUpperCase() }}</code></label> /
-            <label>{{ promptSummary(requestItem) }}</label>
-            <label>({{ requestItem.batchSize  }})</label> 
-          </router-link>
-        </div>
-      </div>
-      <div v-if="requestHistory?.length === 0">
-        <label>No request history to browse.</label>
-      </div>
-      <h3>Remote Images</h3>
-      <p>Images available on the server.</p>
-      <div v-if="remoteResults?.length === 0">
-        <label>No remote image results to browse.</label>
-      </div>
-    </div>
+    <RequestBrowser v-if="!requestId" />
 
     <div v-if="loadingResults && !resultsItem" class="loading row p5 left">
       <LoadingSpinner />
@@ -161,9 +132,9 @@
 <script lang="ts">
 import ImagesApiClient, { ImageResults, ImageRequest } from '../clients/ImagesApi' 
 import { ImageUtils } from '../clients/ImageUtils'
+
 import LoadingSpinner from '../components/LoadingSpinner.vue'
-import RequestHistory from '../components/RequestHistory'
-import PromptHistory from '../components/PromptHistory'
+import RequestBrowser from './components/RequestBrowser.vue'
 
 const imagesApiClient = new ImagesApiClient()
 
@@ -171,7 +142,7 @@ let imageUtils: ImageUtils
 let reloadTimeout: number
 
 export default {
-  components: { LoadingSpinner },
+  components: { LoadingSpinner, RequestBrowser },
   props: {
     dateCode: {
       type: String,
@@ -185,9 +156,8 @@ export default {
   data() {
     return {
       userDetails: {} as any,
-      requestHistory: [] as ImageRequest[],
-      results: {} as Record<string, ImageResults | Error>,
       remoteResults: [] as ImageRequest[],
+      results: {} as Record<string, ImageResults | Error>,
       loadingResults: false,
       decryptedImages: {} as Record<string, string | Error>
     }
@@ -204,7 +174,6 @@ export default {
   },
   async mounted(): Promise<void> {
     const { dateCode, requestId } = this
-    this.requestHistory = RequestHistory.getHistory()
     await this.fetchUserDetails()
     imageUtils = new ImageUtils(this.userDetails?.user?.decryptionKey ?? 'no-decryption-key-found')
     if (dateCode !== undefined && requestId !== undefined) {
@@ -302,27 +271,11 @@ export default {
     imageHeight(resultsEntry: ImageResults, suffix?: string) {
       return (resultsEntry?.originalRequest?.height ?? 100) + (suffix ?? '')
     },
-    firstWords(requestItem: ImageRequest) {
-      return (requestItem?.positive ?? '').split(' ').slice(0, 2)
-    },
-    lastWords(requestItem: ImageRequest) {
-      return (requestItem?.positive ?? '').split(' ').reverse().slice(0, 2).reverse()
-    },
-    promptSummary(requestItem: ImageRequest) {
-      const firstWords = this.firstWords(requestItem)
-      const lastWords = this.lastWords(requestItem)
-      return Array.from(new Set([...firstWords, ...lastWords])).join(' ')
-    },
     expectedError(item: any) {
       return item as Error
     },
     stillGenerating(resultsItem: ImageResults) {
       return resultsItem?.generatedFiles?.length < resultsItem?.originalRequest?.batchSize
-    },
-    cleanHistory() {
-      RequestHistory.cleanHistory()
-      this.requestHistory = []
-      PromptHistory.cleanHistory()
     }
   },
   watch: {
@@ -363,17 +316,6 @@ pre {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-}
-
-a {
-  background: #eee;
-  padding: 2px;
-  transition: background-color 200ms ease-in;
-}
-a:hover {
-  background: #def;
-  padding: 2px;
-  transition: background-color 200ms ease-out;
 }
 
 @media screen and (max-width: 800px) {
