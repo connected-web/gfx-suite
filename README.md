@@ -25,24 +25,55 @@ Private planning board on Miro:
 ### Beta
 
 - ✅ Assess Alpha and survey for user feedback
-- 🏗️ Implement feedback from Alpha
+- ✅ Implement feedback from Alpha
 - ✅ Option to clear local prompt and request history
 - ✅ Store initial batch results when making the request
 - ✅ Show place holders based on batch size
 - ✅ Add button to repeat a batch by editing an existing prompt
-- 🚧 Display batch details in tabbed view
+- ✅ Display batch details in tabbed view
+- ✅ Show more progress on new image generations
+- ✅ Hide batch details in tabbed view
+- ✅ Store initial batch results when making the request
+- ✅ Repeat a batch by editing an existing prompt
+- 🐛 Fix login screen prompting on every visit
 
 ### Alpha Feedback
 
-- Need to show more progress on new image generations
-- Render place holders based on batch size
-- Hide batch details in tabbed view
-- Need to store initial batch results when making the request
-- Need a way to repeat a batch by editing an existing prompt
-- Want a way to build queries on mobile by using icons/emojis tied to filters
-- Want a way to build variations on a prompt by combining word lists
-- Want a way to retrieve results from server
-- Want a way to edit descriptions / summaries of results
+This feedback has been grouped and prioritised to help build the Beta roadmap.
+
+#### Key
+- **Bugs 🐛**: Immediate blockers, need urgent attention.
+- **Feature requests ✨**: Enhancements that improve user satisfaction, prioritized after bugs.
+- **Neutral suggestions 💡**: Acknowledged but not critical; lower priority.
+
+#### Prioritized feedback
+
+1. **Login screen is far too common**  
+   🐛 - This is a user frustration related to frequent logins, and fixing it will reduce friction.
+
+2. **Want a way to build queries on mobile by using icons/emojis tied to filters**  
+   ✨ - This is a feature request that improves mobile functionality and filtering experience.
+
+3. **Want a way to build variations on a prompt by combining word lists**  
+   ✨ - Enhances creative flexibility for users by offering more options to build prompts.
+
+4. **Want a way to retrieve results from server**  
+   🐛 - Critical for getting results efficiently, making this a functional blocker.
+
+5. **Want a way to edit descriptions / summaries of results**  
+   ✨ - A feature that improves control over content, enhancing user satisfaction.
+
+6. **Want to clean up bad image generations**  
+   ✨ - Helps refine and improve outputs, a feature that would enhance image quality control.
+
+7. **Want to re-request failed images (send automatic report at end of generation?)**  
+   🐛 - Automates failure recovery, saving time and improving the reliability of the image generation process.
+
+8. **Want to browse other images without scrolling all the way back to top**  
+   ✨ - Improves ease of navigation and enhances the user interface for a better browsing experience.
+
+9. **Suggest render placeholders based on batch size (altho infinite loading scroll is nice)**  
+   💡 - A neutral suggestion that acknowledges the current solution but offers an alternative for rendering images based on batch size. Lower priority.
 
 ## Change log
 
