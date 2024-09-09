@@ -35,7 +35,7 @@ Private planning board on Miro:
 - ✅ Hide batch details in tabbed view
 - ✅ Store initial batch results when making the request
 - ✅ Repeat a batch by editing an existing prompt
-- 🐛 Fix login screen prompting on every visit
+- ✅ Fix login screen prompting on every visit
 
 ### Alpha Feedback
 
