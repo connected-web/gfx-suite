@@ -7,18 +7,28 @@ import * as VueRouter from 'vue-router'
 import setupIcons from './icons'
 import pageRoutes from './pages'
 
-const auth = new Auth('prod')
-console.log('Initialised Auth', { auth })
+async function startApp (): Promise<void> {
+  const auth = new Auth('prod')
+  console.log('Initialised Auth', { auth })
 
-const router = VueRouter.createRouter({
-  history: VueRouter.createWebHistory(),
-  routes: pageRoutes as VueRouter.RouteRecordRaw[]
-})
+  const router = VueRouter.createRouter({
+    history: VueRouter.createWebHistory(),
+    routes: pageRoutes as VueRouter.RouteRecordRaw[]
+  })
 
-const app = createApp(App)
-app.use(router)
-app.config.productionTip = false
-setupIcons(app)
-app.mount('#app')
+  // Force auth to initialise before starting app
+  await auth.getLatestAccessToken()
 
-// curl -H "Authorization: Bearer $ACCESS_TOKEN" https://images.dev.connected-web.services/status
+  const app = createApp(App)
+  app.use(router)
+  setupIcons(app)
+  app.mount('#app')
+}
+
+startApp()
+  .then(() => {
+    console.log('App started')
+  })
+  .catch((ex) => {
+    console.log('Error starting app:', ex)
+  })
