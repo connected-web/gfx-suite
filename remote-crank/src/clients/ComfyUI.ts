@@ -14,7 +14,7 @@ const dirname = pathDirname(filename)
 const availableModels: Record<string, ModelSelection> = {
   realistic: {
     ckpt_name: 'photon.safetensors',
-    vae_name: undefined
+    vae_name: 'ae.safetensors'
   },
   anime: {
     ckpt_name: 'AOM3 a1b.safetensors',
