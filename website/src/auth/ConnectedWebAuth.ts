@@ -108,8 +108,9 @@ export default class ConnectedWebAuth {
    * @returns the decoded access token, or undefined if there is no access token
    */
   get decodedAccessToken (): DecodedAccessToken | undefined {
-    if (this.accessToken !== null) {
-      return decodeToken(this.accessToken)
+    const accessToken = this.accessToken
+    if (accessToken !== null && accessToken?.length > 0) {
+      return decodeToken(accessToken)
     }
   }
 
