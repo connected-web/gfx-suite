@@ -117,8 +117,8 @@ export default {
   methods: {
     async populatePromptFromExistingRecord(dateCode: string, requestId: string) {
       const existingRecord: ImageResults = await this.imagesApi.getResults(dateCode, requestId)
-      const { positive, negative, batchSize, width, height } = existingRecord?.originalRequest ?? {}
-      this.modelSelection = existingRecord?.originalRequest?.model ?? 'anime'
+      const { positive, negative, batchSize, width, height, model } = existingRecord?.originalRequest ?? {}
+      this.modelSelection = model ?? 'anime'
       this.prompt = positive ?? ''
       this.negativePrompt = negative ?? defaultNegativePrompt
       this.batchSize = batchSize ?? 10
