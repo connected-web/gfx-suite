@@ -23,6 +23,7 @@ export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayP
     userId: event?.requestContext?.authorizer?.principalId ?? 'no-user-id-from-authorizer',
     requestId: String(event?.pathParameters?.requestId),
     type: 'image-batch',
+    model: rawRequest?.model ?? 'default',
     positive: rawRequest?.positive,
     negative: rawRequest?.negative,
     width: rawRequest?.width,

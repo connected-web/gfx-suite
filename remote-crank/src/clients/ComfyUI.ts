@@ -11,6 +11,18 @@ import { ImageRequest, FileList } from './SharedTypes'
 const filename = fileURLToPath(import.meta.url)
 const dirname = pathDirname(filename)
 
+const availableModels: Record<string, ModelSelection> = {
+  realistic: {
+    ckpt_name: 'photon.safetensors',
+    vae_name: undefined
+  },
+  anime: {
+    ckpt_name: 'AOM3 a1b.safetensors',
+    vae_name: 'orangemix.vae.pt'
+  }
+}
+availableModels.default = availableModels.anime
+
 function responseToReadable (response: Response): Readable {
   const reader: ReadableStreamDefaultReader<Uint8Array> = (response?.body?.getReader()) as ReadableStreamDefaultReader<Uint8Array>
   const rs = new Readable()
@@ -24,6 +36,11 @@ function responseToReadable (response: Response): Readable {
     }
   }
   return rs
+}
+
+export interface ModelSelection {
+  ckpt_name: string
+  vae_name: string | undefined
 }
 
 export const isNone = (x: any): x is null | undefined =>
@@ -81,14 +98,18 @@ export class ComfyUIClient {
   }
 
   createWorkflow (imageRequest: ImageRequest): ComfyUIWorkflow {
+    const selectedModel = availableModels[String(imageRequest?.model)] ?? availableModels.default
     const workflow = new ComfyUIWorkflow()
     const cls = workflow.classes
-    const [model, clip] = cls.CheckpointLoaderSimple({
-      ckpt_name: 'AOM3 a1b.safetensors'
+    const [model, clip, vae] = cls.CheckpointLoaderSimple({
+      ckpt_name: selectedModel.ckpt_name
     })
-    const [vae] = cls.VAELoader({
-      vae_name: 'orangemix.vae.pt'
-    })
+    let customVae: any | undefined
+    if (selectedModel.vae_name !== undefined) {
+      [customVae] = cls.VAELoader({
+        vae_name: selectedModel.vae_name
+      })
+    }
     const enc = (text: string): any => cls.CLIPTextEncode({ text, clip })[0]
     const [samples] = cls.KSampler({
       seed: Math.floor(Math.random() * 2 ** 32),
@@ -111,7 +132,7 @@ export class ComfyUIClient {
     const datePrefix = now.toISOString().substring(0, 10)
     cls.SaveImage({
       filename_prefix: `${datePrefix}/gfxs/gfxs`,
-      images: cls.VAEDecode({ samples, vae })[0]
+      images: cls.VAEDecode({ samples, vae: customVae ?? vae })[0]
     })
 
     return workflow

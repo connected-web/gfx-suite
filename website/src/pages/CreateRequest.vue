@@ -4,7 +4,15 @@
       <Icon icon="paint-roller" />
       <label>Create Image</label>
     </h2>
-    <p>Use this form to request an image to generate.</p>
+    <p>Choose a style:</p>
+    <div class="row p5 stretch">
+      <button @click="selectModel('anime')" :class="{ selected: modelSelection === 'anime', 'row center': true }">
+        <Icon icon="face-grin-wink">Anime</Icon>
+      </button>
+      <button @click="selectModel('realistic')" :class="{ selected: modelSelection === 'realistic', 'row center': true }">
+        <Icon icon="camera">Realistic</Icon>
+      </button>
+    </div>
     <textarea v-model="prompt" :disabled="sendingPrompt" placeholder="Describe the image to generate..."></textarea>
     <textarea v-model="negativePrompt" :disabled="sendingPrompt" placeholder="Describe things not to include..."></textarea>
 
@@ -86,6 +94,7 @@ export default {
       title: 'GFX Suite',
       description: 'This site provides authenticated access to the Connected Web Images API.',
       promptHistory: [] as string[],
+      modelSelection: 'anime',
       prompt: '',
       negativePrompt: '',
       images: [] as string[],
@@ -125,6 +134,7 @@ export default {
           requestId,
           userId: Auth.instance?.principalId,
           dateCode,
+          model: this.modelSelection,
           positive: this.prompt,
           negative: this.negativePrompt,
           batchSize: this.batchSize,
@@ -157,6 +167,9 @@ export default {
       } finally {
         this.sendingPrompt = false
       }
+    },
+    selectModel(model: string) {
+      this.modelSelection = model
     }
   }
 }
@@ -185,5 +198,8 @@ select {
   .row.stretch {
     flex-wrap: wrap;
   }
+}
+.selected {
+  background-color: #ccc;
 }
 </style>
