@@ -49,6 +49,18 @@ export default class ImagesApiClient {
     return await response.json()
   }
 
+  async listRequestsForCurrentUser (searchPrefix: string): Promise<any> {
+    const endpointUrl = `${this.baseUrl}/requests/${searchPrefix}`
+    const accessToken = await Auth.instance?.getLatestAccessToken()
+    const response = await fetch(endpointUrl, {
+      headers: {
+        Authorization: `Bearer ${String(accessToken)}`
+      }
+    })
+
+    return await response.json()
+  }
+
   async putRequest (requestId: string, requestItem: ImageRequest): Promise<any> {
     const endpointUrl = `${this.baseUrl}/request/${requestId}`
     const accessToken = await Auth.instance?.getLatestAccessToken()
