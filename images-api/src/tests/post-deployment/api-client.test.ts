@@ -121,6 +121,7 @@ describe('Open API Spec', () => {
         '/request',
         '/request/{requestId}',
         '/requests',
+        '/requests/{searchPrefix}',
         '/results',
         '/results/{dateCode}',
         '/results/{dateCode}/{requestId}',
@@ -346,15 +347,13 @@ describe('Open API Spec', () => {
       })
     })
 
-    /*
     it('should be possible to list results for a specific date code', async () => {
-      const response = await appClient.listRequestsForCurrentUser({ dateCode: '2024-07' })
+      const response = await appClient.listRequestsForCurrentUser({ searchPrefix: '2024-07' })
 
       console.log('List Results:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
 
       ajv.validate({ $ref: 'app-openapi.json#/components/schemas/ListResultsModel' }, response.data)
       expect(ajv.errors ?? []).toEqual([])
     })
-      */
   })
 })
