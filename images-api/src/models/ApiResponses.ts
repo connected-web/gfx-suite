@@ -269,6 +269,41 @@ export class ApiResponse extends OpenAPIBasicModels {
       }
     }) as IModel
   }
+
+  static get listResults (): IModel {
+    return OpenAPIBasicModels.modelFactory?.create('ListResults', {
+      schema: JsonSchemaVersion.DRAFT7,
+      title: 'List Results Response',
+      type: JsonSchemaType.OBJECT,
+      properties: {
+        message: {
+          type: JsonSchemaType.STRING,
+          description: 'The message content describing the response'
+        },
+        results: {
+          type: JsonSchemaType.ARRAY,
+          description: 'The list of results for the user',
+          items: {
+            type: JsonSchemaType.OBJECT,
+            properties: {
+              path: {
+                type: JsonSchemaType.STRING,
+                description: 'The path to the result file'
+              },
+              dateCode: {
+                type: JsonSchemaType.STRING,
+                description: 'The date the result was generated'
+              },
+              requestId: {
+                type: JsonSchemaType.STRING,
+                description: 'The unique identifier for the request'
+              }
+            }
+          }
+        }
+      }
+    }) as IModel
+  }
 }
 
 /**
