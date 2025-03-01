@@ -326,4 +326,33 @@ describe('Open API Spec', () => {
       expect(ajv.errors ?? []).toEqual([])
     })
   })
+
+  describe('List results', () => {
+    let appClient: ApiClientUnderTest
+    beforeAll(async () => {
+      const axiosApi = new OpenAPIClientAxios({
+        definition: openapiDoc,
+        axiosConfigDefaults: {
+          headers: serverConfig.headers,
+          validateStatus: function (status) {
+            return status >= 200 // don't throw errors on non-200 codes
+          }
+        }
+      })
+
+      appClient = await axiosApi.getClient<ApiClientUnderTest>()
+      appClient.interceptors.response.use((response) => response, (error) => {
+        console.log('Caught client error:', error.message)
+      })
+    })
+
+    it('should be possible to list results for a specific date code', async () => {
+      const response = await appClient.listRequestsForCurrentUser({ dateCode: '2024-07' })
+
+      console.log('List Results:', response.status, response.statusText, JSON.stringify(response.data, null, 2))
+
+      ajv.validate({ $ref: 'app-openapi.json#/components/schemas/ListResultsModel' }, response.data)
+      expect(ajv.errors ?? []).toEqual([])
+    })
+  })
 })
