@@ -8,7 +8,7 @@ import { Resources } from '../../Resources'
 import { ApiResponse } from '../../models/ApiResponses'
 
 /* This section is for route metadata used by CDK to create the stack that will host your endpoint */
-export class GetResultsEndpoint extends OpenAPIRouteMetadata<Resources> {
+export class ListRequestsForCurrentUserEndpoint extends OpenAPIRouteMetadata<Resources> {
   resources: Resources
 
   constructor (resources: Resources) {
@@ -26,7 +26,7 @@ export class GetResultsEndpoint extends OpenAPIRouteMetadata<Resources> {
   }
 
   get restSignature (): string {
-    return 'GET /results/{searchPrefix}'
+    return 'GET /requests/{searchPrefix}'
   }
 
   get routeEntryPoint (): string {

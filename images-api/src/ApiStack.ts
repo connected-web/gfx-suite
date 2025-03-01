@@ -13,6 +13,7 @@ import { UserDetailsEndpoint } from './endpoints/UserDetails/metadata'
 import { UserByUserIdEndpoint } from './endpoints/UserByUserId/metadata'
 import { PutResultsEndpoint } from './endpoints/PutResults/metadata'
 import { GetResultsEndpoint } from './endpoints/GetResults/metadata'
+import { ListRequestsForCurrentUserEndpoint } from './endpoints/ListRequestsForCurrentUser/metadata'
 
 export interface IdentityConfig {
   verifiers: OpenAPIVerifiers
@@ -62,6 +63,7 @@ export class ApiStack extends cdk.Stack {
         'GET /openapi': new OpenAPISpecEndpoint(),
         'PUT /request/{requestId}': new PutRequestEndpoint(sharedResources),
         'GET /requests': new GetRequestsEndpoint(sharedResources),
+        'GET /requests/{searchPrefix}': new ListRequestsForCurrentUserEndpoint(sharedResources),
         'DELETE /requests': new DeleteRequestsEndpoint(sharedResources),
         'GET /user/details': new UserDetailsEndpoint(sharedResources),
         'GET /user/{userId}': new UserByUserIdEndpoint(sharedResources),

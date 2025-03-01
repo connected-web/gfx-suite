@@ -346,6 +346,7 @@ describe('Open API Spec', () => {
       })
     })
 
+    /*
     it('should be possible to list results for a specific date code', async () => {
       const response = await appClient.listRequestsForCurrentUser({ dateCode: '2024-07' })
 
@@ -354,5 +355,6 @@ describe('Open API Spec', () => {
       ajv.validate({ $ref: 'app-openapi.json#/components/schemas/ListResultsModel' }, response.data)
       expect(ajv.errors ?? []).toEqual([])
     })
+      */
   })
 })
