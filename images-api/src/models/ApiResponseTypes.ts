@@ -46,3 +46,14 @@ export interface DeleteRequestResponseType {
   message: string
   results: string[]
 }
+
+export interface ResultsPathItem {
+  path: string
+  dateCode: string
+  requestId: string
+}
+
+export interface ListResultsResponseType {
+  message: string
+  results: ResultsPathItem[]
+}

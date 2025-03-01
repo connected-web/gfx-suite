@@ -139,6 +139,32 @@ declare namespace Components {
       message?: string
     }
     /**
+         * List Results Response
+         */
+    export interface ListResultsModel {
+      /**
+             * The message content describing the response
+             */
+      message?: string
+      /**
+             * The list of results for the user
+             */
+      results?: Array<{
+        /**
+                 * The path to the result file
+                 */
+        path?: string
+        /**
+                 * The unique identifier for the request
+                 */
+        requestId?: string
+        /**
+                 * The date the result was generated
+                 */
+        dateCode?: string
+      }>
+    }
+    /**
          * Put Request Response
          */
     export interface PutRequestModel {
@@ -259,6 +285,17 @@ declare namespace Paths {
       export type $200 = /* Basic API Response */ Components.Schemas.ApiResponseModel
     }
   }
+  namespace ListRequestsForCurrentUser {
+    namespace Parameters {
+      export type SearchPrefix = string
+    }
+    export interface PathParameters {
+      searchPrefix: Parameters.SearchPrefix
+    }
+    namespace Responses {
+      export type $200 = /* List Results Response */ Components.Schemas.ListResultsModel
+    }
+  }
   namespace PutRequest {
     namespace Parameters {
       export type RequestId = string
@@ -282,6 +319,16 @@ declare namespace Paths {
       }
       export interface PathParameters {
         requestId: Parameters.RequestId
+      }
+    }
+  }
+  namespace Requests$SearchPrefix {
+    namespace Options {
+      namespace Parameters {
+        export type SearchPrefix = string
+      }
+      export interface PathParameters {
+        searchPrefix: Parameters.SearchPrefix
       }
     }
   }
@@ -345,22 +392,6 @@ export interface OperationMethods {
     config?: AxiosRequestConfig
   ) => OperationResponse<Paths.UserByUserId.Responses.$200>
   /**
-   * getStatus
-   */
-  'getStatus': (
-    parameters?: Parameters<UnknownParamsObject> | null,
-    data?: any,
-    config?: AxiosRequestConfig
-  ) => OperationResponse<Paths.GetStatus.Responses.$200>
-  /**
-   * userDetails
-   */
-  'userDetails': (
-    parameters?: Parameters<UnknownParamsObject> | null,
-    data?: any,
-    config?: AxiosRequestConfig
-  ) => OperationResponse<Paths.UserDetails.Responses.$200>
-  /**
    * putResults
    */
   'putResults': (
@@ -376,6 +407,14 @@ export interface OperationMethods {
     data?: any,
     config?: AxiosRequestConfig
   ) => OperationResponse<Paths.GetResults.Responses.$200>
+  /**
+   * listRequestsForCurrentUser
+   */
+  'listRequestsForCurrentUser': (
+    parameters: Parameters<Paths.ListRequestsForCurrentUser.PathParameters>,
+    data?: any,
+    config?: AxiosRequestConfig
+  ) => OperationResponse<Paths.ListRequestsForCurrentUser.Responses.$200>
   /**
    * getRequests
    */
@@ -408,6 +447,22 @@ export interface OperationMethods {
     data?: any,
     config?: AxiosRequestConfig
   ) => OperationResponse<Paths.PutRequest.Responses.$200>
+  /**
+   * getStatus
+   */
+  'getStatus': (
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: any,
+    config?: AxiosRequestConfig
+  ) => OperationResponse<Paths.GetStatus.Responses.$200>
+  /**
+   * userDetails
+   */
+  'userDetails': (
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: any,
+    config?: AxiosRequestConfig
+  ) => OperationResponse<Paths.UserDetails.Responses.$200>
 }
 
 export interface PathsDictionary {
@@ -420,26 +475,6 @@ export interface PathsDictionary {
       data?: any,
       config?: AxiosRequestConfig
     ) => OperationResponse<Paths.UserByUserId.Responses.$200>
-  }
-  ['/status']: {
-    /**
-     * getStatus
-     */
-    'get': (
-      parameters?: Parameters<UnknownParamsObject> | null,
-      data?: any,
-      config?: AxiosRequestConfig
-    ) => OperationResponse<Paths.GetStatus.Responses.$200>
-  }
-  ['/user/details']: {
-    /**
-     * userDetails
-     */
-    'get': (
-      parameters?: Parameters<UnknownParamsObject> | null,
-      data?: any,
-      config?: AxiosRequestConfig
-    ) => OperationResponse<Paths.UserDetails.Responses.$200>
   }
   ['/results']: {
     /**
@@ -463,7 +498,15 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig
     ) => OperationResponse<Paths.GetResults.Responses.$200>
   }
-  ['/user']: {
+  ['/requests/{searchPrefix}']: {
+    /**
+     * listRequestsForCurrentUser
+     */
+    'get': (
+      parameters: Parameters<Paths.ListRequestsForCurrentUser.PathParameters>,
+      data?: any,
+      config?: AxiosRequestConfig
+    ) => OperationResponse<Paths.ListRequestsForCurrentUser.Responses.$200>
   }
   ['/requests']: {
     /**
@@ -493,8 +536,6 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig
     ) => OperationResponse<Paths.GetOpenAPISpec.Responses.$200>
   }
-  ['/results/{dateCode}']: {
-  }
   ['/']: {
   }
   ['/request/{requestId}']: {
@@ -506,6 +547,30 @@ export interface PathsDictionary {
       data?: any,
       config?: AxiosRequestConfig
     ) => OperationResponse<Paths.PutRequest.Responses.$200>
+  }
+  ['/status']: {
+    /**
+     * getStatus
+     */
+    'get': (
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: any,
+      config?: AxiosRequestConfig
+    ) => OperationResponse<Paths.GetStatus.Responses.$200>
+  }
+  ['/user/details']: {
+    /**
+     * userDetails
+     */
+    'get': (
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: any,
+      config?: AxiosRequestConfig
+    ) => OperationResponse<Paths.UserDetails.Responses.$200>
+  }
+  ['/user']: {
+  }
+  ['/results/{dateCode}']: {
   }
 }
 
