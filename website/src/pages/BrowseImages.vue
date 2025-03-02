@@ -13,7 +13,7 @@
       </router-link>
     </div>
 
-    <RequestBrowser v-if="!requestId" />
+    <RequestBrowser v-if="!requestId" :searchPrefix="searchPrefix" />
 
     <div v-else-if="loadingResults && !resultsItem" class="loading row p5 left">
       <LoadingSpinner />
@@ -100,6 +100,10 @@ export default {
     tab: {
       type: String,
       default: 'images'
+    },
+    searchPrefix: {
+      type: String,
+      default: ''
     }
   },
   data() {
