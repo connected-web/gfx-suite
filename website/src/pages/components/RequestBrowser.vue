@@ -28,7 +28,7 @@
         </div>
       </div>
 
-      <div v-else class="column p5">
+      <div v-if="searchPrefix === '' || searchPrefix === undefined" class="column p5">
         <div class="row p5">
           <p>Recently made requests.</p>
           <span class="spacer"></span>

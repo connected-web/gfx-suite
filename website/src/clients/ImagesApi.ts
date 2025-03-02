@@ -22,6 +22,8 @@ export interface ImageResults {
   initializationVectors: string[]
 }
 
+const requestsCache: { [key: string]: any } = {}
+
 export default class ImagesApiClient {
   baseUrl = 'https://images.prod.connected-web.services'
 
@@ -50,15 +52,25 @@ export default class ImagesApiClient {
   }
 
   async listRequestsForCurrentUser (searchPrefix: string): Promise<any> {
-    const endpointUrl = `${this.baseUrl}/requests/${searchPrefix}`
-    const accessToken = await Auth.instance?.getLatestAccessToken()
-    const response = await fetch(endpointUrl, {
-      headers: {
-        Authorization: `Bearer ${String(accessToken)}`
-      }
-    })
+    if (requestsCache[searchPrefix] !== undefined) {
+      return await Promise.resolve(requestsCache[searchPrefix])
+    }
 
-    return await response.json()
+    const worker = async (): Promise<any> => {
+      const endpointUrl = `${this.baseUrl}/requests/${searchPrefix}`
+      const accessToken = await Auth.instance?.getLatestAccessToken()
+      const response = await fetch(endpointUrl, {
+        headers: {
+          Authorization: `Bearer ${String(accessToken)}`
+        }
+      })
+
+      return await response.json()
+    }
+
+    const future = worker()
+    requestsCache[searchPrefix] = future
+    return await future
   }
 
   async putRequest (requestId: string, requestItem: ImageRequest): Promise<any> {
