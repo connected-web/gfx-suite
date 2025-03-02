@@ -1,5 +1,5 @@
 <template>
-  <div class="navigation row stretch">
+  <div class="navigation row stretch wrap">
     <router-link v-for="item in items" :key="item.path" :to="item.path" class="nav-item row p5 center">
       <Icon :icon="item.icon ?? 'circle'" />
       <label>{{ item.title }}</label>
