@@ -1,57 +1,53 @@
 <template>
   <div class="request-browser">
     <div class="column p5">
-      <h3 class="row p5">
-        <label>Recent Images</label>
-      </h3>
-      <div class="row p5">
-        <p>Recently made requests.</p>
-        <span class="spacer"></span>
-        <button class="row p5" @click="cleanHistory" :disabled="requestHistory?.length === 0">
-          <Icon icon="soap" />
-          <label>Clean history</label>
-        </button>
-      </div>
-      <div class="column p5 links">
-        <div v-for="requestItem in requestHistory">
-          <router-link :to="`/browse/${requestItem?.dateCode}/${requestItem?.requestId}`" class="row p5">
-            <label>{{ requestItem?.dateCode }}</label> /
-            <label><code>{{ (requestItem?.requestId ?? '').slice(0, 8).toUpperCase() }}</code></label> /
-            <label>{{ promptSummary(requestItem) }}</label>
-            <label>({{ requestItem.batchSize  }})</label> 
-          </router-link>
-        </div>
-      </div>
-      <div v-if="requestHistory?.length === 0">
-        <label>No request history to browse.</label>
-      </div>
-      <h3>Remote Images</h3>
 
       <Navigation :items="yearTabs" />
 
-      <div v-if="searchPrefix?.length > 0" class="row p5">
+      <div v-if="searchPrefix?.length > 0" class="column p5">
         <div v-if="remoteResults?.results?.length === 0">
           <label>No results found.</label>
         </div>
         <div v-else-if="remoteResults?.results?.length > 0">
-          <label>Results found:</label>
+          <label>{{ remoteResults?.results?.length ?? '?' }} Results found:</label>
         </div>
         <div v-else class="row p5">  
           <label>Loading results from</label>
           <label>{{ searchPrefix }}.</label>
         </div>
-      </div>
-      <div v-else>
-        <label>Select a year to return results for.</label>
-      </div>
       
-      <div v-for="requestItem in remoteResults?.results">
-        <router-link :to="`/browse/${requestItem?.dateCode}/${requestItem?.requestId?.replace('.json', '')}`" class="row p5">
-          <label>{{ requestItem?.dateCode }}</label> /
-          <label><code>{{ (requestItem?.requestId ?? '').slice(0, 8).toUpperCase() }}</code></label> /
-          <label>{{ promptSummary(requestItem) }}</label>
-          <label>({{ requestItem.batchSize ?? '~'  }})</label> 
-        </router-link>
+        <div v-for="requestItem in remoteResults?.results">
+          <router-link :to="`/browse/${requestItem?.dateCode}/${requestItem?.requestId?.replace('.json', '')}`" class="row p5">
+            <label>{{ requestItem?.dateCode }}</label> /
+            <label><code>{{ (requestItem?.requestId ?? '').slice(0, 8).toUpperCase() }}</code></label> /
+            <label>{{ promptSummary(requestItem) }}</label>
+            <label>({{ requestItem.batchSize ?? '~'  }})</label> 
+          </router-link>
+        </div>
+      </div>
+
+      <div v-else class="column p5">
+        <div class="row p5">
+          <p>Recently made requests.</p>
+          <span class="spacer"></span>
+          <button class="row p5" @click="cleanHistory" :disabled="requestHistory?.length === 0">
+            <Icon icon="soap" />
+            <label>Clean history</label>
+          </button>
+        </div>
+        <div class="column p5 links">
+          <div v-for="requestItem in requestHistory">
+            <router-link :to="`/browse/${requestItem?.dateCode}/${requestItem?.requestId}`" class="row p5">
+              <label>{{ requestItem?.dateCode }}</label> /
+              <label><code>{{ (requestItem?.requestId ?? '').slice(0, 8).toUpperCase() }}</code></label> /
+              <label>{{ promptSummary(requestItem) }}</label>
+              <label>({{ requestItem.batchSize  }})</label> 
+            </router-link>
+          </div>
+        </div>
+        <div v-if="requestHistory?.length === 0">
+          <label>No request history to browse.</label>
+        </div>
       </div>
     </div>
   </div>
@@ -92,7 +88,7 @@ export default {
   },
   computed: {
     yearTabs() {
-      return this.yearCodes.map((yearCode) => {
+      const yearParts = this.yearCodes.map((yearCode) => {
         return {
           title: yearCode,
           path: `/browse/${yearCode}`,
@@ -100,6 +96,12 @@ export default {
           icon: 'calendar'
         }
       })
+      return [{
+        title: 'Recent',
+        path: `/browse`,
+        subpath: 'images',
+        icon: 'clock-rotate-left',
+      }, ...yearParts]
     }
   },
   methods: {
