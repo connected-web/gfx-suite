@@ -6,20 +6,30 @@
       <label>Browse Images</label>
     </h2>
 
-    <div v-if="requestId" class="breadcrumbs">
-      <router-link to="/browse" class="row p5 left">
-        <Icon icon="circle-chevron-left" />
+    <div v-if="requestId" class="breadcrumbs column p5">
+      <router-link :to="`/browse/${String(dateCode)?.substring(0, 7)}`" class="row p5 left">
+        <Icon icon="circle-arrow-left" />
         <label>Back</label>
       </router-link>
+      <div class="row p5 stretch">
+        <router-link v-if="previousResultLink() !== undefined" :to="previousResultLink()" class="row p5 left">
+          <Icon icon="circle-chevron-left" />
+          <label>Previous</label>
+        </router-link>
+        <router-link v-if="nextResultsLink() !== undefined" :to="nextResultsLink()" class="row p5 right">
+          <label>Next</label>
+          <Icon icon="circle-chevron-right" />
+        </router-link>
+      </div>
     </div>
 
-    <RequestBrowser v-if="!requestId" />
+    <RequestBrowser v-if="!requestId" :searchPrefix="searchPrefix" />
 
     <div v-else-if="loadingResults && !resultsItem" class="loading row p5 left">
       <LoadingSpinner />
       <label>Loading results...</label>
     </div>
-    <div v-else-if="requestId">
+    <div v-else-if="requestId" class="column p5">
       <div v-if="resultsError?.message" class="row p5 key-value warning">
         <label>Error:</label>
         <span>{{ resultsError?.message }}</span>
@@ -50,12 +60,29 @@
           </h3>
         </div>
       </div>
+
+      <div v-if="requestId" class="breadcrumbs column p5">
+        <router-link :to="`/browse/${String(dateCode)?.substring(0, 7)}`" class="row p5 left">
+          <Icon icon="circle-arrow-left" />
+          <label>Back</label>
+        </router-link>
+        <div class="row p5 stretch">
+          <router-link v-if="previousResultLink() !== undefined" :to="previousResultLink()" class="row p5 left">
+            <Icon icon="circle-chevron-left" />
+            <label>Previous</label>
+          </router-link>
+          <router-link v-if="nextResultsLink() !== undefined" :to="nextResultsLink()" class="row p5 right">
+            <label>Next</label>
+            <Icon icon="circle-chevron-right" />
+          </router-link>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import ImagesApiClient, { ImageResults, ImageRequest } from '../clients/ImagesApi' 
+import ImagesApiClient, { imageMetadataCache, ImageResults, ImageRequest } from '../clients/ImagesApi' 
 import { ImageUtils } from '../clients/ImageUtils'
 
 import LoadingSpinner from '../components/LoadingSpinner.vue'
@@ -68,7 +95,7 @@ import ImageBrowser from './components/ImageBrowser.vue'
 const imagesApiClient = new ImagesApiClient()
 
 let imageUtils: ImageUtils
-let reloadTimeout: number
+let reloadTimeout: number | any
 
 const tabItems = [{
   title: 'Images ({{imageCount}})',
@@ -100,6 +127,10 @@ export default {
     tab: {
       type: String,
       default: 'images'
+    },
+    searchPrefix: {
+      type: String,
+      default: ''
     }
   },
   data() {
@@ -115,7 +146,6 @@ export default {
     tabItems() {
       const { dateCode, requestId, resultsItem } = this
       return clone(tabItems).map((item: any) => {
-        console.log({ dateCode, requestId, subpath: item.subpath })
         item.path = '/browse/' + [dateCode, requestId, item.subpath].join('/')
         item.title = item.title.replaceAll('{{imageCount}}', resultsItem?.generatedFiles?.length ?? '?')
         return item
@@ -135,26 +165,36 @@ export default {
     await this.fetchUserDetails()
     imageUtils = new ImageUtils(this.userDetails?.user?.decryptionKey ?? 'no-decryption-key-found')
     if (dateCode !== undefined && requestId !== undefined) {
-      return this.loadImagesForRequestId(dateCode, requestId)
+      await this.loadImagesForRequestId(dateCode, requestId)
     }
+    return this.refreshRemoteRequests()
   },
   unmounted() {
     clearTimeout(reloadTimeout)
   },
   methods: {
+    enhancedItem(requestItem: ImageRequest) {
+      const cacheKey = `${requestItem?.dateCode}/${requestItem?.requestId?.replace('.json', '')}`
+      const cachedItem = imageMetadataCache.get(cacheKey)?.originalRequest ?? {}
+      const mergedItem = {
+        ...cachedItem,
+        ...requestItem
+      }
+      return mergedItem
+    },
     async loadImagesForRequestId(dateCode: string, requestId: string) {
       await this.loadResults(dateCode, requestId)
       await this.loadImages(requestId,)
     },
     async fetchUserDetails() {
       const userDetails = await imagesApiClient.getUserDetails()
-      console.log('Load user details', { userDetails })
+      // console.log('Load user details', { userDetails })
       this.userDetails = userDetails
     },
     async loadResults(dateCode: string, requestId: string) {
       this.loadingResults = true
       const resultsEntry: ImageResults = await imagesApiClient.getResults(dateCode, requestId)
-      console.log('[Load Results]', { resultsEntry, dateCode, requestId })
+      // console.log('[Load Results]', { resultsEntry, dateCode, requestId })
       clearTimeout(reloadTimeout)
       if (this.expectedError(resultsEntry as any)?.message === 'The specified key does not exist.') {
         this.results[requestId] = { name: 'Key not found', message: 'Waiting for progress update from server...' }
@@ -217,9 +257,9 @@ export default {
           }
         })
 
-        console.log('Loading images...')
+        // console.log('Loading images...')
         await Promise.allSettled(work)
-        console.log('All images settled...')
+        // console.log('All images settled...')
         this.$forceUpdate()
       }
     },
@@ -231,12 +271,49 @@ export default {
         return image
       }
       return null
+    },
+    async refreshRemoteRequests() {
+      const searchPrefix = this.dateCode?.substring(0, 7) ?? ''
+      if (searchPrefix !== '' && searchPrefix.length > 4) {
+        this.loadingResults = true
+        const remoteResults = await imagesApiClient.listRequestsForCurrentUser(searchPrefix)
+        this.remoteResults = remoteResults?.results ?? []
+        this.loadingResults = false
+      } else {
+        this.remoteResults = []
+      }
+      this.$forceUpdate()
+    },
+    previousResultLink() {
+      const { remoteResults, requestId } = this
+      const index = remoteResults.findIndex((item) => String(item.requestId).replace('.json', '') === requestId)
+      if (index > 0) {
+        const prevItem = remoteResults[index - 1]
+        const prevRequestId = String(prevItem.requestId).replace('.json', '')
+        const prevDateCode = prevItem.dateCode
+        return `/browse/${prevDateCode}/${prevRequestId}`
+      }
+      return undefined
+    },
+    nextResultsLink() {
+      const { remoteResults, requestId } = this
+      const index = remoteResults.findIndex((item) => String(item.requestId).replace('.json', '') === requestId)
+      if (index < remoteResults.length - 1) {
+        const nextItem = remoteResults[index + 1]
+        const nextRequestId = String(nextItem.requestId).replace('.json', '')
+        const nextDateCode = nextItem.dateCode
+        return `/browse/${nextDateCode}/${nextRequestId}`
+      }
+      return undefined
     }
   },
   watch: {
     async requestId(newVal: string) {
       const { dateCode, requestId } = this
       return this.loadImagesForRequestId(String(dateCode), requestId ?? newVal)
+    },
+    async dateCode() {
+      this.refreshRemoteRequests()
     }
   }
 }

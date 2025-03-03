@@ -22,6 +22,22 @@ export interface ImageResults {
   initializationVectors: string[]
 }
 
+const requestsCache: { [key: string]: any } = {}
+
+export class ImageMetadataCache {
+  private cache: { [key: string]: any } = {}
+
+  set (key: string, value: any): void {
+    this.cache[key] = value
+  }
+
+  get (key: string): any {
+    return this.cache[key]
+  }
+}
+
+export const imageMetadataCache = new ImageMetadataCache()
+
 export default class ImagesApiClient {
   baseUrl = 'https://images.prod.connected-web.services'
 
@@ -47,6 +63,28 @@ export default class ImagesApiClient {
     })
 
     return await response.json()
+  }
+
+  async listRequestsForCurrentUser (searchPrefix: string): Promise<any> {
+    if (requestsCache[searchPrefix] !== undefined) {
+      return await Promise.resolve(requestsCache[searchPrefix])
+    }
+
+    const worker = async (): Promise<any> => {
+      const endpointUrl = `${this.baseUrl}/requests/${searchPrefix}`
+      const accessToken = await Auth.instance?.getLatestAccessToken()
+      const response = await fetch(endpointUrl, {
+        headers: {
+          Authorization: `Bearer ${String(accessToken)}`
+        }
+      })
+
+      return await response.json()
+    }
+
+    const future = worker()
+    requestsCache[searchPrefix] = future
+    return await future
   }
 
   async putRequest (requestId: string, requestItem: ImageRequest): Promise<any> {
@@ -103,7 +141,11 @@ export default class ImagesApiClient {
       }
     })
 
-    return await response.json()
+    const results = await response.json()
+
+    imageMetadataCache.set(`${dateCode}/${requestId}`, results)
+
+    return results
   }
 
   async getUserDetails (): Promise<any> {
