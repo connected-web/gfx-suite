@@ -7,7 +7,7 @@
     </h2>
 
     <div v-if="requestId" class="breadcrumbs">
-      <router-link to="/browse" class="row p5 left">
+      <router-link :to="`/browse/${dateCode}`" class="row p5 left">
         <Icon icon="circle-chevron-left" />
         <label>Back</label>
       </router-link>
