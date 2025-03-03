@@ -110,8 +110,7 @@ export default {
       requestHistory: [] as ImageRequest[],
       remoteResults: [] as ImageRequest[],
       yearCodes: yearCodesSince(earliestYear),
-      loadingResults: false,
-      imageMetadataCache
+      loadingResults: false
     };
   },
   computed: {
