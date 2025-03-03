@@ -8,15 +8,15 @@
 
     <div v-if="requestId" class="breadcrumbs column p5">
       <router-link :to="`/browse/${String(dateCode)?.substring(0, 7)}`" class="row p5 left">
-        <Icon icon="circle-chevron-left" />
+        <Icon icon="circle-arrow-left" />
         <label>Back</label>
       </router-link>
       <div class="row p5 stretch">
-        <router-link v-if="previousResultLink() !== undefined" :to="previousResultLink() ?? '/browse'" class="row p5 left">
+        <router-link v-if="previousResultLink() !== undefined" :to="previousResultLink()" class="row p5 left">
           <Icon icon="circle-chevron-left" />
           <label>Previous</label>
         </router-link>
-        <router-link v-if="nextResultsLink() !== undefined" :to="nextResultsLink() ?? '/browse'" class="row p5 right">
+        <router-link v-if="nextResultsLink() !== undefined" :to="nextResultsLink()" class="row p5 right">
           <label>Next</label>
           <Icon icon="circle-chevron-right" />
         </router-link>
@@ -29,7 +29,7 @@
       <LoadingSpinner />
       <label>Loading results...</label>
     </div>
-    <div v-else-if="requestId">
+    <div v-else-if="requestId" class="column p5">
       <div v-if="resultsError?.message" class="row p5 key-value warning">
         <label>Error:</label>
         <span>{{ resultsError?.message }}</span>
@@ -58,6 +58,23 @@
               <label>Create more?</label>
             </router-link>
           </h3>
+        </div>
+      </div>
+
+      <div v-if="requestId" class="breadcrumbs column p5">
+        <router-link :to="`/browse/${String(dateCode)?.substring(0, 7)}`" class="row p5 left">
+          <Icon icon="circle-arrow-left" />
+          <label>Back</label>
+        </router-link>
+        <div class="row p5 stretch">
+          <router-link v-if="previousResultLink() !== undefined" :to="previousResultLink()" class="row p5 left">
+            <Icon icon="circle-chevron-left" />
+            <label>Previous</label>
+          </router-link>
+          <router-link v-if="nextResultsLink() !== undefined" :to="nextResultsLink()" class="row p5 right">
+            <label>Next</label>
+            <Icon icon="circle-chevron-right" />
+          </router-link>
         </div>
       </div>
     </div>
@@ -268,7 +285,7 @@ export default {
       this.$forceUpdate()
     },
     previousResultLink() {
-      const { dateCode, remoteResults, requestId } = this
+      const { remoteResults, requestId } = this
       const index = remoteResults.findIndex((item) => String(item.requestId).replace('.json', '') === requestId)
       if (index > 0) {
         const prevItem = remoteResults[index - 1]
@@ -279,7 +296,7 @@ export default {
       return undefined
     },
     nextResultsLink() {
-      const { dateCode, remoteResults, requestId } = this
+      const { remoteResults, requestId } = this
       const index = remoteResults.findIndex((item) => String(item.requestId).replace('.json', '') === requestId)
       if (index < remoteResults.length - 1) {
         const nextItem = remoteResults[index + 1]
@@ -294,6 +311,9 @@ export default {
     async requestId(newVal: string) {
       const { dateCode, requestId } = this
       return this.loadImagesForRequestId(String(dateCode), requestId ?? newVal)
+    },
+    async dateCode() {
+      this.refreshRemoteRequests()
     }
   }
 }
