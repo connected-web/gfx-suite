@@ -24,6 +24,20 @@ export interface ImageResults {
 
 const requestsCache: { [key: string]: any } = {}
 
+export class ImageMetadataCache {
+  private cache: { [key: string]: any } = {}
+
+  set (key: string, value: any): void {
+    this.cache[key] = value
+  }
+
+  get (key: string): any {
+    return this.cache[key]
+  }
+}
+
+export const imageMetadataCache = new ImageMetadataCache()
+
 export default class ImagesApiClient {
   baseUrl = 'https://images.prod.connected-web.services'
 
@@ -127,7 +141,11 @@ export default class ImagesApiClient {
       }
     })
 
-    return await response.json()
+    const results = await response.json()
+
+    imageMetadataCache.set(`${dateCode}/${requestId}`, results)
+
+    return results
   }
 
   async getUserDetails (): Promise<any> {

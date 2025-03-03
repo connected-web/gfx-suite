@@ -6,11 +6,11 @@
       <Navigation v-if="monthTabs.length > 0" :items="monthTabs" />
 
       <div v-if="searchPrefix?.length > 4" class="column p5">
-        <div v-if="remoteResults?.results?.length === 0">
+        <div v-if="remoteResults?.length === 0">
           <label>No results found.</label>
         </div>
-        <div v-else-if="remoteResults?.results?.length > 0">
-          <label>{{ remoteResults?.results?.length ?? '?' }} Results found:</label>
+        <div v-else-if="remoteResults?.length > 0">
+          <label>{{ remoteResults?.length ?? '?' }} Results found:</label>
         </div>
 
         <div v-if="loadingResults" class="row p5">
@@ -18,12 +18,14 @@
           <label>Loading results for {{ searchPrefix }}.</label>
         </div>
       
-        <div v-for="requestItem in remoteResults?.results">
+        <div v-for="(requestItem, index) in remoteResults" :key="requestItem?.requestId" class="column p5">
+          <div v-if="remoteResults[index - 1]?.dateCode !== requestItem?.dateCode" class="row p5">
+            <label><b>{{ requestItem?.dateCode }}</b></label>
+          </div>
           <router-link :to="`/browse/${requestItem?.dateCode}/${requestItem?.requestId?.replace('.json', '')}`" class="row p5">
-            <label>{{ requestItem?.dateCode }}</label> /
             <label><code>{{ (requestItem?.requestId ?? '').slice(0, 8).toUpperCase() }}</code></label> /
             <label>{{ promptSummary(requestItem) }}</label>
-            <label>({{ requestItem.batchSize ?? '~'  }})</label> 
+            <label>({{ enhancedItem(requestItem)?.batchSize ?? '~'  }})</label> 
           </router-link>
         </div>
       </div>
@@ -38,7 +40,7 @@
           </button>
         </div>
         <div class="column p5 links">
-          <div v-for="requestItem in requestHistory">
+          <div v-for="(requestItem) in requestHistory" :key="requestItem?.requestId" class="column p5">
             <router-link :to="`/browse/${requestItem?.dateCode}/${requestItem?.requestId}`" class="row p5">
               <label>{{ requestItem?.dateCode }}</label> /
               <label><code>{{ (requestItem?.requestId ?? '').slice(0, 8).toUpperCase() }}</code></label> /
@@ -56,7 +58,7 @@
 </template>
 
 <script lang="ts">
-import ImagesApiClient, { ImageResults, ImageRequest } from '../../clients/ImagesApi' 
+import ImagesApiClient, { imageMetadataCache, ImageRequest } from '../../clients/ImagesApi' 
 import RequestHistory from '../../components/RequestHistory'
 import PromptHistory from '../../components/PromptHistory'
 
@@ -108,7 +110,8 @@ export default {
       requestHistory: [] as ImageRequest[],
       remoteResults: [] as ImageRequest[],
       yearCodes: yearCodesSince(earliestYear),
-      loadingResults: false
+      loadingResults: false,
+      imageMetadataCache
     };
   },
   computed: {
@@ -146,14 +149,24 @@ export default {
   },
   methods: {
     firstWords(requestItem: ImageRequest) {
-      return (requestItem?.positive ?? '').split(' ').slice(0, 2)
+      return (requestItem?.positive ?? '').replace(/[()]/g, '').split(' ').slice(0, 2)
     },
     lastWords(requestItem: ImageRequest) {
-      return (requestItem?.positive ?? '').split(' ').reverse().slice(0, 2).reverse()
+      return (requestItem?.positive ?? '').replace(/[()]/g, '').split(' ').reverse().slice(0, 2).reverse()
+    },
+    enhancedItem(requestItem: ImageRequest) {
+      const cacheKey = `${requestItem?.dateCode}/${requestItem?.requestId?.replace('.json', '')}`
+      const cachedItem = imageMetadataCache.get(cacheKey)?.originalRequest ?? {}
+      const mergedItem = {
+        ...cachedItem,
+        ...requestItem
+      }
+      return mergedItem
     },
     promptSummary(requestItem: ImageRequest) {
-      const firstWords = this.firstWords(requestItem)
-      const lastWords = this.lastWords(requestItem)
+      const mergedItem = this.enhancedItem(requestItem)
+      const firstWords = this.firstWords(mergedItem)
+      const lastWords = this.lastWords(mergedItem)
       return Array.from(new Set([...firstWords, ...lastWords])).join(' ')
     },
     cleanHistory() {
@@ -164,7 +177,8 @@ export default {
     async refreshRemoteRequests() {
       if (this.searchPrefix !== '' && this.searchPrefix.length > 4) {
         this.loadingResults = true
-        this.remoteResults = await imagesApiClient.listRequestsForCurrentUser(this.searchPrefix)
+        const remoteResults = await imagesApiClient.listRequestsForCurrentUser(this.searchPrefix)
+        this.remoteResults = remoteResults?.results ?? []
         this.loadingResults = false
       } else {
         this.remoteResults = []

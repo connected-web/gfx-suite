@@ -68,7 +68,7 @@ import ImageBrowser from './components/ImageBrowser.vue'
 const imagesApiClient = new ImagesApiClient()
 
 let imageUtils: ImageUtils
-let reloadTimeout: number
+let reloadTimeout: number | any
 
 const tabItems = [{
   title: 'Images ({{imageCount}})',
@@ -152,13 +152,13 @@ export default {
     },
     async fetchUserDetails() {
       const userDetails = await imagesApiClient.getUserDetails()
-      console.log('Load user details', { userDetails })
+      // console.log('Load user details', { userDetails })
       this.userDetails = userDetails
     },
     async loadResults(dateCode: string, requestId: string) {
       this.loadingResults = true
       const resultsEntry: ImageResults = await imagesApiClient.getResults(dateCode, requestId)
-      console.log('[Load Results]', { resultsEntry, dateCode, requestId })
+      // console.log('[Load Results]', { resultsEntry, dateCode, requestId })
       clearTimeout(reloadTimeout)
       if (this.expectedError(resultsEntry as any)?.message === 'The specified key does not exist.') {
         this.results[requestId] = { name: 'Key not found', message: 'Waiting for progress update from server...' }
