@@ -30,7 +30,7 @@ export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayP
       return {
         path: resultPath,
         dateCode,
-        requestId
+        requestId: String(requestId).replace('.json', '')
       }
     })
 
