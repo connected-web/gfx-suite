@@ -20,6 +20,10 @@ export class ImageUtils {
       throw new Error('Image is marked as unable to encrypt')
     }
 
+    if (String(iv) === 'marked-for-removal') {
+      throw new Error('Image is marked for removal')
+    }
+
     const cachedRecord = this.successCache[imagePath]
     if (cachedRecord !== undefined) {
       return cachedRecord

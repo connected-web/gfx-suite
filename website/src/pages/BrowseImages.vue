@@ -36,6 +36,15 @@
         <span>{{ resultsError?.message }}</span>
       </div>
       <div v-else class="column p5">
+        <div class="row p5 stretch">
+          <router-link
+            :to="`/rate/${dateCode}/${requestId}`"
+            class="rate-button row p5 center"
+          >
+            <Icon icon="star-half-stroke" />
+            <label>Rate</label>
+          </router-link>
+        </div>
         <Navigation :items="tabItems.value" />
         <RequestDetails v-if="props.tab === 'details'" :resultsItem="resultsItem" />
         <ImageBrowser v-if="props.tab === '' || props.tab === 'images'" :resultsItem="resultsItem" :decryptedImages="decryptedImages" />
@@ -218,6 +227,7 @@ function previousResultLink() {
     const prev = remoteResults.value[index - 1]
     return `/browse/${prev.dateCode}/${String(prev.requestId).replace('.json', '')}`
   }
+  return undefined
 }
 
 function nextResultsLink() {
@@ -226,6 +236,7 @@ function nextResultsLink() {
     const next = remoteResults.value[index + 1]
     return `/browse/${next.dateCode}/${String(next.requestId).replace('.json', '')}`
   }
+  return undefined
 }
 
 onMounted(async () => {
@@ -252,7 +263,8 @@ watch(() => props.dateCode, () => refreshRemoteRequests())
 @media screen and (max-width: 800px) {
   .back-button,
   .previous-button,
-  .next-button {
+  .next-button,
+  .rate-button {
     padding: 1em;
   }
 }

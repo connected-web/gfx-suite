@@ -4,6 +4,7 @@ import RequestQueue from './pages/RequestQueue.vue'
 import CreateRequest from './pages/CreateRequest.vue'
 import BrowseImages from './pages/BrowseImages.vue'
 import Status from './pages/Status.vue'
+import RateImages from './pages/RateImages.vue'
 
 const primaryNav = [
   { path: '/', component: Home, icon: 'home', primaryNav: true, navTitle: 'Home' },
@@ -19,6 +20,9 @@ export default [
   { path: '/browse/:searchPrefix', props: true, component: BrowseImages },
   { path: '/browse/:dateCode/:requestId', props: true, component: BrowseImages },
   { path: '/browse/:dateCode/:requestId/:tab', props: true, component: BrowseImages },
+  { path: '/rate/:searchPrefix', props: true, component: RateImages },
+  { path: '/rate/:dateCode/:requestId', props: true, component: RateImages },
+  { path: '/rate/:dateCode/:requestId/:tab', props: true, component: RateImages },
   { path: '/create/:dateCode/:requestId', props: true, component: CreateRequest },
   { path: '/queue', component: RequestQueue, icon: 'rectangle-list', navTitle: 'Requests' }
 ]
