@@ -16,6 +16,10 @@ export class ImageUtils {
   async createImageFromEncryptedUrl (imagePath: string, iv: string): Promise<string> {
     const { decryptionKey } = this
 
+    if (String(imagePath).includes('unable-to-encrypt')) {
+      throw new Error('Image is marked as unable to encrypt')
+    }
+
     const cachedRecord = this.successCache[imagePath]
     if (cachedRecord !== undefined) {
       return cachedRecord

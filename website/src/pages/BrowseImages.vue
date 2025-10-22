@@ -7,16 +7,16 @@
     </h2>
 
     <div v-if="requestId" class="breadcrumbs column p5">
-      <router-link :to="`/browse/${String(dateCode)?.substring(0, 7)}`" class="row p5 left">
+      <router-link :to="`/browse/${String(dateCode)?.substring(0, 7)}`" class="back-button row p5 left">
         <Icon icon="circle-arrow-left" />
         <label>Back</label>
       </router-link>
       <div class="row p5 stretch">
-        <router-link v-if="previousResultLink() !== undefined" :to="previousResultLink()" class="row p5 left">
+        <router-link v-if="previousResultLink() !== undefined" :to="previousResultLink()" class="previous-button row p5 left">
           <Icon icon="circle-chevron-left" />
           <label>Previous</label>
         </router-link>
-        <router-link v-if="nextResultsLink() !== undefined" :to="nextResultsLink()" class="row p5 right">
+        <router-link v-if="nextResultsLink() !== undefined" :to="nextResultsLink()" class="next-button row p5 right">
           <label>Next</label>
           <Icon icon="circle-chevron-right" />
         </router-link>
@@ -62,16 +62,16 @@
       </div>
 
       <div v-if="requestId" class="breadcrumbs column p5">
-        <router-link :to="`/browse/${String(dateCode)?.substring(0, 7)}`" class="row p5 left">
+        <router-link :to="`/browse/${String(dateCode)?.substring(0, 7)}`" class="back-button row p5 left">
           <Icon icon="circle-arrow-left" />
           <label>Back</label>
         </router-link>
         <div class="row p5 stretch">
-          <router-link v-if="previousResultLink() !== undefined" :to="previousResultLink()" class="row p5 left">
+          <router-link v-if="previousResultLink() !== undefined" :to="previousResultLink()" class="previous-button row p5 left">
             <Icon icon="circle-chevron-left" />
             <label>Previous</label>
           </router-link>
-          <router-link v-if="nextResultsLink() !== undefined" :to="nextResultsLink()" class="row p5 right">
+          <router-link v-if="nextResultsLink() !== undefined" :to="nextResultsLink()" class="next-button row p5 right">
             <label>Next</label>
             <Icon icon="circle-chevron-right" />
           </router-link>
@@ -321,5 +321,17 @@ export default {
 </script>
 
 <style scoped>
+@media screen  and (max-width: 800px) {
+  .back-button {
+    padding: 1em;
+  }
 
+  .previous-button {
+    padding: 1em;
+  }
+
+  .next-button {
+    padding: 1em;
+  }
+}
 </style>
