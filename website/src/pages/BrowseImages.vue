@@ -6,8 +6,8 @@
       <label>Browse Images</label>
     </h2>
 
-    <div v-if="requestId" class="breadcrumbs column p5">
-      <router-link :to="`/browse/${String(dateCode)?.substring(0, 7)}`" class="back-button row p5 left">
+    <div v-if="props.requestId" class="breadcrumbs column p5">
+      <router-link :to="`/browse/${String(props.dateCode)?.substring(0, 7)}`" class="back-button row p5 left">
         <Icon icon="circle-arrow-left" />
         <label>Back</label>
       </router-link>
@@ -23,21 +23,22 @@
       </div>
     </div>
 
-    <RequestBrowser v-if="!requestId" :searchPrefix="searchPrefix" />
+    <RequestBrowser v-if="!props.requestId" :searchPrefix="props.searchPrefix" />
 
     <div v-else-if="loadingResults && !resultsItem" class="loading row p5 left">
       <LoadingSpinner />
       <label>Loading results...</label>
     </div>
-    <div v-else-if="requestId" class="column p5">
+
+    <div v-else-if="props.requestId" class="column p5">
       <div v-if="resultsError?.message" class="row p5 key-value warning">
         <label>Error:</label>
         <span>{{ resultsError?.message }}</span>
       </div>
       <div v-else class="column p5">
-        <Navigation :items="tabItems" />
-        <RequestDetails v-if="tab === 'details'" :resultsItem="resultsItem" />
-        <ImageBrowser v-if="tab === '' || tab === 'images'" :resultsItem="resultsItem" :decryptedImages="decryptedImages" />
+        <Navigation :items="tabItems.value" />
+        <RequestDetails v-if="props.tab === 'details'" :resultsItem="resultsItem" />
+        <ImageBrowser v-if="props.tab === '' || props.tab === 'images'" :resultsItem="resultsItem" :decryptedImages="decryptedImages" />
 
         <h3 v-if="resultsItem?.generatedFiles?.length === 0" class="row p5 center">
           <LoadingSpinner />
@@ -53,7 +54,7 @@
             <label>{{ resultsItem?.generatedFiles?.length }} images total</label>
           </h3>
           <h3 class="row p5 stretch">
-            <router-link :to="`/create/${dateCode}/${requestId}`" class="button row p5 center">
+            <router-link :to="`/create/${props.dateCode}/${props.requestId}`" class="button row p5 center">
               <Icon icon="paint-roller" />
               <label>Create more?</label>
             </router-link>
@@ -61,8 +62,8 @@
         </div>
       </div>
 
-      <div v-if="requestId" class="breadcrumbs column p5">
-        <router-link :to="`/browse/${String(dateCode)?.substring(0, 7)}`" class="back-button row p5 left">
+      <div v-if="props.requestId" class="breadcrumbs column p5">
+        <router-link :to="`/browse/${String(props.dateCode)?.substring(0, 7)}`" class="back-button row p5 left">
           <Icon icon="circle-arrow-left" />
           <label>Back</label>
         </router-link>
@@ -81,255 +82,176 @@
   </div>
 </template>
 
-<script lang="ts">
-import ImagesApiClient, { imageMetadataCache, ImageResults, ImageRequest } from '../clients/ImagesApi' 
+<script setup lang="ts">
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
+import ImagesApiClient, { imageMetadataCache, ImageResults, ImageRequest } from '../clients/ImagesApi'
 import { ImageUtils } from '../clients/ImageUtils'
 
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import Navigation from '../components/Navigation.vue'
-
 import RequestBrowser from './components/RequestBrowser.vue'
 import RequestDetails from './components/RequestDetails.vue'
 import ImageBrowser from './components/ImageBrowser.vue'
 
-const imagesApiClient = new ImagesApiClient()
+const props = defineProps({
+  dateCode: { type: String, default: undefined },
+  requestId: { type: String, default: undefined },
+  tab: { type: String, default: 'images' },
+  searchPrefix: { type: String, default: '' }
+})
 
+const imagesApiClient = new ImagesApiClient()
 let imageUtils: ImageUtils
 let reloadTimeout: number | any
 
-const tabItems = [{
-  title: 'Images ({{imageCount}})',
-  path: '?',
-  subpath: 'images',
-  icon: 'image'
-}, {
-  title: 'Details',
-  path: '?',
-  subpath: 'details',
-  icon: 'list'
-}]
+const userDetails = ref<any>({})
+const remoteResults = ref<ImageRequest[]>([])
+const results = reactive<Record<string, ImageResults | Error>>({})
+const loadingResults = ref(false)
+const decryptedImages = ref<Record<string, string | Error>>({})
+
+const baseTabItems = [
+  { title: 'Images ({{imageCount}})', path: '?', subpath: 'images', icon: 'image' },
+  { title: 'Details', path: '?', subpath: 'details', icon: 'list' }
+]
 
 function clone(data: any): any {
   return JSON.parse(JSON.stringify(data))
 }
 
-export default {
-  components: { LoadingSpinner, Navigation, RequestBrowser, RequestDetails, ImageBrowser },
-  props: {
-    dateCode: {
-      type: String,
-      default: undefined
-    },
-    requestId: {
-      type: String,
-      default: undefined
-    },
-    tab: {
-      type: String,
-      default: 'images'
-    },
-    searchPrefix: {
-      type: String,
-      default: ''
-    }
-  },
-  data() {
-    return {
-      userDetails: {} as any,
-      remoteResults: [] as ImageRequest[],
-      results: {} as Record<string, ImageResults | Error>,
-      loadingResults: false,
-      decryptedImages: {} as Record<string, string | Error>
-    }
-  },
-  computed: {
-    tabItems() {
-      const { dateCode, requestId, resultsItem } = this
-      return clone(tabItems).map((item: any) => {
-        item.path = '/browse/' + [dateCode, requestId, item.subpath].join('/')
-        item.title = item.title.replaceAll('{{imageCount}}', resultsItem?.generatedFiles?.length ?? '?')
-        return item
-      })
-    },
-    resultsItem() {
-      const { results, requestId } = this
-      return results[String(requestId)] as ImageResults
-    },
-    resultsError() {
-      const { results, requestId } = this
-      return results[String(requestId)] as Error
-    }
-  },
-  async mounted(): Promise<void> {
-    const { dateCode, requestId } = this
-    await this.fetchUserDetails()
-    imageUtils = new ImageUtils(this.userDetails?.user?.decryptionKey ?? 'no-decryption-key-found')
-    if (dateCode !== undefined && requestId !== undefined) {
-      await this.loadImagesForRequestId(dateCode, requestId)
-    }
-    return this.refreshRemoteRequests()
-  },
-  unmounted() {
-    clearTimeout(reloadTimeout)
-  },
-  methods: {
-    enhancedItem(requestItem: ImageRequest) {
-      const cacheKey = `${requestItem?.dateCode}/${requestItem?.requestId?.replace('.json', '')}`
-      const cachedItem = imageMetadataCache.get(cacheKey)?.originalRequest ?? {}
-      const mergedItem = {
-        ...cachedItem,
-        ...requestItem
-      }
-      return mergedItem
-    },
-    async loadImagesForRequestId(dateCode: string, requestId: string) {
-      await this.loadResults(dateCode, requestId)
-      await this.loadImages(requestId,)
-    },
-    async fetchUserDetails() {
-      const userDetails = await imagesApiClient.getUserDetails()
-      // console.log('Load user details', { userDetails })
-      this.userDetails = userDetails
-    },
-    async loadResults(dateCode: string, requestId: string) {
-      this.loadingResults = true
-      const resultsEntry: ImageResults = await imagesApiClient.getResults(dateCode, requestId)
-      // console.log('[Load Results]', { resultsEntry, dateCode, requestId })
-      clearTimeout(reloadTimeout)
-      if (this.expectedError(resultsEntry as any)?.message === 'The specified key does not exist.') {
-        this.results[requestId] = { name: 'Key not found', message: 'Waiting for progress update from server...' }
-        const self = this
-        reloadTimeout = setTimeout(async () => {
-          try {
-            self.loadImagesForRequestId(dateCode, requestId)
-          } catch (ex) {
-            const error = ex as Error
-            console.log('[Retry results]', error?.message)
-          }
-        }, 6000 + Math.floor(4000 * Math.random()))
-      } else if (resultsEntry?.originalRequest?.batchSize !== resultsEntry?.generatedFiles?.length) {
-        this.results[requestId] = resultsEntry
-        const self = this
-        reloadTimeout = setTimeout(async () => {
-          try {
-            self.loadImagesForRequestId(dateCode, requestId)
-          } catch (ex) {
-            const error = ex as Error
-            console.log('[Find more images]', error?.message)
-          }
-        }, 4000 + Math.floor(4000 * Math.random()))
-      } else {
-        this.results[requestId] = resultsEntry
-      }
-      this.loadingResults = false
-    },
-    async loadImages(requestId: string) {
-      const { decryptedImages } = this
-      const resultsItem = this.results[requestId] as ImageResults
-      const stillGenerating = this.stillGenerating(resultsItem)
-      if (resultsItem?.generatedFiles?.length > 0) {
-        const imagePaths = resultsItem?.generatedFiles
-        const imageIVs = resultsItem?.initializationVectors
-        const work = imagePaths.map(async (imagePath, index) => {
-          const url = `https://images.connected-web.net/${imagePath}`
-          const iv = imageIVs[index]
-          decryptedImages[imagePath] = 'loading'
-          this.decryptedImages = decryptedImages
-          
-          // console.log('Loading and decoding', url)
-          try {
-            const imageBlob = await imageUtils.createImageFromEncryptedUrl(url, iv)
-            decryptedImages[imagePath] = imageBlob
-            this.decryptedImages = decryptedImages
-          } catch (ex) {
-            const error = ex as Error
-            if (error.name === 'OperationError') {
-              if (stillGenerating) {
-                decryptedImages[imagePath] = { name: 'Generating Image', message: 'Image is currently generating...'}
-              } else {
-                decryptedImages[imagePath] = { name: 'Image Unavailable', message: 'Image not found' }
-              }
-            } else {
-              decryptedImages[imagePath] = error
-              console.log('Image load error:', { error })
-              this.decryptedImages = decryptedImages
-            }
-          }
-        })
+const resultsItem = computed(() => results[String(props.requestId)] as ImageResults)
+const resultsError = computed(() => results[String(props.requestId)] as Error)
 
-        // console.log('Loading images...')
-        await Promise.allSettled(work)
-        // console.log('All images settled...')
-        this.$forceUpdate()
+const tabItems = computed(() => {
+  const { dateCode, requestId } = props
+  return clone(baseTabItems).map((item: any) => {
+    item.path = '/browse/' + [dateCode, requestId, item.subpath].join('/')
+    item.title = item.title.replaceAll('{{imageCount}}', resultsItem.value?.generatedFiles?.length ?? '?')
+    return item
+  })
+})
+
+async function fetchUserDetails() {
+  userDetails.value = await imagesApiClient.getUserDetails()
+}
+
+function enhancedItem(requestItem: ImageRequest) {
+  const cacheKey = `${requestItem?.dateCode}/${requestItem?.requestId?.replace('.json', '')}`
+  const cachedItem = imageMetadataCache.get(cacheKey)?.originalRequest ?? {}
+  return { ...cachedItem, ...requestItem }
+}
+
+function expectedError(image: string | Error) {
+  return image instanceof Error ? image : null
+}
+
+function stillGenerating(item: ImageResults) {
+  return item?.generatedFiles?.length < item?.originalRequest?.batchSize
+}
+
+async function loadResults(dateCode: string, requestId: string) {
+  loadingResults.value = true
+  const resultsEntry: ImageResults = await imagesApiClient.getResults(dateCode, requestId)
+  clearTimeout(reloadTimeout)
+  const err = expectedError(resultsEntry as any)
+  if (err?.message === 'The specified key does not exist.') {
+    results[requestId] = { name: 'Key not found', message: 'Waiting for progress update from server...' } as any
+    reloadTimeout = setTimeout(() => loadImagesForRequestId(dateCode, requestId).catch(console.error), 6000 + Math.floor(4000 * Math.random()))
+  } else if (resultsEntry?.originalRequest?.batchSize !== resultsEntry?.generatedFiles?.length) {
+    results[requestId] = resultsEntry
+    reloadTimeout = setTimeout(() => loadImagesForRequestId(dateCode, requestId).catch(console.error), 4000 + Math.floor(4000 * Math.random()))
+  } else {
+    results[requestId] = resultsEntry
+  }
+  loadingResults.value = false
+}
+
+async function loadImages(requestId: string) {
+  const resultsItemValue = results[requestId] as ImageResults
+  if (!resultsItemValue) return
+  const still = stillGenerating(resultsItemValue)
+  if (resultsItemValue?.generatedFiles?.length > 0) {
+    const imagePaths = resultsItemValue.generatedFiles
+    const imageIVs = resultsItemValue.initializationVectors
+    const work = imagePaths.map(async (imagePath, index) => {
+      const url = `https://images.connected-web.net/${imagePath}`
+      const iv = imageIVs[index]
+      decryptedImages.value[imagePath] = 'loading'
+      try {
+        const imageBlob = await imageUtils.createImageFromEncryptedUrl(url, iv)
+        decryptedImages.value[imagePath] = imageBlob
+      } catch (ex: any) {
+        if (ex.name === 'OperationError') {
+          decryptedImages.value[imagePath] = still
+            ? { name: 'Generating Image', message: 'Image is currently generating...' }
+            : { name: 'Image Unavailable', message: 'Image not found' }
+        } else {
+          decryptedImages.value[imagePath] = ex
+          console.log('Image load error:', ex)
+        }
       }
-    },
-    stillGenerating(resultsItem: ImageResults) {
-      return resultsItem?.generatedFiles?.length < resultsItem?.originalRequest?.batchSize
-    },
-    expectedError(image: string | Error) {
-      if (image instanceof Error) {
-        return image
-      }
-      return null
-    },
-    async refreshRemoteRequests() {
-      const searchPrefix = this.dateCode?.substring(0, 7) ?? ''
-      if (searchPrefix !== '' && searchPrefix.length > 4) {
-        this.loadingResults = true
-        const remoteResults = await imagesApiClient.listRequestsForCurrentUser(searchPrefix)
-        this.remoteResults = remoteResults?.results ?? []
-        this.loadingResults = false
-      } else {
-        this.remoteResults = []
-      }
-      this.$forceUpdate()
-    },
-    previousResultLink() {
-      const { remoteResults, requestId } = this
-      const index = remoteResults.findIndex((item) => String(item.requestId).replace('.json', '') === requestId)
-      if (index > 0) {
-        const prevItem = remoteResults[index - 1]
-        const prevRequestId = String(prevItem.requestId).replace('.json', '')
-        const prevDateCode = prevItem.dateCode
-        return `/browse/${prevDateCode}/${prevRequestId}`
-      }
-      return undefined
-    },
-    nextResultsLink() {
-      const { remoteResults, requestId } = this
-      const index = remoteResults.findIndex((item) => String(item.requestId).replace('.json', '') === requestId)
-      if (index < remoteResults.length - 1) {
-        const nextItem = remoteResults[index + 1]
-        const nextRequestId = String(nextItem.requestId).replace('.json', '')
-        const nextDateCode = nextItem.dateCode
-        return `/browse/${nextDateCode}/${nextRequestId}`
-      }
-      return undefined
-    }
-  },
-  watch: {
-    async requestId(newVal: string) {
-      const { dateCode, requestId } = this
-      return this.loadImagesForRequestId(String(dateCode), requestId ?? newVal)
-    },
-    async dateCode() {
-      this.refreshRemoteRequests()
-    }
+    })
+    await Promise.allSettled(work)
   }
 }
 
+async function loadImagesForRequestId(dateCode: string, requestId: string) {
+  await loadResults(dateCode, requestId)
+  await loadImages(requestId)
+}
+
+async function refreshRemoteRequests() {
+  const searchPrefix = props.dateCode?.substring(0, 7) ?? ''
+  if (searchPrefix && searchPrefix.length > 4) {
+    loadingResults.value = true
+    const remote = await imagesApiClient.listRequestsForCurrentUser(searchPrefix)
+    remoteResults.value = remote?.results ?? []
+    loadingResults.value = false
+  } else {
+    remoteResults.value = []
+  }
+}
+
+function previousResultLink() {
+  const index = remoteResults.value.findIndex(i => String(i.requestId).replace('.json', '') === props.requestId)
+  if (index > 0) {
+    const prev = remoteResults.value[index - 1]
+    return `/browse/${prev.dateCode}/${String(prev.requestId).replace('.json', '')}`
+  }
+}
+
+function nextResultsLink() {
+  const index = remoteResults.value.findIndex(i => String(i.requestId).replace('.json', '') === props.requestId)
+  if (index < remoteResults.value.length - 1) {
+    const next = remoteResults.value[index + 1]
+    return `/browse/${next.dateCode}/${String(next.requestId).replace('.json', '')}`
+  }
+}
+
+onMounted(async () => {
+  await fetchUserDetails()
+  imageUtils = new ImageUtils(userDetails.value?.user?.decryptionKey ?? 'no-decryption-key-found')
+  if (props.dateCode && props.requestId) {
+    await loadImagesForRequestId(props.dateCode, props.requestId)
+  }
+  await refreshRemoteRequests()
+})
+
+onUnmounted(() => clearTimeout(reloadTimeout))
+
+watch(() => props.requestId, async newVal => {
+  if (props.dateCode && (props.requestId || newVal)) {
+    await loadImagesForRequestId(String(props.dateCode ?? ''), String(props.requestId ?? newVal ?? ''))
+  }
+})
+
+watch(() => props.dateCode, () => refreshRemoteRequests())
 </script>
 
 <style scoped>
-@media screen  and (max-width: 800px) {
-  .back-button {
-    padding: 1em;
-  }
-
-  .previous-button {
-    padding: 1em;
-  }
-
+@media screen and (max-width: 800px) {
+  .back-button,
+  .previous-button,
   .next-button {
     padding: 1em;
   }
