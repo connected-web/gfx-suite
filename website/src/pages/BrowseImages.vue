@@ -43,6 +43,7 @@
           >
             <Icon icon="star-half-stroke" />
             <label>Rate</label>
+            <label v-if="markedForRemovalCount > 0">({{ markedForRemovalCount }} MFR)</label>
           </router-link>
         </div>
         <Navigation :items="tabItems.value" />
@@ -131,6 +132,10 @@ function clone(data: any): any {
 const resultsItem = computed(() => results[String(props.requestId)] as ImageResults)
 const resultsError = computed(() => results[String(props.requestId)] as Error)
 
+const markedForRemovalCount = computed(() =>
+  resultsItem.value?.initializationVectors.filter(iv => iv === 'marked-for-removal').length ?? 0
+)
+
 const tabItems = computed(() => {
   const { dateCode, requestId } = props
   return clone(baseTabItems).map((item: any) => {
@@ -142,12 +147,6 @@ const tabItems = computed(() => {
 
 async function fetchUserDetails() {
   userDetails.value = await imagesApiClient.getUserDetails()
-}
-
-function enhancedItem(requestItem: ImageRequest) {
-  const cacheKey = `${requestItem?.dateCode}/${requestItem?.requestId?.replace('.json', '')}`
-  const cachedItem = imageMetadataCache.get(cacheKey)?.originalRequest ?? {}
-  return { ...cachedItem, ...requestItem }
 }
 
 function expectedError(image: string | Error) {

@@ -222,6 +222,10 @@ body {
   align-items: center;
 }
 
+.w-full {
+  width: 100%;
+}
+
 select, input, textarea {
   padding: 5px;
   border: 1px solid #ccc;

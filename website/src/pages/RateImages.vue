@@ -23,11 +23,7 @@
 
     <div v-else class="column p10 center bordered shadowed">
 
-      <div class="row p5 center">
-        <label><b>{{ currentIndex + 1 }} / {{ totalImages }}</b></label>
-      </div>
-
-      <div v-if="currentImage" class="column p10 center">
+      <div v-if="currentImage" class="column p10 center w-full">
         <div class="image-frame" :style="frameStyle">
           <img v-if="decryptedImages[currentImage] && typeof decryptedImages[currentImage] === 'string'"
             :src="String(decryptedImages[currentImage])" class="preview-image" />
@@ -45,23 +41,24 @@
 
 
         <div class="row p10 stretch spacer">
-          <button class="button reject spacer" @click="markReject">Reject</button>
-          <button class="button ok spacer" @click="markKeep">Keep</button>
-        </div>
-
-        <div class="row p10 stretch">
           <button class="button left" :disabled="currentIndex <= 0" @click="previousImage">
             <Icon icon="circle-chevron-left" />
             <label>Previous</label>
           </button>
+          <button class="button reject spacer" @click="markReject">Reject</button>
+          <button class="button ok spacer" @click="markKeep">Keep</button>
           <button class="button right" :disabled="currentIndex >= totalImages - 1" @click="nextImage">
             <label>Next</label>
             <Icon icon="circle-chevron-right" />
           </button>
         </div>
 
+        <div class="row p5 center">
+          <label>Viewing image <b>{{ currentIndex + 1 }} / {{ totalImages }}</b></label>
+        </div>
+
         <div class="row p10 center">
-          <label>{{ markedForRemovalCount }} out of {{ totalImages }} images marked for removal</label>
+          <Icon icon="circle-xmark"><div class="row p5"><b>{{ markedForRemovalCount }}</b> out of <b>{{ totalImages }}</b> images marked for removal</div></Icon>
         </div>
 
         <div class="row p10 center">
@@ -107,7 +104,6 @@ const frameStyle = computed<CSSProperties>(() => {
   const h = resultsItem.value?.originalRequest?.height ?? 512
   const ratio = (h / w) * 100
   return {
-    maxWidth: '768px',
     width: '100%',
     position: 'relative' as CSSProperties['position'],
     background: '#efefef',
@@ -202,6 +198,7 @@ async function saveChanges() {
   router.push(`/browse/${dateCode}/${requestId}`)
 }
 </script>
+
 <style scoped>
 .bordered {
   border: 1px solid #ccc;
@@ -217,12 +214,11 @@ async function saveChanges() {
 
 .preview-image {
   max-width: 100%;
-  max-height: 65vh;
   border-radius: 6px;
   border: 1px solid #ccc;
   background: #fff;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
-  object-fit: contain;
+  object-fit: fill;
   transition: transform 0.4s ease-out;
 }
 
@@ -246,10 +242,6 @@ async function saveChanges() {
   color: #fff;
 }
 
-.button.cancel {
-  color: #fff;
-}
-
 .button.left,
 .button.right {
   flex: 1;
@@ -263,24 +255,6 @@ async function saveChanges() {
   padding: 0.5em 1em;
 }
 
-@media (prefers-color-scheme: dark) {
-  .column.p10.center {
-    background: #2b2b2b;
-    border-color: #444;
-    box-shadow: 0 0 6px rgba(255, 255, 255, 0.05);
-  }
-
-  .preview-image {
-    background: #222;
-    border-color: #444;
-  }
-
-  .warning {
-    background: #443;
-    color: #faa;
-    border-color: #855;
-  }
-}
 .preview-image {
   position: absolute;
   top: 0;
@@ -308,6 +282,23 @@ async function saveChanges() {
 }
 
 @media (prefers-color-scheme: dark) {
+  .column.p10.center {
+    background: #2b2b2b;
+    border-color: #444;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.05);
+  }
+
+  .preview-image {
+    background: #222;
+    border-color: #444;
+  }
+
+  .warning {
+    background: #443;
+    color: #faa;
+    border-color: #855;
+  }
+  
   .image-frame {
     background: #2b2b2b;
     border-color: #444;
@@ -315,6 +306,15 @@ async function saveChanges() {
 
   .error-display {
     color: #ccc;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .cancel-button,
+  .previous-button,
+  .next-button,
+  .rate-button {
+    padding: 1em;
   }
 }
 </style>
