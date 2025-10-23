@@ -22,31 +22,52 @@
     </div>
 
     <div v-else class="column p10 center bordered shadowed">
-
-      <div v-if="currentImage" class="column p10 center w-full">
-        <div class="image-frame" :style="frameStyle">
-          <img v-if="decryptedImages[currentImage] && typeof decryptedImages[currentImage] === 'string'"
-            :src="String(decryptedImages[currentImage])" class="preview-image" />
+      <div class="column p10 center w-full">
+        <div v-if="isFinished" class="column p10 center w-full finished-message">
+          <div class="image-frame" :style="frameStyle">
+            <div class="finished-display column center middle">
+              <h3 class="column w-full center">
+                <Icon icon="circle-check" style="font-size: 3em; color: #3c9;" />
+                <label>All images rated!</label>
+                <p style="font-size: 1rem;">You have reviewed all images in this set.</p>
+                <br />
+              </h3>
+              <br />
+              <br />
+              <button class="button save" :disabled="saving" @click="saveChanges">
+                <Icon icon="floppy-disk" />
+                <label v-if="!saving">Save Changes</label>
+                <label v-else>Saving...</label>
+              </button>
+              <br />
+              <div class="row p10 center">
+                <Icon icon="circle-xmark"><div class="row p5"><b>{{ markedForRemovalCount }}</b> out of <b>{{ totalImages }}</b> images marked for removal</div></Icon>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="image-frame" :style="frameStyle">
+          <img v-if="decryptedImages[String(currentImage)] && typeof decryptedImages[String(currentImage)] === 'string'"
+            :src="String(decryptedImages[String(currentImage)])" class="preview-image" />
           <div
-            v-else-if="typeof decryptedImages[currentImage] === 'object' && (decryptedImages[currentImage] as any)?.message !== undefined"
+            v-else-if="typeof decryptedImages[String(currentImage)] === 'object' && (decryptedImages[String(currentImage)] as any)?.message !== undefined"
             class="error-display">
             <Icon icon="heart-crack" />
             <label>Error</label>
-            <p>{{ (decryptedImages[currentImage] as any).message }}</p>
+            <p>{{ (decryptedImages[String(currentImage)] as any).message }}</p>
           </div>
           <div v-else class="error-display">
             <LoadingSpinner />
           </div>
         </div>
 
-
         <div class="row p10 stretch spacer">
           <button class="button left" :disabled="currentIndex <= 0" @click="previousImage">
             <Icon icon="circle-chevron-left" />
-            <label>Previous</label>
+            <label>Prev</label>
           </button>
-          <button class="button reject spacer" @click="markReject">Reject</button>
-          <button class="button ok spacer" @click="markKeep">Keep</button>
+          <button class="button reject" @click="markReject" :disabled="isFinished || imageIsMarkedForRemoval(String(currentImage))"><label>Reject</label></button>
+          <button class="button ok" @click="markKeep" :disabled="isFinished || imageIsMarkedForRemoval(String(currentImage))"><label>Keep</label></button>
           <button class="button right" :disabled="currentIndex >= totalImages - 1" @click="nextImage">
             <label>Next</label>
             <Icon icon="circle-chevron-right" />
@@ -56,20 +77,7 @@
         <div class="row p5 center">
           <label>Viewing image <b>{{ currentIndex + 1 }} / {{ totalImages }}</b></label>
         </div>
-
-        <div class="row p10 center">
-          <Icon icon="circle-xmark"><div class="row p5"><b>{{ markedForRemovalCount }}</b> out of <b>{{ totalImages }}</b> images marked for removal</div></Icon>
-        </div>
-
-        <div class="row p10 center">
-          <button class="button save" :disabled="saving" @click="saveChanges">
-            <Icon icon="floppy-disk" />
-            <label v-if="!saving">Save Changes</label>
-            <label v-else>Saving...</label>
-          </button>
-        </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -151,12 +159,23 @@ async function loadImages() {
   await Promise.allSettled(work)
 }
 
+
+const isFinished = ref(false)
 const currentImage = computed(() => {
+  if (isFinished.value) return null
   const paths = resultsItem.value?.generatedFiles ?? []
   return paths[currentIndex.value]
 })
 
 const totalImages = computed(() => resultsItem.value?.generatedFiles?.length ?? 0)
+
+function imageIsMarkedForRemoval(imagePath: string): boolean {
+  if (!resultsItem.value) return false
+  const index = resultsItem.value.generatedFiles.indexOf(imagePath)
+  if (index === -1) return false
+  const iv = resultsItem.value.initializationVectors[index]
+  return iv === 'marked-for-removal'
+}
 
 function markReject() {
   if (!resultsItem.value) return
@@ -176,10 +195,19 @@ function markKeep() {
 }
 
 function nextImage() {
-  if (currentIndex.value < totalImages.value - 1) currentIndex.value++
+  if (currentIndex.value < totalImages.value - 1) {
+    currentIndex.value++
+  } else {
+    isFinished.value = true
+  }
 }
 
+
 function previousImage() {
+  if (isFinished.value) {
+    isFinished.value = false
+    return
+  }
   if (currentIndex.value > 0) currentIndex.value--
 }
 
@@ -255,6 +283,18 @@ async function saveChanges() {
   padding: 0.5em 1em;
 }
 
+.button.reject:disabled {
+  background: rgb(180, 152, 152);
+  color: #fff;
+  cursor: default;
+}
+
+.button.ok:disabled {
+  background: rgb(191, 214, 191);
+  color: #fff;
+  cursor: default;
+}
+
 .preview-image {
   position: absolute;
   top: 0;
@@ -279,6 +319,11 @@ async function saveChanges() {
   gap: 0.5em;
   color: #333;
   font-size: 0.9em;
+}
+
+.image-frame {
+  display: flex;
+  align-items: center;
 }
 
 @media (prefers-color-scheme: dark) {
