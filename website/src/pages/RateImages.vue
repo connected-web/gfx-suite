@@ -22,57 +22,62 @@
     </div>
 
     <div v-else class="column p10 center bordered shadowed">
-
-      <div class="row p5 center">
-        <label><b>{{ currentIndex + 1 }} / {{ totalImages }}</b></label>
-      </div>
-
-      <div v-if="currentImage" class="column p10 center">
-        <div class="image-frame" :style="frameStyle">
-          <img v-if="decryptedImages[currentImage] && typeof decryptedImages[currentImage] === 'string'"
-            :src="String(decryptedImages[currentImage])" class="preview-image" />
+      <div class="column p10 center w-full">
+        <div v-if="isFinished" class="column p10 center w-full finished-message">
+          <div class="image-frame" :style="frameStyle">
+            <div class="finished-display column center middle">
+              <h3 class="column w-full center">
+                <Icon icon="circle-check" style="font-size: 3em; color: #3c9;" />
+                <label>All images rated!</label>
+                <p style="font-size: 1rem;">You have reviewed all images in this set.</p>
+                <br />
+              </h3>
+              <br />
+              <br />
+              <button class="button save" :disabled="saving" @click="saveChanges">
+                <Icon icon="floppy-disk" />
+                <label v-if="!saving">Save Changes</label>
+                <label v-else>Saving...</label>
+              </button>
+              <br />
+              <div class="row p10 center">
+                <Icon icon="circle-xmark"><div class="row p5"><b>{{ markedForRemovalCount }}</b> out of <b>{{ totalImages }}</b> images marked for removal</div></Icon>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="image-frame" :style="frameStyle">
+          <img v-if="decryptedImages[String(currentImage)] && typeof decryptedImages[String(currentImage)] === 'string'"
+            :src="String(decryptedImages[String(currentImage)])" class="preview-image" @error="onImageError(currentImage)" />
           <div
-            v-else-if="typeof decryptedImages[currentImage] === 'object' && (decryptedImages[currentImage] as any)?.message !== undefined"
+            v-else-if="expectedError(decryptedImages[String(currentImage)])"
             class="error-display">
             <Icon icon="heart-crack" />
             <label>Error</label>
-            <p>{{ (decryptedImages[currentImage] as any).message }}</p>
+            <p>{{ expectedError(decryptedImages[String(currentImage)])?.message }}</p>
           </div>
           <div v-else class="error-display">
             <LoadingSpinner />
           </div>
         </div>
 
-
         <div class="row p10 stretch spacer">
-          <button class="button reject spacer" @click="markReject">Reject</button>
-          <button class="button ok spacer" @click="markKeep">Keep</button>
-        </div>
-
-        <div class="row p10 stretch">
           <button class="button left" :disabled="currentIndex <= 0" @click="previousImage">
             <Icon icon="circle-chevron-left" />
-            <label>Previous</label>
+            <label>Prev</label>
           </button>
+          <button class="button reject" @click="markReject" :disabled="isFinished || imageIsMarkedForRemoval(String(currentImage))"><label>Reject</label></button>
+          <button class="button ok" @click="markKeep" :disabled="isFinished || imageIsMarkedForRemoval(String(currentImage))"><label>Keep</label></button>
           <button class="button right" :disabled="currentIndex >= totalImages - 1" @click="nextImage">
             <label>Next</label>
             <Icon icon="circle-chevron-right" />
           </button>
         </div>
 
-        <div class="row p10 center">
-          <label>{{ markedForRemovalCount }} out of {{ totalImages }} images marked for removal</label>
-        </div>
-
-        <div class="row p10 center">
-          <button class="button save" :disabled="saving" @click="saveChanges">
-            <Icon icon="floppy-disk" />
-            <label v-if="!saving">Save Changes</label>
-            <label v-else>Saving...</label>
-          </button>
+        <div class="row p5 center">
+          <label>Viewing image <b>{{ currentIndex + 1 }} / {{ totalImages }}</b></label>
         </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -107,7 +112,6 @@ const frameStyle = computed<CSSProperties>(() => {
   const h = resultsItem.value?.originalRequest?.height ?? 512
   const ratio = (h / w) * 100
   return {
-    maxWidth: '768px',
     width: '100%',
     position: 'relative' as CSSProperties['position'],
     background: '#efefef',
@@ -155,12 +159,23 @@ async function loadImages() {
   await Promise.allSettled(work)
 }
 
+
+const isFinished = ref(false)
 const currentImage = computed(() => {
+  if (isFinished.value) return null
   const paths = resultsItem.value?.generatedFiles ?? []
   return paths[currentIndex.value]
 })
 
 const totalImages = computed(() => resultsItem.value?.generatedFiles?.length ?? 0)
+
+function imageIsMarkedForRemoval(imagePath: string): boolean {
+  if (!resultsItem.value) return false
+  const index = resultsItem.value.generatedFiles.indexOf(imagePath)
+  if (index === -1) return false
+  const iv = resultsItem.value.initializationVectors[index]
+  return iv === 'marked-for-removal'
+}
 
 function markReject() {
   if (!resultsItem.value) return
@@ -180,10 +195,29 @@ function markKeep() {
 }
 
 function nextImage() {
-  if (currentIndex.value < totalImages.value - 1) currentIndex.value++
+  if (currentIndex.value < totalImages.value - 1) {
+    currentIndex.value++
+  } else {
+    isFinished.value = true
+  }
+}
+
+const expectedError = (image: string | Error) => {
+  if (image instanceof Error) {
+    return image
+  }
+  return null
+}
+
+const onImageError = (imagePath: string) => {
+  decryptedImages.value[String(imagePath)] = new Error('Missing image data')
 }
 
 function previousImage() {
+  if (isFinished.value) {
+    isFinished.value = false
+    return
+  }
   if (currentIndex.value > 0) currentIndex.value--
 }
 
@@ -192,13 +226,17 @@ const markedForRemovalCount = computed(() =>
 )
 
 async function saveChanges() {
-  if (!resultsItem.value) return
+  if (!resultsItem.value) {
+    return
+  }
+  resultsItem.value.lastReviewed = new Date().toISOString()
   saving.value = true
   await imagesApiClient.putResults(resultsItem.value)
   saving.value = false
   router.push(`/browse/${dateCode}/${requestId}`)
 }
 </script>
+
 <style scoped>
 .bordered {
   border: 1px solid #ccc;
@@ -214,12 +252,11 @@ async function saveChanges() {
 
 .preview-image {
   max-width: 100%;
-  max-height: 65vh;
   border-radius: 6px;
   border: 1px solid #ccc;
   background: #fff;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
-  object-fit: contain;
+  object-fit: fill;
   transition: transform 0.4s ease-out;
 }
 
@@ -243,10 +280,6 @@ async function saveChanges() {
   color: #fff;
 }
 
-.button.cancel {
-  color: #fff;
-}
-
 .button.left,
 .button.right {
   flex: 1;
@@ -260,24 +293,18 @@ async function saveChanges() {
   padding: 0.5em 1em;
 }
 
-@media (prefers-color-scheme: dark) {
-  .column.p10.center {
-    background: #2b2b2b;
-    border-color: #444;
-    box-shadow: 0 0 6px rgba(255, 255, 255, 0.05);
-  }
-
-  .preview-image {
-    background: #222;
-    border-color: #444;
-  }
-
-  .warning {
-    background: #443;
-    color: #faa;
-    border-color: #855;
-  }
+.button.reject:disabled {
+  background: rgb(180, 152, 152);
+  color: #fff;
+  cursor: default;
 }
+
+.button.ok:disabled {
+  background: rgb(191, 214, 191);
+  color: #fff;
+  cursor: default;
+}
+
 .preview-image {
   position: absolute;
   top: 0;
@@ -304,7 +331,29 @@ async function saveChanges() {
   font-size: 0.9em;
 }
 
+.image-frame {
+  display: flex;
+  align-items: center;
+}
+
 @media (prefers-color-scheme: dark) {
+  .column.p10.center {
+    background: #2b2b2b;
+    border-color: #444;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.05);
+  }
+
+  .preview-image {
+    background: #222;
+    border-color: #444;
+  }
+
+  .warning {
+    background: #443;
+    color: #faa;
+    border-color: #855;
+  }
+  
   .image-frame {
     background: #2b2b2b;
     border-color: #444;
@@ -312,6 +361,15 @@ async function saveChanges() {
 
   .error-display {
     color: #ccc;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .cancel-button,
+  .previous-button,
+  .next-button,
+  .rate-button {
+    padding: 1em;
   }
 }
 </style>

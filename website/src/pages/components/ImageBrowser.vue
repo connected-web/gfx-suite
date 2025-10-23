@@ -1,17 +1,21 @@
 <template>
   <div class="image-browser column p10">
-    <h3 class="row">
+    <h3 class="row p5">
       <Icon icon="image" />
       <label>Images</label>
+      <span class="spacer"></span>
+  <Icon icon="calculator">{{ resultsItem?.generatedFiles?.length ?? 0 }}</Icon>
     </h3>
     <div class="image-browser">
       <div v-for="(imagePath, index) in resultsItem?.generatedFiles" :key="imagePath"
-        class="row column center image-placeholder" :style="{ minWidth: imageWidth(resultsItem, 'px'), height: imageHeight(resultsItem, 'px'), aspectRatio: `auto ${imageWidth(resultsItem, '')}/${imageHeight(resultsItem, '')}` }">
+        class="row column center image-placeholder"
+        :style="{ minWidth: imageWidth(resultsItem, 'px'), height: imageHeight(resultsItem, 'px'), aspectRatio: `auto ${imageWidth(resultsItem, '')}/${imageHeight(resultsItem, '')}` }">
         <div v-if="decryptedImages[imagePath] === 'loading'" class="row p5 left">
           <LoadingSpinner />
           <label>Loading image...</label>
         </div>
-        <div v-else-if="expectedError(decryptedImages[imagePath])?.name ?? expectedError(decryptedImages[imagePath])?.message">
+        <div
+          v-else-if="expectedError(decryptedImages[imagePath])?.name ?? expectedError(decryptedImages[imagePath])?.message">
           <div class="column center">
             <LoadingSpinner v-if="stillGenerating(resultsItem as any)" />
             <Icon v-else icon="heart-crack" />
@@ -19,7 +23,8 @@
             <pre><code>{{ expectedError(decryptedImages[imagePath])?.message }}</code></pre>
           </div>
         </div>
-        <img v-else-if="decryptedImages[imagePath]" :src="String(decryptedImages[imagePath])" :width="imageWidth(resultsItem)" :height="imageHeight(resultsItem)" />
+        <img v-else-if="decryptedImages[imagePath]" :src="String(decryptedImages[imagePath])"
+          :width="imageWidth(resultsItem)" :height="imageHeight(resultsItem)" @error="onImageError(imagePath)" />
         <div v-else>
           <Icon icon="image" />
         </div>
@@ -65,6 +70,9 @@ export default {
         return image
       }
       return null
+    },
+    onImageError(imagePath: string) {
+      this.decryptedImages[imagePath] = new Error('Missing image data')
     }
   }
 }
@@ -88,10 +96,12 @@ export default {
     flex-wrap: nowrap;
     gap: 5px;
   }
-  .image-browser > .image-placeholder {
+
+  .image-browser>.image-placeholder {
     flex: 1;
   }
-  .image-browser > .image-placeholder > img {
+
+  .image-browser>.image-placeholder>img {
     width: 100%;
     height: 100%;
   }
@@ -105,10 +115,12 @@ export default {
     flex-wrap: nowrap;
     gap: 5px;
   }
-  .image-browser > .image-placeholder {
+
+  .image-browser>.image-placeholder {
     flex: 1;
   }
-  .image-browser > .image-placeholder > img {
+
+  .image-browser>.image-placeholder>img {
     width: 100%;
     height: 100%;
   }

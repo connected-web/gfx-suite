@@ -43,11 +43,21 @@
           >
             <Icon icon="star-half-stroke" />
             <label>Rate</label>
+            <label v-if="markedForRemovalCount > 0">({{ markedForRemovalCount }} MFR / {{ resultsItem?.generatedFiles?.length }})</label>
           </router-link>
         </div>
         <Navigation :items="tabItems.value" />
+
         <RequestDetails v-if="props.tab === 'details'" :resultsItem="resultsItem" />
-        <ImageBrowser v-if="props.tab === '' || props.tab === 'images'" :resultsItem="resultsItem" :decryptedImages="decryptedImages" />
+        <ImageBrowser
+          v-if="props.tab === '' || props.tab === 'images'"
+          :resultsItem="{
+            ...resultsItem,
+            generatedFiles: filteredImages,
+            initializationVectors: resultsItem?.initializationVectors
+          }"
+          :decryptedImages="decryptedImages"
+        />
 
         <h3 v-if="resultsItem?.generatedFiles?.length === 0" class="row p5 center">
           <LoadingSpinner />
@@ -59,15 +69,12 @@
         </h3>
         <div v-else class="column p10">
           <h3 class="row p5 center">
-            <Icon icon="image" />
-            <label>{{ resultsItem?.generatedFiles?.length }} images total</label>
+            <Icon icon="calculator"><label>{{ filteredImages.length }} images total</label></Icon>
           </h3>
-          <h3 class="row p5 stretch">
-            <router-link :to="`/create/${props.dateCode}/${props.requestId}`" class="button row p5 center">
-              <Icon icon="paint-roller" />
-              <label>Create more?</label>
-            </router-link>
-          </h3>
+          <router-link :to="`/create/${props.dateCode}/${props.requestId}`" class="row p5 center create-more-button">
+            <Icon icon="paint-roller" />
+            <label>Create more?</label>
+          </router-link>
         </div>
       </div>
 
@@ -131,23 +138,29 @@ function clone(data: any): any {
 const resultsItem = computed(() => results[String(props.requestId)] as ImageResults)
 const resultsError = computed(() => results[String(props.requestId)] as Error)
 
+// Filter out images marked for removal
+const filteredImages = computed(() => {
+  const item = resultsItem.value
+  if (!item || !item.generatedFiles || !item.initializationVectors) return []
+  return item.generatedFiles.filter((_, idx) => item.initializationVectors[idx] !== 'marked-for-removal')
+})
+
+const markedForRemovalCount = computed(() =>
+  resultsItem.value?.initializationVectors.filter(iv => iv === 'marked-for-removal').length ?? 0
+)
+
 const tabItems = computed(() => {
   const { dateCode, requestId } = props
   return clone(baseTabItems).map((item: any) => {
     item.path = '/browse/' + [dateCode, requestId, item.subpath].join('/')
-    item.title = item.title.replaceAll('{{imageCount}}', resultsItem.value?.generatedFiles?.length ?? '?')
+    // Show filtered count
+    item.title = item.title.replaceAll('{{imageCount}}', filteredImages.value.length ?? '?')
     return item
   })
 })
 
 async function fetchUserDetails() {
   userDetails.value = await imagesApiClient.getUserDetails()
-}
-
-function enhancedItem(requestItem: ImageRequest) {
-  const cacheKey = `${requestItem?.dateCode}/${requestItem?.requestId?.replace('.json', '')}`
-  const cachedItem = imageMetadataCache.get(cacheKey)?.originalRequest ?? {}
-  return { ...cachedItem, ...requestItem }
 }
 
 function expectedError(image: string | Error) {
@@ -261,6 +274,7 @@ watch(() => props.dateCode, () => refreshRemoteRequests())
 
 <style scoped>
 @media screen and (max-width: 800px) {
+  .create-more-button,
   .back-button,
   .previous-button,
   .next-button,
