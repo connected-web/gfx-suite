@@ -48,13 +48,13 @@
         </div>
         <div v-else class="image-frame" :style="frameStyle">
           <img v-if="decryptedImages[String(currentImage)] && typeof decryptedImages[String(currentImage)] === 'string'"
-            :src="String(decryptedImages[String(currentImage)])" class="preview-image" />
+            :src="String(decryptedImages[String(currentImage)])" class="preview-image" @error="onImageError(currentImage)" />
           <div
-            v-else-if="typeof decryptedImages[String(currentImage)] === 'object' && (decryptedImages[String(currentImage)] as any)?.message !== undefined"
+            v-else-if="expectedError(decryptedImages[String(currentImage)])"
             class="error-display">
             <Icon icon="heart-crack" />
             <label>Error</label>
-            <p>{{ (decryptedImages[String(currentImage)] as any).message }}</p>
+            <p>{{ expectedError(decryptedImages[String(currentImage)])?.message }}</p>
           </div>
           <div v-else class="error-display">
             <LoadingSpinner />
@@ -202,6 +202,16 @@ function nextImage() {
   }
 }
 
+const expectedError = (image: string | Error) => {
+  if (image instanceof Error) {
+    return image
+  }
+  return null
+}
+
+const onImageError = (imagePath: string) => {
+  decryptedImages.value[String(imagePath)] = new Error('Missing image data')
+}
 
 function previousImage() {
   if (isFinished.value) {

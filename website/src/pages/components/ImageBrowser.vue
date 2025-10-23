@@ -4,7 +4,7 @@
       <Icon icon="image" />
       <label>Images</label>
       <span class="spacer"></span>
-      <Icon icon="calculator">{{ resultsItem?.generatedFiles?.length ?? 0 }}</Icon>
+  <Icon icon="calculator">{{ resultsItem?.generatedFiles?.length ?? 0 }}</Icon>
     </h3>
     <div class="image-browser">
       <div v-for="(imagePath, index) in resultsItem?.generatedFiles" :key="imagePath"
