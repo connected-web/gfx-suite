@@ -192,7 +192,10 @@ const markedForRemovalCount = computed(() =>
 )
 
 async function saveChanges() {
-  if (!resultsItem.value) return
+  if (!resultsItem.value) {
+    return
+  }
+  resultsItem.value.lastReviewed = new Date().toISOString()
   saving.value = true
   await imagesApiClient.putResults(resultsItem.value)
   saving.value = false

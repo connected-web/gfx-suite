@@ -36,7 +36,8 @@ export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayP
     },
     started: rawRequest?.started,
     finished: rawRequest?.finished,
-    uploaded: now.toISOString(),
+    uploaded: rawRequest?.uploaded ?? now.toISOString(),
+    lastReviewed: rawRequest?.lastReviewed ?? undefined,
     generatedFiles: rawRequest?.generatedFiles,
     initializationVectors: rawRequest?.initializationVectors
   }

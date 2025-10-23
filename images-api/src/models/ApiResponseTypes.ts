@@ -28,6 +28,7 @@ export interface ImageResultsType {
   started: Date | string
   finished: Date | string
   uploaded: Date | string
+  lastReviewed?: Date | string
   generatedFiles: string[]
   initializationVectors: string[]
 }
