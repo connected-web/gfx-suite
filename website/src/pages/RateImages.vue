@@ -48,7 +48,7 @@
         </div>
         <div v-else class="image-frame" :style="frameStyle">
           <img v-if="decryptedImages[String(currentImage)] && typeof decryptedImages[String(currentImage)] === 'string'"
-            :src="String(decryptedImages[String(currentImage)])" class="preview-image" @error="onImageError(currentImage)" />
+            :src="String(decryptedImages[String(currentImage ?? '')])" class="preview-image" @error="onImageError(currentImage ?? '')" />
           <div
             v-else-if="expectedError(decryptedImages[String(currentImage)])"
             class="error-display">
