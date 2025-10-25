@@ -334,6 +334,7 @@ async function saveChanges() {
 .image-frame {
   display: flex;
   align-items: center;
+  max-height: 80vh;
 }
 
 @media (prefers-color-scheme: dark) {
