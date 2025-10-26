@@ -26,6 +26,7 @@ export async function handler (event: APIGatewayProxyEvent): Promise<APIGatewayP
     model: rawRequest?.model ?? 'default',
     positive: rawRequest?.positive,
     negative: rawRequest?.negative,
+    lists: rawRequest?.lists ?? {},
     width: rawRequest?.width,
     height: rawRequest?.height,
     batchSize: rawRequest?.batchSize,

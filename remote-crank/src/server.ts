@@ -135,14 +135,13 @@ async function processRequests (): Promise<void> {
       const ftpClient = new ImagesFtp()
       const remoteDirectory = ['users', btoa(nextRequest.userId), started.toISOString().slice(0, 10)].join('/')
       ftpClient.createDirectory(remoteDirectory)
-      const workflow = comfyUiClient.createWorkflow(nextRequest)
 
       const secureUserDetails = await imagesApiClient.getUserDetailsByUserId(nextRequest.userId)
       console.log('Retrieved user details:', secureUserDetails)
       const userEncryptionKey = secureUserDetails?.user?.decryptionKey
 
       const encryptedFileRecords: EncryptedFileRecord[] = []
-      await comfyUiClient.invokeWorkflow(workflow, nextRequest.batchSize, async (sourceImageFile: string) => {
+      await comfyUiClient.invokeWorkflow(nextRequest, async (sourceImageFile: string) => {
         let compressedFile: string | undefined
         let encryptedFileRecord: EncryptedFileRecord | undefined
         try {

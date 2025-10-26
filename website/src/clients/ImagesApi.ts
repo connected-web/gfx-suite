@@ -6,11 +6,14 @@ export interface ImageRequest {
   type: string
   positive: string
   negative: string
+  lists: {
+    [key: string]: string[]
+  }
   width: number
   height: number
   batchSize: number
   model?: string
-  [key: string]: string | number | undefined
+  [key: string]: string | number | undefined | { [key: string]: string[] }
 }
 
 export interface ImageResults {

@@ -7,6 +7,9 @@ export interface ImageRequest {
   type: string
   positive: string
   negative: string
+  lists: {
+    [key: string]: string[]
+  }
   width: number
   height: number
   batchSize: number

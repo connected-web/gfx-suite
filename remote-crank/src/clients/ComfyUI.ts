@@ -23,6 +23,25 @@ const availableModels: Record<string, ModelSelection> = {
 }
 availableModels.default = availableModels.anime
 
+function generatePromptFromTemplate (basePrompt: string, lists: { [key: string]: string[] }, indexOffset: number): string {
+  // search for placeholders like {list:name} in the basePrompt and replace them with items from the lists
+  let result = basePrompt
+  Object.keys(lists).forEach((listName) => {
+    const placeholder = `{list:${listName}}`
+    if (result.includes(placeholder)) {
+      const listItems = lists[listName]
+      if (listItems !== undefined && listItems?.length > 0) {
+        const itemIndex = indexOffset % listItems.length
+        const selectedItem = listItems[itemIndex]
+        result = result.replaceAll(placeholder, selectedItem)
+      } else {
+        result = result.replaceAll(placeholder, '')
+      }
+    }
+  })
+  return result
+}
+
 function responseToReadable (response: Response): Readable {
   const reader: ReadableStreamDefaultReader<Uint8Array> = (response?.body?.getReader()) as ReadableStreamDefaultReader<Uint8Array>
   const rs = new Readable()
@@ -97,7 +116,7 @@ export class ComfyUIClient {
     }
   }
 
-  createWorkflow (imageRequest: ImageRequest): ComfyUIWorkflow {
+  createWorkflow (imageRequest: ImageRequest, indexOffset: number): ComfyUIWorkflow {
     const selectedModel = availableModels[String(imageRequest?.model)] ?? availableModels.default
     const workflow = new ComfyUIWorkflow()
     const cls = workflow.classes
@@ -110,6 +129,8 @@ export class ComfyUIClient {
         vae_name: selectedModel.vae_name
       })
     }
+    const positivePrompt = generatePromptFromTemplate(imageRequest.positive, imageRequest.lists, indexOffset)
+    const negativePrompt = generatePromptFromTemplate(imageRequest.negative, imageRequest.lists, indexOffset)
     const enc = (text: string): any => cls.CLIPTextEncode({ text, clip })[0]
     const [samples] = cls.KSampler({
       seed: Math.floor(Math.random() * 2 ** 32),
@@ -119,8 +140,8 @@ export class ComfyUIClient {
       scheduler: 'karras',
       denoise: 1,
       model,
-      positive: enc(imageRequest.positive),
-      negative: enc(imageRequest.negative),
+      positive: enc(positivePrompt),
+      negative: enc(negativePrompt),
       latent_image: cls.EmptyLatentImage({
         width: imageRequest?.width ?? 512,
         height: imageRequest?.height ?? 512,
@@ -205,10 +226,12 @@ export class ComfyUIClient {
     return results.map((result: any) => result?.value ?? `Error: ${String(result?.reason)}`)
   }
 
-  async invokeWorkflow (workflow: ComfyUIWorkflow, workflowRuns: number, fileSavedCallback: (file: string) => Promise<void>): Promise<FileList> {
+  async invokeWorkflow (batchRequest: ImageRequest, fileSavedCallback: (file: string) => Promise<void>): Promise<FileList> {
     const files = []
-    while (files.length < workflowRuns) {
+    while (files.length < batchRequest.batchSize) {
       const { client } = this
+      const indexOffset = files.length
+      const workflow: ComfyUIWorkflow = this.createWorkflow(batchRequest, indexOffset)
       try {
         const comfyResponse = await workflow.invoke(client)
         const newFiles = await this.saveWorkflowOutputs(comfyResponse)

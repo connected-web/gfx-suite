@@ -10,12 +10,15 @@ export interface ImageRequestType {
   type: string
   positive: string
   negative: string
+  lists: {
+    [key: string]: string[]
+  }
   width: number
   height: number
   batchSize: number
   model?: string
   requestTime?: Date | string
-  [key: string]: string | number | undefined | Date
+  [key: string]: string | number | undefined | Date | { [key: string]: string[] }
 }
 
 export interface ImageRequestMessageType extends ImageRequestType {
