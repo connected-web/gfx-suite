@@ -197,10 +197,10 @@ export default {
       this.modelSelection = model ?? 'anime'
       this.prompt = positive ?? ''
       this.negativePrompt = negative ?? defaultNegativePrompt
+      this.lists = lists ?? {}
       this.batchSize = batchSize ?? 10
       this.imageWidth = Number.parseInt(String(width ?? 512))
       this.imageHeight = Number.parseInt(String(height ?? 768))
-      if (lists) this.lists = lists
     },
     async sendPrompt () {
       this.sendingPrompt = true
