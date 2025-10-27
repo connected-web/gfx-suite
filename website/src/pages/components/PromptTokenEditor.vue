@@ -84,15 +84,21 @@ function onBackgroundClick() {
   padding: 6px;
   min-height: 2.25em;
   background: #fff;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
+
 .token-editor.disabled {
   cursor: not-allowed;
   opacity: .6;
 }
+
 .placeholder {
   color: #888;
   font-style: italic;
 }
+
 .token {
   padding: 0 8px;
   border-radius: 6px;
@@ -102,10 +108,20 @@ function onBackgroundClick() {
   align-items: center;
   cursor: pointer;
   min-height: 2em;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
+
 .token:hover {
   background: #ddd;
 }
-.token.priority { background: #d1eaff }
-.token.list { background: #f8df9e }
+
+.token.priority { 
+  background: #d1eaff;
+}
+
+.token.list { 
+  background: #f8df9e;
+}
 </style>
