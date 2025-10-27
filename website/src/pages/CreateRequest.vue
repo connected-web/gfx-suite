@@ -16,19 +16,21 @@
 
     <h4>Positive Prompt</h4>
     <PromptTokenEditor
-      v-model="prompt"
+      :model-value="prompt"
+      @update:model-value="prompt = $event"
       :disabled="sendingPrompt"
-      @edit-token="openTokenEditor"
-      @new-token="newToken"
+      @edit-token="openTokenEditor('positive', $event)"
+      @new-token="newToken('positive')"
     />
     <hr />
 
     <h4>Negative Prompt</h4>
     <PromptTokenEditor
-      v-model="negativePrompt"
+      :model-value="negativePrompt"
+      @update:model-value="negativePrompt = $event"
       :disabled="sendingPrompt"
-      @edit-token="openTokenEditor"
-      @new-token="newToken"
+      @edit-token="openTokenEditor('negative', $event)"
+      @new-token="newToken('negative')"
     />
     <hr />
 
@@ -94,29 +96,39 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import ImagesApiClient, { ImageResults } from '../clients/ImagesApi'
 import PromptTokenEditor from './components/PromptTokenEditor.vue'
 import TokenEditorModal from './components/TokenEditorModal.vue'
 import promptHistory from '../components/PromptHistory'
 import RequestHistory from '../components/RequestHistory'
-
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import Auth from '../Auth'
 
-function guid () {
+// Props
+const props = defineProps<{
+  dateCode?: string
+  requestId?: string
+}>()
+
+// Router
+const router = useRouter()
+
+// Constants
+const defaultNegativePrompt = '((low quality))'
+const tokenRegex = /(\{list:[^}]+\}|\([^()]+\)|\S+)/g
+
+// Helper functions
+function guid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8)
     return v.toString(16)
   })
 }
 
-const defaultNegativePrompt = '((low quality))'
-
-// token helpers (kept here to avoid extra imports)
-const tokenRegex = /(\{list:[^}]+\}|\([^()]+\)|\S+)/g
-
-function parsePrompt (prompt: string) {
+function parsePrompt(prompt: string) {
   return (prompt.match(tokenRegex) || []).map(t => {
     if (t.startsWith('{list:')) return { type: 'list', value: t }
     if (t.startsWith('(') && t.endsWith(')')) return { type: 'priority', value: t.slice(1, -1) }
@@ -124,7 +136,7 @@ function parsePrompt (prompt: string) {
   })
 }
 
-function stringifyTokens (tokens: any[]) {
+function stringifyTokens(tokens: any[]) {
   return tokens
     .filter(t => typeof t.value === 'string' && t.value.trim().length > 0 || t.type === 'list')
     .map(t => {
@@ -135,167 +147,209 @@ function stringifyTokens (tokens: any[]) {
     .join(' ')
 }
 
-function listNameFromToken (token: any) {
+function listNameFromToken(token: any) {
   if (token.type === 'list') return token.value.replace('{list:', '').replace('}', '')
   return (token.value || '').trim()
 }
 
-export default {
-  components: { LoadingSpinner, PromptTokenEditor, TokenEditorModal },
-  props: {
-    dateCode: { type: String, default: '' },
-    requestId: { type: String, default: '' }
-  },
-  data () {
-    return {
-      title: 'GFX Suite',
-      description: 'This site provides authenticated access to the Connected Web Images API.',
-      promptHistory: [] as string[],
-      modelSelection: 'anime',
-      prompt: '',
-      negativePrompt: '',
-      lists: {} as { [key: string]: string[] },
-      images: [] as string[],
-      batchSize: 10,
-      imageWidth: 512,
-      imageHeight: 768,
-      imagesApi: new ImagesApiClient(),
-      sendingPrompt: false,
-      promptSent: false,
-      promptIcon: '',
-      promptStatus: '',
+// State
+const promptHistoryList = ref<string[]>([])
+const modelSelection = ref('anime')
+const prompt = ref('')
+const negativePrompt = ref('')
+const lists = ref<{ [key: string]: string[] }>({})
+const images = ref<string[]>([])
+const batchSize = ref(10)
+const imageWidth = ref(512)
+const imageHeight = ref(768)
+const imagesApi = new ImagesApiClient()
+const sendingPrompt = ref(false)
+const promptSent = ref(false)
+const promptIcon = ref('')
+const promptStatus = ref('')
 
-      tokenEditOpen: false,
-      tokenEdit: { index: -1, token: { type: 'normal', value: '' } as any }
-    }
-  },
-  computed: {
-    listUsageCounts (): Record<string, number> {
-      const counts: Record<string, number> = {}
-      const tokens = parsePrompt(this.prompt)
-      tokens.forEach(t => {
-        if (t.type === 'list') {
-          const name = listNameFromToken(t)
-          counts[name] = (counts[name] || 0) + 1
-        }
-      })
-      // include zero counts for existing lists so they show up
-      Object.keys(this.lists).forEach(name => { if (!(name in counts)) counts[name] = 0 })
-      return counts
-    }
-  },
-  async mounted () {
-    this.promptHistory = promptHistory.getHistory()
-    if (this.dateCode && this.requestId) {
-      await this.populatePromptFromExistingRecord(this.dateCode, this.requestId)
-    }
-  },
-  methods: {
-    async populatePromptFromExistingRecord (dateCode: string, requestId: string) {
-      const existingRecord: ImageResults = await this.imagesApi.getResults(dateCode, requestId)
-      const { positive, negative, batchSize, width, height, model, lists } = existingRecord?.originalRequest ?? {}
-      this.modelSelection = model ?? 'anime'
-      this.prompt = positive ?? ''
-      this.negativePrompt = negative ?? defaultNegativePrompt
-      this.lists = lists ?? {}
-      this.batchSize = batchSize ?? 10
-      this.imageWidth = Number.parseInt(String(width ?? 512))
-      this.imageHeight = Number.parseInt(String(height ?? 768))
-    },
-    async sendPrompt () {
-      this.sendingPrompt = true
-      try {
-        const requestId = guid()
-        const now = new Date()
-        const dateCode = now.toISOString().slice(0, 10)
-        const requestItem = {
-          requestId,
-          userId: Auth.instance?.principalId,
-          dateCode,
-          model: this.modelSelection,
-          positive: this.prompt,
-          negative: this.negativePrompt,
-          lists: this.lists,
-          batchSize: this.batchSize,
-          type: 'image-batch',
-          width: this.imageWidth,
-          height: this.imageHeight
-        }
-        const initialResults: ImageResults = {
-          originalRequest: requestItem,
-          started: now,
-          finished: 'n/a',
-          uploaded: 'n/a',
-          generatedFiles: [],
-          initializationVectors: []
-        }
-        await this.imagesApi.putResults(initialResults)
-        await this.imagesApi.putRequest(requestId, requestItem)
-        RequestHistory.add(requestItem)
-        this.promptHistory = promptHistory.add(this.prompt)
-        this.promptIcon = 'check'
-        this.promptStatus = 'Prompt sent successfully.'
-        this.promptSent = true
-        const { $router } = this
-        setTimeout(() => {
-          $router.push(`/browse/${dateCode}/${requestId}`)
-        }, 2000)
-      } catch (error) {
-        this.promptIcon = 'exclamation-triangle'
-        this.promptStatus = 'Failed to send prompt.'
-      } finally {
-        this.sendingPrompt = false
-      }
-    },
-    selectModel (model: string) { this.modelSelection = model },
+// Token editor state - track which prompt type is being edited
+const tokenEditOpen = ref(false)
+const tokenEdit = ref({ 
+  index: -1, 
+  token: { type: 'normal', value: '' } as any,
+  promptType: 'positive' as 'positive' | 'negative'
+})
 
-    // token editor wiring
-    openTokenEditor ({ index, token }: any) {
-      this.tokenEdit.index = index
-      this.tokenEdit.token = { ...token }
-      this.tokenEditOpen = true
-    },
-    closeTokenEditor () { this.tokenEditOpen = false },
-    newToken () {
-      const tokens = parsePrompt(this.prompt)
-      // default new token becomes list-name seeded from empty text when saved
-      tokens.push({ type: 'normal', value: '' })
-      // open modal immediately for the new token at the end
-      this.tokenEdit.index = tokens.length - 1
-      this.tokenEdit.token = { type: 'normal', value: '' }
-      this.tokenEditOpen = true
-      // do not update prompt yet; it will be updated on save or removed on delete/cancel
-      // keep a shadow but not committed
-    },
-    applyTokenEdit ({ index, token, listsPatch }: any) {
-      // merge lists patch
-      if (listsPatch && typeof listsPatch === 'object') {
-        Object.keys(listsPatch).forEach(name => {
-          this.lists[name] = listsPatch[name]
-        })
-      }
-      const tokens = parsePrompt(this.prompt)
-      // ensure array has an item at index (may be a fresh add)
-      while (tokens.length <= index) tokens.push({ type: 'normal', value: '' })
-      tokens[index] = token
-      this.prompt = stringifyTokens(tokens)
-      this.closeTokenEditor()
-    },
-    deleteToken ({ index }: any) {
-      const tokens = parsePrompt(this.prompt)
-      if (index >= 0 && index < tokens.length) tokens.splice(index, 1)
-      this.prompt = stringifyTokens(tokens)
-      this.closeTokenEditor()
-    },
-    deleteList ({ listName }: any) {
-      if (listName && this.lists[listName]) {
-        delete this.lists[listName]
-        this.prompt = stringifyTokens(parsePrompt(this.prompt).filter(token => token.type !== 'list' || token.value !== `{list:${listName}}`))
-      }
-      this.closeTokenEditor()
+// Computed
+const listUsageCounts = computed(() => {
+  const counts: Record<string, number> = {}
+  const tokens = parsePrompt(prompt.value)
+  tokens.forEach(t => {
+    if (t.type === 'list') {
+      const name = listNameFromToken(t)
+      counts[name] = (counts[name] || 0) + 1
     }
+  })
+  // include zero counts for existing lists so they show up
+  Object.keys(lists.value).forEach(name => { 
+    if (!(name in counts)) counts[name] = 0 
+  })
+  return counts
+})
+
+// Methods
+async function populatePromptFromExistingRecord(dateCode: string, requestId: string) {
+  const existingRecord: ImageResults = await imagesApi.getResults(dateCode, requestId)
+  const { positive, negative, batchSize: bs, width, height, model, lists: l } = existingRecord?.originalRequest ?? {}
+  modelSelection.value = model ?? 'anime'
+  prompt.value = positive ?? ''
+  negativePrompt.value = negative ?? defaultNegativePrompt
+  lists.value = l ?? {}
+  batchSize.value = bs ?? 10
+  imageWidth.value = Number.parseInt(String(width ?? 512))
+  imageHeight.value = Number.parseInt(String(height ?? 768))
+}
+
+async function sendPrompt() {
+  sendingPrompt.value = true
+  try {
+    const requestId = guid()
+    const now = new Date()
+    const dateCode = now.toISOString().slice(0, 10)
+    const requestItem = {
+      requestId,
+      userId: Auth.instance?.principalId,
+      dateCode,
+      model: modelSelection.value,
+      positive: prompt.value,
+      negative: negativePrompt.value,
+      lists: lists.value,
+      batchSize: batchSize.value,
+      type: 'image-batch',
+      width: imageWidth.value,
+      height: imageHeight.value
+    }
+    const initialResults: ImageResults = {
+      originalRequest: requestItem,
+      started: now,
+      finished: 'n/a',
+      uploaded: 'n/a',
+      generatedFiles: [],
+      initializationVectors: []
+    }
+    await imagesApi.putResults(initialResults)
+    await imagesApi.putRequest(requestId, requestItem)
+    RequestHistory.add(requestItem)
+    promptHistoryList.value = promptHistory.add(prompt.value)
+    promptIcon.value = 'check'
+    promptStatus.value = 'Prompt sent successfully.'
+    promptSent.value = true
+    setTimeout(() => {
+      router.push(`/browse/${dateCode}/${requestId}`)
+    }, 2000)
+  } catch (error) {
+    promptIcon.value = 'exclamation-triangle'
+    promptStatus.value = 'Failed to send prompt.'
+  } finally {
+    sendingPrompt.value = false
   }
 }
+
+function selectModel(model: string) {
+  modelSelection.value = model
+}
+
+// Token editor methods - fixed to work with separate prompts
+function openTokenEditor(promptType: 'positive' | 'negative', { index, token }: any) {
+  tokenEdit.value.index = index
+  tokenEdit.value.token = { ...token }
+  tokenEdit.value.promptType = promptType
+  tokenEditOpen.value = true
+}
+
+function closeTokenEditor() {
+  tokenEditOpen.value = false
+}
+
+function newToken(promptType: 'positive' | 'negative') {
+  const currentPrompt = promptType === 'positive' ? prompt.value : negativePrompt.value
+  const tokens = parsePrompt(currentPrompt)
+  // default new token becomes list-name seeded from empty text when saved
+  tokens.push({ type: 'normal', value: '' })
+  // open modal immediately for the new token at the end
+  tokenEdit.value.index = tokens.length - 1
+  tokenEdit.value.token = { type: 'normal', value: '' }
+  tokenEdit.value.promptType = promptType
+  tokenEditOpen.value = true
+}
+
+function applyTokenEdit({ index, token, listsPatch }: any) {
+  // merge lists patch
+  if (listsPatch && typeof listsPatch === 'object') {
+    Object.keys(listsPatch).forEach(name => {
+      lists.value[name] = listsPatch[name]
+    })
+  }
+  
+  // Get the correct prompt based on which one is being edited
+  const currentPrompt = tokenEdit.value.promptType === 'positive' ? prompt.value : negativePrompt.value
+  const tokens = parsePrompt(currentPrompt)
+  
+  // ensure array has an item at index (may be a fresh add)
+  while (tokens.length <= index) tokens.push({ type: 'normal', value: '' })
+  tokens[index] = token
+  
+  // Update the correct prompt
+  const newPromptValue = stringifyTokens(tokens)
+  if (tokenEdit.value.promptType === 'positive') {
+    prompt.value = newPromptValue
+  } else {
+    negativePrompt.value = newPromptValue
+  }
+  
+  closeTokenEditor()
+}
+
+function deleteToken({ index }: any) {
+  // Get the correct prompt based on which one is being edited
+  const currentPrompt = tokenEdit.value.promptType === 'positive' ? prompt.value : negativePrompt.value
+  const tokens = parsePrompt(currentPrompt)
+  
+  if (index >= 0 && index < tokens.length) tokens.splice(index, 1)
+  
+  // Update the correct prompt
+  const newPromptValue = stringifyTokens(tokens)
+  if (tokenEdit.value.promptType === 'positive') {
+    prompt.value = newPromptValue
+  } else {
+    negativePrompt.value = newPromptValue
+  }
+  
+  closeTokenEditor()
+}
+
+function deleteList({ listName }: any) {
+  if (listName && lists.value[listName]) {
+    delete lists.value[listName]
+    
+    // Remove from both prompts
+    prompt.value = stringifyTokens(
+      parsePrompt(prompt.value).filter(token => 
+        token.type !== 'list' || token.value !== `{list:${listName}}`
+      )
+    )
+    negativePrompt.value = stringifyTokens(
+      parsePrompt(negativePrompt.value).filter(token => 
+        token.type !== 'list' || token.value !== `{list:${listName}}`
+      )
+    )
+  }
+  closeTokenEditor()
+}
+
+// Lifecycle
+onMounted(async () => {
+  promptHistoryList.value = promptHistory.getHistory()
+  if (props.dateCode && props.requestId) {
+    await populatePromptFromExistingRecord(props.dateCode, props.requestId)
+  }
+})
 </script>
 
 <style scoped>
