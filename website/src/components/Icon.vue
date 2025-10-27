@@ -1,5 +1,5 @@
 <template>
-  <div class="icon-with-label">
+  <div class="icon-with-label" :class="{ rtl }">
     <div class="icon-wrapper">
       <font-awesome-icon :icon="iconPlusStyle" />
     </div>
@@ -15,6 +15,10 @@ export default {
     icon: {
       type: String,
       default: 'user-secret'
+    },
+    rtl: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -33,6 +37,7 @@ export default {
 <style scoped>
 .icon-with-label {
   display: inline-flex;
+  justify-content: center;
   align-items: center;
   vertical-align: middle;
 }
@@ -46,5 +51,9 @@ export default {
   text-align: center;
   vertical-align: middle;
   user-select: none;
+}
+
+.rtl {
+  flex-direction: row-reverse;
 }
 </style>

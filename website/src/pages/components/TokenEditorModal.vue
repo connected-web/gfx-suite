@@ -1,9 +1,8 @@
 <template>
-  <div class="modal-backdrop" @click.self="onClose">
+  <div class="modal-backdrop">
     <div class="modal">
       <header class="row space">
-        <h3>Edit token</h3>
-        <button class="icon" @click="onClose">✕</button>
+        <h3 class="modal-title">Edit token</h3>
       </header>
 
       <div class="form">
@@ -38,7 +37,6 @@
           <div class="items">
             <div class="row space mb4">
               <strong>Items</strong>
-              <button class="sm" @click="editingItems.push('')">Add item</button>
             </div>
             <div v-if="!editingItems.length" class="muted">No items yet</div>
             <div v-for="(it, i) in editingItems" :key="i" class="row item">
@@ -49,18 +47,31 @@
               </button>
               <button class="sm danger" @click="removeItem(i)"><Icon icon="trash" /></button>
             </div>
+            <div class="row p5 right">
+              <button class="sm" @click="editingItems.push('')">
+                <Icon icon="plus">Add item</Icon>
+              </button>
+            </div>
           </div>
         </template>
       </div>
 
       <footer class="row space mt6">
         <div class="row p5 left">
-          <button class="danger" @click="onDelete">Delete token</button>
-          <button v-if="local.type === 'list'" class="danger" @click="onDeleteList">Delete list</button>
+          <button class="danger" @click="onDelete">
+            <Icon icon="trash">Delete token</Icon>
+          </button>
+          <button v-if="local.type === 'list'" class="danger" @click="onDeleteList">
+            <Icon icon="trash">Delete list</Icon>
+          </button>
         </div>
         <div class="row p5 right">
-          <button @click="onClose">Cancel</button>
-          <button class="primary" @click="onSave">Save</button>
+          <button @click="onClose">
+            <Icon icon="arrow-left">Cancel</Icon>
+          </button>
+          <button class="primary" @click="onSave">
+            <Icon icon="check">Save</Icon>
+          </button>
         </div>
       </footer>
     </div>
@@ -216,6 +227,10 @@ function togglePriority(i: number) {
   box-shadow: 0 10px 30px rgba(0,0,0,.2);
   padding: 16px;
 }
+.modal-title {
+  background: none;
+  border: none;
+}
 .row { display: flex; align-items: center }
 .space { justify-content: space-between }
 .mb4 { margin-bottom: 8px }
@@ -233,6 +248,5 @@ button.danger { background: #f3d0d0; border-color: #e5a1a1 }
 button.danger:hover { background: #e5a1a1 }
 button.primary:hover { background: #1c5ed6 }
 button.sm { padding: 4px 8px; font-size: 12px }
-button.icon { background: transparent; border: none; font-size: 18px }
 .muted { color: #777; font-style: italic }
 </style>
