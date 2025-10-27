@@ -1,4 +1,3 @@
-
 <template>
   <div class="modal-backdrop" @click.self="onClose">
     <div class="modal">
@@ -23,10 +22,10 @@
         <template v-else>
           <label>List name</label>
           <input
-            v-model="local.listName"
+            v-model="editingListName"
             placeholder="choose or create a list name"
             list="listNames"
-            @change="onListNameChange"
+            @input="onListNameInput"
           />
           <datalist id="listNames">
             <option
@@ -39,14 +38,14 @@
           <div class="items">
             <div class="row space mb4">
               <strong>Items</strong>
-              <button class="sm" @click="items.push('')">Add item</button>
+              <button class="sm" @click="editingItems.push('')">Add item</button>
             </div>
-            <div v-if="!items.length" class="muted">No items yet</div>
-            <div v-for="(it, i) in items" :key="i" class="row item">
-              <input v-model="items[i]" placeholder="value" />
+            <div v-if="!editingItems.length" class="muted">No items yet</div>
+            <div v-for="(it, i) in editingItems" :key="i" class="row item">
+              <input v-model="editingItems[i]" placeholder="value" />
               <button class="sm row p5" @click="togglePriority(i)">
                 <label>P</label>
-                <Icon :icon="isPriority(items[i]) ? 'toggle-on' : 'toggle-off'" />
+                <Icon :icon="isPriority(editingItems[i]) ? 'toggle-on' : 'toggle-off'" />
               </button>
               <button class="sm danger" @click="removeItem(i)"><Icon icon="trash" /></button>
             </div>
@@ -68,80 +67,132 @@
   </div>
 </template>
 
-<script lang="ts">
-export default {
-  name: 'TokenEditorModal',
-  props: {
-    index: { type: Number, required: true },
-    token: { type: Object, required: true },
-    lists: { type: Object, required: true },
-    usageMap: { type: Object, required: true }
-  },
-  emits: ['save', 'delete', 'deleteList', 'close'],
-  data () {
-    const initial = { ...this.token }
-    const initialListName = initial.type === 'list'
-      ? initial.value.replace('{list:', '').replace('}', '')
-      : (initial.value || '').trim()
+<script setup lang="ts">
+import { ref, watch } from 'vue'
 
-    const items = initial.type === 'list' && this.lists[initialListName]
-      ? [...this.lists[initialListName]]
-      : (this.lists[initialListName] ? [...this.lists[initialListName]] : [])
+// Props
+const props = defineProps<{
+  index: number
+  token: { type: string; value: string }
+  lists: Record<string, string[]>
+  usageMap: Record<string, number>
+}>()
 
-    return {
-      local: {
-        type: initial.type,
-        value: initial.type === 'priority' ? initial.value : (initial.type === 'list' ? '' : initial.value),
-        listName: initialListName
-      },
-      items
-    }
-  },
-  methods: {
-    onListNameChange () {
-      const name = this.local.listName
-      this.items = this.lists[name] ? [...this.lists[name]] : []
-    },
-    removeItem (i: number) {
-      this.items.splice(i, 1)
-    },
-    onSave () {
-      const payload: any = { index: this.index, token: null, listsPatch: {} }
-      if (this.local.type === 'list') {
-        const name = this.local.listName.trim()
-        // create or overwrite only the chosen list in the patch
-        payload.listsPatch[name] = this.items.filter(s => s && s.trim().length > 0)
-        payload.token = { type: 'list', value: `{list:${name}}` }
-      } else if (this.local.type === 'priority') {
-        const text = (this.local.value || '').trim()
-        payload.token = { type: 'priority', value: text }
-      } else {
-        const text = (this.local.value || '').trim()
-        payload.token = { type: 'normal', value: text }
-      }
-      this.$emit('save', payload)
-    },
-    onDelete () {
-      this.$emit('delete', { index: this.index })
-    },
-    onDeleteList () {
-      if (this.local.type === 'list') {
-        const name = this.local.listName.trim()
-        this.$emit('deleteList', { listName: name })
-      }
-    },
-    onClose () { this.$emit('close') },
-    isPriority (item: string) {
-      return item.startsWith('(') && item.endsWith(')')
-    },
-    togglePriority (i: number) {
-      const item = this.items[i]
-      if (this.isPriority(item)) {
-        this.items[i] = item.slice(1, -1)
-      } else {
-        this.items[i] = `(${item})`
-      }
-    }
+// Emits
+const emit = defineEmits<{
+  save: [payload: { index: number; token: any; listsPatch: Record<string, string[]> }]
+  delete: [payload: { index: number }]
+  deleteList: [payload: { listName: string }]
+  close: []
+}>()
+
+// Extract initial list name from token
+function getInitialListName(token: { type: string; value: string }): string {
+  if (token.type === 'list') {
+    return token.value.replace('{list:', '').replace('}', '')
+  }
+  return (token.value || '').trim()
+}
+
+// Initialize local state
+const initialListName = getInitialListName(props.token)
+
+const local = ref({
+  type: props.token.type,
+  value: props.token.type === 'priority' 
+    ? props.token.value 
+    : (props.token.type === 'list' ? '' : props.token.value),
+  listName: initialListName
+})
+
+// Separate editing state for list name and items
+const editingListName = ref(initialListName)
+const editingItems = ref<string[]>(
+  props.token.type === 'list' && props.lists[initialListName]
+    ? [...props.lists[initialListName]]
+    : (props.lists[initialListName] ? [...props.lists[initialListName]] : [])
+)
+
+// Track the last loaded list to know when user is selecting vs typing
+const lastLoadedListName = ref(initialListName)
+
+// Watch for type changes to reset editing state
+watch(() => local.value.type, (newType) => {
+  if (newType === 'list' && !editingListName.value) {
+    // When switching to list type, initialize with current list name
+    editingListName.value = local.value.listName || ''
+    editingItems.value = props.lists[editingListName.value] 
+      ? [...props.lists[editingListName.value]] 
+      : []
+    lastLoadedListName.value = editingListName.value
+  }
+})
+
+// Methods
+function onListNameInput(event: Event) {
+  const target = event.target as HTMLInputElement
+  const name = target.value.trim()
+  
+  // Only load items if:
+  // 1. The list exists in props.lists
+  // 2. The name exactly matches an existing list (indicating selection from datalist)
+  // 3. We haven't already loaded this list
+  if (name && props.lists[name] && name !== lastLoadedListName.value) {
+    // User selected an existing list from datalist
+    editingItems.value = [...props.lists[name]]
+    lastLoadedListName.value = name
+  }
+  // Otherwise, keep the current editingItems (user is typing a new name)
+}
+
+function removeItem(i: number) {
+  editingItems.value.splice(i, 1)
+}
+
+function onSave() {
+  const payload: any = { index: props.index, token: null, listsPatch: {} }
+  
+  if (local.value.type === 'list') {
+    const name = editingListName.value.trim()
+    // Save the edited items under the (possibly renamed) list name
+    payload.listsPatch[name] = editingItems.value.filter(s => s && s.trim().length > 0)
+    payload.token = { type: 'list', value: `{list:${name}}` }
+  } else if (local.value.type === 'priority') {
+    const text = (local.value.value || '').trim()
+    payload.token = { type: 'priority', value: text }
+  } else {
+    const text = (local.value.value || '').trim()
+    payload.token = { type: 'normal', value: text }
+  }
+  
+  emit('save', payload)
+}
+
+function onDelete() {
+  emit('delete', { index: props.index })
+}
+
+function onDeleteList() {
+  if (local.value.type === 'list') {
+    const name = editingListName.value.trim()
+    emit('deleteList', { listName: name })
+  }
+}
+
+function onClose() {
+  emit('close')
+}
+
+function isPriority(item: string): boolean {
+  return item.startsWith('(') && item.endsWith(')')
+}
+
+function togglePriority(i: number) {
+  const item = editingItems.value[i]
+  if (isPriority(item)) {
+    editingItems.value[i] = item.slice(1, -1)
+  } else {
+    editingItems.value[i] = `(${item})`
   }
 }
 </script>

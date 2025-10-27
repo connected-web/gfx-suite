@@ -18,7 +18,9 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+
 const tokenRegex = /(\{list:[^}]+\}|\([^()]+\)|\S+)/g
 
 export type PromptToken = {
@@ -26,7 +28,7 @@ export type PromptToken = {
   value: string
 }
 
-function parsePrompt (prompt: string): PromptToken[] {
+function parsePrompt(prompt: string): PromptToken[] {
   return (prompt.match(tokenRegex) || []).map(t => {
     if (t.startsWith('{list:')) return { type: 'list', value: t }
     if (t.startsWith('(') && t.endsWith(')')) return { type: 'priority', value: t.slice(1, -1) }
@@ -34,38 +36,41 @@ function parsePrompt (prompt: string): PromptToken[] {
   })
 }
 
-export default {
-  name: 'PromptTokenEditor',
-  props: {
-    modelValue: { type: String, required: true },
-    disabled: { type: Boolean, default: false }
-  },
-  emits: ['edit-token', 'new-token'],
-  data () {
-    return {
-      tokens: parsePrompt(this.modelValue)
-    }
-  },
-  watch: {
-    modelValue (v: string) {
-      this.tokens = parsePrompt(v)
-    }
-  },
-  methods: {
-    display (t: PromptToken) {
-      if (t.type === 'priority') return `(${t.value})`
-      return t.value
-    },
-    emitEdit (index: number, token: PromptToken) {
-      if (this.disabled) return
-      this.$emit('edit-token', { index, token })
-    },
-    onBackgroundClick () {
-      if (this.disabled) return
-      // request parent to create a new token at the end
-      this.$emit('new-token')
-    }
-  }
+// Props
+const props = defineProps<{
+  modelValue: string
+  disabled?: boolean
+}>()
+
+// Emits
+const emit = defineEmits<{
+  'edit-token': [payload: { index: number; token: PromptToken }]
+  'new-token': []
+}>()
+
+// State
+const tokens = ref<PromptToken[]>(parsePrompt(props.modelValue))
+
+// Watch for external changes to modelValue
+watch(() => props.modelValue, (newValue) => {
+  tokens.value = parsePrompt(newValue)
+})
+
+// Methods
+function display(t: PromptToken) {
+  if (t.type === 'priority') return `(${t.value})`
+  return t.value
+}
+
+function emitEdit(index: number, token: PromptToken) {
+  if (props.disabled) return
+  emit('edit-token', { index, token })
+}
+
+function onBackgroundClick() {
+  if (props.disabled) return
+  // request parent to create a new token at the end
+  emit('new-token')
 }
 </script>
 
