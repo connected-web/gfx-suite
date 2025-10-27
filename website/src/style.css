@@ -134,6 +134,10 @@ p {
   border-radius: 5px;
 }
 
+pre.card {
+  white-space: pre-line;
+}
+
 body {
   display: flex;
 }
