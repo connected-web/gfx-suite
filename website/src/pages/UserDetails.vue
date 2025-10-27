@@ -1,5 +1,5 @@
 <template>
-  <div class="column p10">
+  <div class="column p10 w-full">
     <h2>Your Details</h2>
     <div v-if="loggedIn">
       <p>Hi {{ firstName }}!</p>

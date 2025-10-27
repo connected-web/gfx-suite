@@ -1,5 +1,5 @@
 <template>
-  <div class="column p10">
+  <div class="column p10 w-full">
     <h2 class="row p5">
       <Icon icon="rectangle-list" />
       <label>Status</label>
