@@ -6,8 +6,38 @@ on:
       - main
 
 jobs:
+  detect-changes:
+    name: Detect changed areas
+    runs-on: ubuntu-latest
+    outputs:
+      api_changed: ${{ steps.filter.outputs.api }}
+      website_changed: ${{ steps.filter.outputs.website }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Detect changes
+      id: filter
+      uses: dorny/paths-filter@v3
+      with:
+        filters: |
+          api:
+            - 'images-api/**'
+            - '.github/workflows/deploy-cdk-api.yml'
+            - '.github/workflows/pr-check.yml'
+            - 'package.json'
+            - 'package-lock.json'
+          website:
+            - 'website/**'
+            - '.github/workflows/deploy-website.yml'
+            - '.github/workflows/pr-check.yml'
+            - 'package.json'
+            - 'package-lock.json'
+
   test-cdk-api:
     name: Test Project
+    needs: ['detect-changes']
+    if: ${{ needs.detect-changes.outputs.api_changed == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -28,14 +58,16 @@ jobs:
   deploy-cdk-api:
     name: Deploy API via CDK
     needs: ['test-cdk-api']
+    if: ${{ needs.test-cdk-api.result == 'success' }}
     uses: ./.github/workflows/deploy-cdk-api.yml
     secrets: inherit
     with:
       account: connected-web-dev
-      
+
   post-deployment-tests:
     name: Post-deployment Tests for API
     needs: ['deploy-cdk-api']
+    if: ${{ needs.deploy-cdk-api.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -63,3 +95,10 @@ jobs:
           POST_DEPLOYMENT_AUTH_URL: ${{ vars.POST_DEPLOYMENT_AUTH_URL }}
           POST_DEPLOYMENT_CLIENT_ID: ${{ secrets.POST_DEPLOYMENT_CLIENT_ID }}
           POST_DEPLOYMENT_CLIENT_SECRET: ${{ secrets.POST_DEPLOYMENT_CLIENT_SECRET }}
+
+  deploy-website:
+    name: Deploy Website
+    needs: ['detect-changes']
+    if: ${{ needs.detect-changes.outputs.website_changed == 'true' }}
+    uses: ./.github/workflows/deploy-website.yml
+    secrets: inherit
