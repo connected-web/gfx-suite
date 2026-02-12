@@ -98,13 +98,16 @@ export default {
     viewerOpen(value: boolean) {
       if (value) {
         document.body.style.overflow = 'hidden'
+        window.addEventListener('keydown', this.onViewerKeydown)
         return
       }
       document.body.style.overflow = ''
+      window.removeEventListener('keydown', this.onViewerKeydown)
     }
   },
   unmounted() {
     document.body.style.overflow = ''
+    window.removeEventListener('keydown', this.onViewerKeydown)
   },
   methods: {
     imageWidth(resultsItem: Partial<ImageResults>, unit = 'px') {
@@ -143,6 +146,23 @@ export default {
       const count = this.resultsItem?.generatedFiles?.length ?? 0
       if (count === 0) return
       this.currentIndex = (this.currentIndex + 1) % count
+    },
+    onViewerKeydown(event: KeyboardEvent) {
+      if (!this.viewerOpen) return
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        this.closeViewer()
+        return
+      }
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault()
+        this.showPrevious()
+        return
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault()
+        this.showNext()
+      }
     }
   }
 }
