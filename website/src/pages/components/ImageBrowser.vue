@@ -86,12 +86,16 @@ export default {
   data() {
     return {
       viewerOpen: false,
-      currentIndex: 0
+      currentIndex: 0,
+      syncingFromRoute: false
     }
   },
   computed: {
     currentImagePath(): string | undefined {
       return this.resultsItem?.generatedFiles?.[this.currentIndex]
+    },
+    imageCount(): number {
+      return this.resultsItem?.generatedFiles?.length ?? 0
     }
   },
   watch: {
@@ -99,11 +103,34 @@ export default {
       if (value) {
         document.body.style.overflow = 'hidden'
         window.addEventListener('keydown', this.onViewerKeydown)
+        if (!this.syncingFromRoute) {
+          this.syncRouteState()
+        }
         return
       }
       document.body.style.overflow = ''
       window.removeEventListener('keydown', this.onViewerKeydown)
+      if (!this.syncingFromRoute) {
+        this.syncRouteState()
+      }
+    },
+    currentIndex() {
+      if (!this.syncingFromRoute) {
+        this.syncRouteState()
+      }
+    },
+    '$route.query': {
+      handler() {
+        this.applyRouteState()
+      },
+      deep: true
+    },
+    imageCount() {
+      this.applyRouteState()
     }
+  },
+  mounted() {
+    this.applyRouteState()
   },
   unmounted() {
     document.body.style.overflow = ''
@@ -163,6 +190,56 @@ export default {
         event.preventDefault()
         this.showNext()
       }
+    },
+    routeLightboxOpen(): boolean {
+      return String(this.$route?.query?.lightbox ?? '') === '1'
+    },
+    routeImageIndex(): number {
+      const routeIndex = Number(this.$route?.query?.image)
+      if (Number.isNaN(routeIndex)) {
+        return 0
+      }
+      if (routeIndex < 0) {
+        return 0
+      }
+      if (routeIndex >= this.imageCount) {
+        return Math.max(this.imageCount - 1, 0)
+      }
+      return routeIndex
+    },
+    applyRouteState() {
+      const shouldOpen = this.routeLightboxOpen()
+      if (!shouldOpen || this.imageCount === 0) {
+        if (this.viewerOpen) {
+          this.syncingFromRoute = true
+          this.viewerOpen = false
+          this.syncingFromRoute = false
+        }
+        return
+      }
+      const nextIndex = this.routeImageIndex()
+      this.syncingFromRoute = true
+      this.currentIndex = nextIndex
+      this.viewerOpen = true
+      this.syncingFromRoute = false
+    },
+    syncRouteState() {
+      const nextQuery = { ...this.$route.query } as Record<string, any>
+      if (this.viewerOpen && this.imageCount > 0) {
+        nextQuery.lightbox = '1'
+        nextQuery.image = String(this.currentIndex)
+      } else {
+        delete nextQuery.lightbox
+        delete nextQuery.image
+      }
+      const currentLightbox = String(this.$route?.query?.lightbox ?? '')
+      const currentImage = String(this.$route?.query?.image ?? '')
+      const nextLightbox = String(nextQuery.lightbox ?? '')
+      const nextImage = String(nextQuery.image ?? '')
+      if (currentLightbox === nextLightbox && currentImage === nextImage) {
+        return
+      }
+      this.$router.replace({ query: nextQuery }).catch(() => undefined)
     }
   }
 }
