@@ -29,6 +29,20 @@
         <label>{{ resultsItem?.originalRequest?.batchSize }}</label>
       </div>
     </div>
+
+    <h3 class="row">
+      <Icon icon="list" />
+      <label>Lists in use</label>
+    </h3>
+    <div v-if="listEntries.length === 0" class="row p5 key-value">
+      <label>No lists used in this request.</label>
+    </div>
+    <div v-else class="column p5">
+      <div v-for="[listName, listValues] in listEntries" :key="listName" class="column p5 key-value">
+        <label>{{ listName }}</label>
+        <pre><code>{{ listValues.join('\n') }}</code></pre>
+      </div>
+    </div>
       
     <h3 class="row">
       <Icon icon="timeline" />
@@ -65,6 +79,12 @@ export default {
       default() {
         return {} as Partial<ImageResults>
       }
+    }
+  },
+  computed: {
+    listEntries(): Array<[string, string[]]> {
+      const lists = this.resultsItem?.originalRequest?.lists
+      return Object.entries(lists ?? {})
     }
   }
 }
