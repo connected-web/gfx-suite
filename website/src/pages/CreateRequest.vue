@@ -14,24 +14,52 @@
       </button>
     </div>
 
-    <h4>Positive Prompt</h4>
+    <div class="row p5 stretch prompt-toolbar">
+      <h4>Positive Prompt</h4>
+      <div class="row p5 right">
+        <button class="icon-button" title="Copy positive prompt" @click="copyPromptToClipboard('Positive prompt', prompt)">
+          <Icon icon="copy" />
+        </button>
+        <label class="row p5 mode-switch">
+          <span>Badges</span>
+          <input v-model="positivePlainTextMode" type="checkbox" />
+          <span>Text</span>
+        </label>
+      </div>
+    </div>
     <PromptTokenEditor
+      v-if="!positivePlainTextMode"
       :model-value="prompt"
       @update:model-value="prompt = $event"
       :disabled="sendingPrompt"
       @edit-token="openTokenEditor('positive', $event)"
       @new-token="newToken('positive')"
     />
+    <textarea v-else v-model="prompt" :disabled="sendingPrompt" />
     <hr />
 
-    <h4>Negative Prompt</h4>
+    <div class="row p5 stretch prompt-toolbar">
+      <h4>Negative Prompt</h4>
+      <div class="row p5 right">
+        <button class="icon-button" title="Copy negative prompt" @click="copyPromptToClipboard('Negative prompt', negativePrompt)">
+          <Icon icon="copy" />
+        </button>
+        <label class="row p5 mode-switch">
+          <span>Badges</span>
+          <input v-model="negativePlainTextMode" type="checkbox" />
+          <span>Text</span>
+        </label>
+      </div>
+    </div>
     <PromptTokenEditor
+      v-if="!negativePlainTextMode"
       :model-value="negativePrompt"
       @update:model-value="negativePrompt = $event"
       :disabled="sendingPrompt"
       @edit-token="openTokenEditor('negative', $event)"
       @new-token="newToken('negative')"
     />
+    <textarea v-else v-model="negativePrompt" :disabled="sendingPrompt" />
     <hr />
 
     <h4>Dimensions</h4>
@@ -87,7 +115,7 @@
         <label>Lists in use</label>
       </h3>
       <div class="row p5 right">
-        <button class="row p5" @click="addList">
+        <button class="row p5" @click="openListEditor()">
           <Icon icon="plus" />
           <label>Add List</label>
         </button>
@@ -101,7 +129,17 @@
       </div>
       <div v-else class="column p5">
         <div v-for="[listName, listValues] in verificationListEntries" :key="listName" class="column p5 key-value">
-          <label>{{ listName }}</label>
+          <div class="row p5 stretch">
+            <label>{{ listName }}</label>
+            <div class="row p5 right">
+              <button class="icon-button" title="Edit list" @click="openListEditor(listName)">
+                <Icon icon="pen" />
+              </button>
+              <button class="icon-button danger-button" title="Delete list" @click="confirmDeleteList(listName)">
+                <Icon icon="trash" />
+              </button>
+            </div>
+          </div>
           <pre><code>{{ listValues.join('\n') }}</code></pre>
         </div>
       </div>
@@ -118,6 +156,50 @@
       @deleteList="deleteList"
       @close="closeTokenEditor"
     />
+
+    <div v-if="listEditorOpen" class="modal-backdrop">
+      <div class="modal">
+        <header class="row space">
+          <h3 class="modal-title">{{ listEditorOriginalName ? 'Edit list' : 'Add list' }}</h3>
+        </header>
+        <div class="form">
+          <label>List name</label>
+          <input v-model="listEditorName" placeholder="list name" />
+          <div class="items">
+            <div class="row space mb4">
+              <strong>Items</strong>
+            </div>
+            <div v-if="listEditorItems.length === 0" class="muted">No items yet</div>
+            <div v-for="(_, i) in listEditorItems" :key="i" class="row item">
+              <input v-model="listEditorItems[i]" placeholder="value" />
+              <button class="sm danger-button" @click="removeListEditorItem(i)">
+                <Icon icon="trash" />
+              </button>
+            </div>
+            <div class="row p5 right">
+              <button class="sm" @click="listEditorItems.push('')">
+                <Icon icon="plus">Add item</Icon>
+              </button>
+            </div>
+          </div>
+        </div>
+        <footer class="row space mt6">
+          <div class="row p5 left">
+            <button v-if="listEditorOriginalName" class="danger-button" @click="deleteFromListEditor">
+              <Icon icon="trash">Delete list</Icon>
+            </button>
+          </div>
+          <div class="row p5 right">
+            <button @click="closeListEditor">
+              <Icon icon="arrow-left">Cancel</Icon>
+            </button>
+            <button class="primary-button" @click="saveListEditor">
+              <Icon icon="check">Save</Icon>
+            </button>
+          </div>
+        </footer>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -194,6 +276,12 @@ const promptSent = ref(false)
 const promptIcon = ref('')
 const promptStatus = ref('')
 const { showToast } = useToaster()
+const positivePlainTextMode = ref(false)
+const negativePlainTextMode = ref(false)
+const listEditorOpen = ref(false)
+const listEditorOriginalName = ref('')
+const listEditorName = ref('')
+const listEditorItems = ref<string[]>([])
 
 // Token editor state - track which prompt type is being edited
 const tokenEditOpen = ref(false)
@@ -371,15 +459,54 @@ function deleteList({ listName }: any) {
   closeTokenEditor()
 }
 
-function addList() {
-  const listName = window.prompt('Enter a new list name')?.trim()
-  if (!listName) return
-  if (lists.value[listName]) {
+function openListEditor(listName = '') {
+  listEditorOriginalName.value = listName
+  listEditorName.value = listName
+  listEditorItems.value = listName && lists.value[listName] ? [...lists.value[listName]] : []
+  listEditorOpen.value = true
+}
+
+function closeListEditor() {
+  listEditorOpen.value = false
+}
+
+function removeListEditorItem(index: number) {
+  listEditorItems.value.splice(index, 1)
+}
+
+function confirmDeleteList(listName: string) {
+  if (!window.confirm(`Delete list "${listName}"?`)) return
+  deleteList({ listName })
+  showToast(`Deleted list "${listName}"`)
+}
+
+function deleteFromListEditor() {
+  if (!listEditorOriginalName.value) return
+  if (!window.confirm(`Delete list "${listEditorOriginalName.value}"?`)) return
+  deleteList({ listName: listEditorOriginalName.value })
+  showToast(`Deleted list "${listEditorOriginalName.value}"`)
+  closeListEditor()
+}
+
+function saveListEditor() {
+  const listName = listEditorName.value.trim()
+  if (!listName) {
+    showToast('List name is required')
+    return
+  }
+  const originalName = listEditorOriginalName.value
+  const isRename = originalName.length > 0 && originalName !== listName
+  if (isRename && lists.value[listName]) {
     showToast(`List "${listName}" already exists`)
     return
   }
-  lists.value[listName] = []
-  showToast(`Added list "${listName}"`)
+  const items = listEditorItems.value.map(item => item.trim()).filter(Boolean)
+  lists.value[listName] = items
+  if (isRename) {
+    delete lists.value[originalName]
+  }
+  closeListEditor()
+  showToast(`Saved list "${listName}"`)
 }
 
 function normalizeClipboardListItem(item: string): string {
@@ -417,6 +544,36 @@ async function pasteListFromClipboard() {
   }
 }
 
+async function copyPromptToClipboard(label: string, value: string) {
+  let copied = false
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value)
+      copied = true
+    }
+  } catch {
+    copied = false
+  }
+
+  if (!copied) {
+    const textArea = document.createElement('textarea')
+    textArea.value = value
+    textArea.style.position = 'fixed'
+    textArea.style.left = '-9999px'
+    document.body.appendChild(textArea)
+    textArea.focus()
+    textArea.select()
+    copied = document.execCommand('copy')
+    document.body.removeChild(textArea)
+  }
+
+  if (copied) {
+    showToast(`${label} copied`)
+  } else {
+    showToast(`Failed to copy ${label.toLowerCase()}`)
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
   promptHistoryList.value = promptHistory.getHistory()
@@ -449,6 +606,37 @@ select {
   .row.stretch { flex-wrap: wrap }
 }
 .selected { background-color: #ccc }
+.prompt-toolbar h4 {
+  margin: 0;
+}
+
+.mode-switch {
+  align-items: center;
+  background: #eee;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.9em;
+}
+
+.icon-button {
+  min-width: 2.2em;
+  padding: 0.3em;
+}
+.danger-button {
+  background: #f3d0d0;
+  border-color: #e5a1a1;
+}
+.danger-button:hover {
+  background: #e5a1a1;
+}
+.primary-button {
+  background: #2d7ef7;
+  color: #fff;
+  border-color: #2d7ef7;
+}
+.primary-button:hover {
+  background: #1c5ed6;
+}
 
 .request-details pre {
   margin: 0;
@@ -464,4 +652,38 @@ select {
   padding: 4px;
   background: #eee;
 }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  background: #fff;
+  width: min(720px, 94vw);
+  max-height: 90vh;
+  overflow: auto;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .2);
+  padding: 16px;
+}
+.modal-title {
+  background: none;
+  border: none;
+}
+.space { justify-content: space-between }
+.mb4 { margin-bottom: 8px }
+.mt6 { margin-top: 12px }
+.form { display: grid; grid-template-columns: 120px 1fr; gap: 8px 12px; align-items: center }
+.form label { color: #333 }
+.form input { border: 1px solid #bbb; border-radius: 6px; padding: 6px; font-family: monospace }
+.items { grid-column: 1 / -1; border: 1px dashed #ddd; padding: 8px; border-radius: 6px }
+.item { gap: 8px; margin-bottom: 6px }
+.item input { flex: 1 }
+.sm { padding: 4px 8px; font-size: 12px }
+.muted { color: #777; font-style: italic }
 </style>
