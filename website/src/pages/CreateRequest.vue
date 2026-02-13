@@ -63,18 +63,49 @@
     <hr />
 
     <h4>Dimensions</h4>
-    <div class="card row p5 stretch">
-      <div class="row p5 top">
+    <div class="card column p10 stretch">
+      <div class="column p5 top">
         <label>Batch size:</label>
+        <div class="row p10 preset-grid">
+          <button
+            v-for="size in batchSizePresets"
+            :key="`batch-${size}`"
+            :class="{ 'preset-button': true, selected: Number(batchSize) === size }"
+            @click="applyBatchSizePreset(size)"
+          >
+            <Icon icon="layer-group" />
+            <strong>{{ size }}</strong>
+          </button>
+        </div>
         <div class="row p5 stretch">
-          <input type="number" v-model="batchSize" placeholder="Batch size" />
+          <div class="row p5 manual-input-row">
+            <label class="manual-input-label">Custom</label>
+            <input class="manual-input" type="number" v-model="batchSize" placeholder="Batch size" />
+          </div>
         </div>
       </div>
-      <div class="row p5 stretch top">
+      <div class="column p5 stretch top">
         <label>Image Dimensions</label>
+        <div class="row p10 preset-grid">
+          <button
+            v-for="preset in dimensionPresets"
+            :key="`dim-${preset.width}x${preset.height}`"
+            :class="{ 'preset-button': true, selected: Number(imageWidth) === preset.width && Number(imageHeight) === preset.height }"
+            @click="applyDimensionPreset(preset.width, preset.height)"
+          >
+            <Icon icon="image" />
+            <strong>{{ preset.width }}x{{ preset.height }}</strong>
+            <span>{{ preset.label }}</span>
+          </button>
+        </div>
         <div class="row p5 stretch">
-          <input type="number" v-model="imageWidth" placeholder="Image width" :step="64">
-          <input type="number" v-model="imageHeight" placeholder="Image height" :step="64">
+          <div class="row p5 manual-input-row">
+            <label class="manual-input-label">Custom</label>
+            <div class="row p5 manual-dimension-inputs">
+              <input class="manual-input" type="number" v-model="imageWidth" placeholder="Image width" :step="64">
+              <input class="manual-input" type="number" v-model="imageHeight" placeholder="Image height" :step="64">
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -92,10 +123,6 @@
     <div v-if="sendingPrompt" class="warning row p10">
       <span class="loading-animation"></span>
       <span>Sending prompt...</span>
-    </div>
-    <div v-else-if="promptStatus" class="warning row p10">
-      <Icon :icon="promptIcon" />
-      <span>{{ promptStatus }}</span>
     </div>
     
     <hr />
@@ -277,8 +304,6 @@ const imageHeight = ref(768)
 const imagesApi = new ImagesApiClient()
 const sendingPrompt = ref(false)
 const promptSent = ref(false)
-const promptIcon = ref('')
-const promptStatus = ref('')
 const { showToast } = useToaster()
 const positivePlainTextMode = ref(false)
 const negativePlainTextMode = ref(false)
@@ -286,6 +311,13 @@ const listEditorOpen = ref(false)
 const listEditorOriginalName = ref('')
 const listEditorName = ref('')
 const listEditorItems = ref<string[]>([])
+const batchSizePresets = [10, 20, 40, 60, 120]
+const dimensionPresets = [
+  { width: 512, height: 512, label: 'Small square' },
+  { width: 512, height: 768, label: 'Portrait' },
+  { width: 768, height: 768, label: 'Large square' },
+  { width: 512, height: 1024, label: 'Long portrait' }
+]
 
 // Token editor state - track which prompt type is being edited
 const tokenEditOpen = ref(false)
@@ -357,15 +389,13 @@ async function sendPrompt() {
     await imagesApi.putRequest(requestId, requestItem)
     RequestHistory.add(requestItem)
     promptHistoryList.value = promptHistory.add(prompt.value)
-    promptIcon.value = 'check'
-    promptStatus.value = 'Prompt sent successfully.'
+    showToast('Prompt sent successfully.')
     promptSent.value = true
     setTimeout(() => {
       router.push(`/browse/${dateCode}/${requestId}`)
     }, 2000)
   } catch (error) {
-    promptIcon.value = 'exclamation-triangle'
-    promptStatus.value = 'Failed to send prompt.'
+    showToast('Failed to send prompt.')
   } finally {
     sendingPrompt.value = false
   }
@@ -373,6 +403,15 @@ async function sendPrompt() {
 
 function selectModel(model: string) {
   modelSelection.value = model
+}
+
+function applyBatchSizePreset(size: number) {
+  batchSize.value = size
+}
+
+function applyDimensionPreset(width: number, height: number) {
+  imageWidth.value = width
+  imageHeight.value = height
 }
 
 // Token editor methods - fixed to work with separate prompts
@@ -619,10 +658,49 @@ select {
   overflow: hidden;
   width: 100%;
 }
-@media screen and (max-width: 800px) {
-  .row.stretch { flex-wrap: wrap }
-}
 .selected { background-color: #ccc }
+.preset-grid {
+  flex-wrap: wrap;
+}
+
+.preset-button {
+  min-width: 120px;
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px;
+}
+
+.preset-button > span {
+  font-size: 0.8em;
+  opacity: 0.9;
+}
+
+.manual-input-row {
+  align-items: center;
+  background: #efefef;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.manual-input-label {
+  font-size: 0.85em;
+  color: #555;
+  min-width: 56px;
+}
+
+.manual-dimension-inputs {
+  flex: 1;
+}
+
+.manual-input {
+  flex: 1;
+  max-width: 220px;
+}
 .prompt-toolbar h4 {
   margin: 0;
 }
@@ -703,4 +781,23 @@ select {
 .item input { flex: 1 }
 .sm { padding: 4px 8px; font-size: 12px }
 .muted { color: #777; font-style: italic }
+
+@media screen and (max-width: 800px) {
+  .row.stretch { flex-wrap: wrap }
+  .manual-input-row {
+    width: 100%;
+    align-items: stretch;
+  }
+  .manual-input-label {
+    min-width: auto;
+  }
+  .manual-dimension-inputs {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .manual-input {
+    max-width: none;
+    min-width: 130px;
+  }
+}
 </style>
