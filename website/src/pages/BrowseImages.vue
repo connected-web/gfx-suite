@@ -46,7 +46,7 @@
             <label v-if="markedForRemovalCount > 0">({{ markedForRemovalCount }} MFR / {{ resultsItem?.generatedFiles?.length }})</label>
           </router-link>
         </div>
-        <Navigation :items="tabItems.value" />
+        <Navigation :items="tabItems" />
 
         <RequestDetails v-if="props.tab === 'details'" :resultsItem="resultsItem" />
         <ImageBrowser
@@ -71,11 +71,11 @@
           <h3 class="row p5 center">
             <Icon icon="calculator"><label>{{ filteredImages.length }} images total</label></Icon>
           </h3>
-          <router-link :to="`/create/${props.dateCode}/${props.requestId}`" class="row p5 center create-more-button">
-            <Icon icon="paint-roller" />
-            <label>Create more?</label>
-          </router-link>
         </div>
+        <router-link :to="`/create/${props.dateCode}/${props.requestId}`" class="row p5 center create-more-button">
+          <Icon icon="paint-roller" />
+          <label>Create more?</label>
+        </router-link>
       </div>
 
       <div v-if="props.requestId" class="breadcrumbs column p5">
