@@ -172,6 +172,10 @@
             <div v-if="listEditorItems.length === 0" class="muted">No items yet</div>
             <div v-for="(_, i) in listEditorItems" :key="i" class="row item">
               <input v-model="listEditorItems[i]" placeholder="value" />
+              <button class="sm row p5" @click="toggleListEditorPriority(i)">
+                <label>P</label>
+                <Icon :icon="isListEditorPriority(listEditorItems[i]) ? 'toggle-on' : 'toggle-off'" />
+              </button>
               <button class="sm danger-button" @click="removeListEditorItem(i)">
                 <Icon icon="trash" />
               </button>
@@ -472,6 +476,19 @@ function closeListEditor() {
 
 function removeListEditorItem(index: number) {
   listEditorItems.value.splice(index, 1)
+}
+
+function isListEditorPriority(item: string): boolean {
+  return item.startsWith('(') && item.endsWith(')')
+}
+
+function toggleListEditorPriority(index: number) {
+  const item = listEditorItems.value[index] ?? ''
+  if (isListEditorPriority(item)) {
+    listEditorItems.value[index] = item.slice(1, -1)
+    return
+  }
+  listEditorItems.value[index] = `(${item})`
 }
 
 function confirmDeleteList(listName: string) {
