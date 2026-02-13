@@ -1,0 +1,11 @@
+{
+  "workbench.colorCustomizations": {
+    "statusBar.background": "#6B8B45",
+    "statusBar.foreground": "#ffffff",
+    "titleBar.activeBackground": "#536B35",
+    "titleBar.activeForeground": "#ffffff",
+    "activityBar.background": "#445B28",
+    "activityBar.foreground": "#ffffff"
+  },
+  "window.title": "🟩🖼️ gfx-suite - ${activeEditorShort}"
+}
