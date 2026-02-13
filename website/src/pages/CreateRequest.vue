@@ -9,6 +9,9 @@
       <button @click="selectModel('anime')" :class="{ selected: modelSelection === 'anime', 'row center': true }">
         <Icon icon="face-grin-wink">Anime</Icon>
       </button>
+      <button @click="selectModel('waifu')" :class="{ selected: modelSelection === 'waifu', 'row center': true }">
+        <Icon icon="cat">Waifu Diffusion</Icon>
+      </button>
       <button @click="selectModel('realistic')" :class="{ selected: modelSelection === 'realistic', 'row center': true }">
         <Icon icon="camera">Realistic</Icon>
       </button>

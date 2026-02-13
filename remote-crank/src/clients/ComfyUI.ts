@@ -19,6 +19,10 @@ const availableModels: Record<string, ModelSelection> = {
   anime: {
     ckpt_name: 'AOM3 a1b.safetensors',
     vae_name: 'orangemix.vae.pt'
+  },
+  waifu: {
+    ckpt_name: 'wd-1-5-beta2-fp16.safetensors',
+    vae_name: 'kl-f8-anime2.ckpt'
   }
 }
 availableModels.default = availableModels.anime
