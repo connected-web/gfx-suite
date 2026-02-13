@@ -106,6 +106,9 @@ export class ComfyUIClient {
         }
       }
     })
+
+    // ComfyUI sends progress_state in newer builds; register as handled to avoid unknown-message noise.
+    client.on('progress_state' as any, () => {})
   }
 
   safeMakeDirectory (filepath: string): void {
