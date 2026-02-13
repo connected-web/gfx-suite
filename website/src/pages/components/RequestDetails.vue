@@ -39,7 +39,10 @@
     </div>
     <div v-else class="column p5">
       <div v-for="[listName, listValues] in listEntries" :key="listName" class="column p5 key-value">
-        <label>{{ listName }}</label>
+        <div class="row p5 stretch">
+          <label>{{ listName }}</label>
+          <CopyButton @click="copyListValues(listName, listValues)" />
+        </div>
         <pre><code>{{ listValues.join('\n') }}</code></pre>
       </div>
     </div>
@@ -71,8 +74,11 @@
 
 <script lang="ts">
 import { ImageResults } from '../../clients/ImagesApi'
+import CopyButton from '../../components/CopyButton.vue'
+import { useToaster } from '../../composables/useToaster'
 
 export default {
+  components: { CopyButton },
   props: {
     resultsItem: {
       type: Object,
@@ -81,10 +87,53 @@ export default {
       }
     }
   },
+  setup() {
+    const { showToast } = useToaster()
+    return { showToast }
+  },
   computed: {
     listEntries(): Array<[string, string[]]> {
       const lists = this.resultsItem?.originalRequest?.lists
       return Object.entries(lists ?? {})
+    }
+  },
+  methods: {
+    async copyListValues(listName: string, listValues: string[]) {
+      const formattedValues = listValues.map(value => {
+        const trimmed = value.trim()
+        if (trimmed.startsWith('(') && trimmed.endsWith(')')) {
+          return trimmed
+        }
+        return `(${trimmed})`
+      })
+      const contents = [`${listName}:`, ...formattedValues].join('\n')
+      const tokenCount = contents.trim().length > 0 ? contents.trim().split(/\s+/).length : 0
+      const byteLength = new TextEncoder().encode(contents).length
+      let copied = false
+      try {
+        if (navigator?.clipboard?.writeText) {
+          await navigator.clipboard.writeText(contents)
+          copied = true
+        }
+      } catch {
+        // Fallback below.
+      }
+
+      if (!copied) {
+        const textArea = document.createElement('textarea')
+        textArea.value = contents
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-9999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        copied = document.execCommand('copy')
+        document.body.removeChild(textArea)
+      }
+
+      if (copied) {
+        this.showToast(`Copied "${listName}" (${tokenCount} tokens, ${byteLength} bytes)`)
+      }
     }
   }
 }

@@ -26,6 +26,7 @@
         </p>
       </div>
     </div>
+    <Toaster />
   </div>
 </template>
 
@@ -34,6 +35,8 @@ import Auth from './Auth'
 
 import Navigation from './components/Navigation.vue'
 import LoadingSpinner from './components/LoadingSpinner.vue';
+import Toaster from './components/Toaster.vue'
+import { provideToaster } from './composables/useToaster'
 import pages from './pages'
 
 const navigationItems = pages.filter(item => (item as any)?.primaryNav).map(item => {
@@ -45,7 +48,10 @@ const navigationItems = pages.filter(item => (item as any)?.primaryNav).map(item
 })
 
 export default {
-  components: { Navigation, LoadingSpinner },
+  components: { Navigation, LoadingSpinner, Toaster },
+  setup() {
+    provideToaster()
+  },
   data() {
     return {
       title: 'GFX Suite',

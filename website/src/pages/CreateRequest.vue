@@ -72,14 +72,39 @@
     
     <hr />
 
-    <div class="column p5">
-      <h3>Verification</h3>
+    <div class="column p10 request-details">
+      <h3 class="row">
+        <Icon icon="list-check" />
+        <label>Verification</label>
+      </h3>
       <h4>Positive Prompt</h4>
-      <pre class="card"><code>{{ prompt }}</code></pre>
+      <pre><code>{{ prompt }}</code></pre>
       <h4>Negative Prompt</h4>
-      <pre class="card"><code>{{ negativePrompt }}</code></pre>
-      <h4>Lists</h4>
-      <pre class="card"><code>{{ lists }}</code></pre>
+      <pre><code>{{ negativePrompt }}</code></pre>
+
+      <h3 class="row">
+        <Icon icon="list" />
+        <label>Lists in use</label>
+      </h3>
+      <div class="row p5 right">
+        <button class="row p5" @click="addList">
+          <Icon icon="plus" />
+          <label>Add List</label>
+        </button>
+        <button class="row p5" @click="pasteListFromClipboard">
+          <Icon icon="paste" />
+          <label>Paste List</label>
+        </button>
+      </div>
+      <div v-if="verificationListEntries.length === 0" class="row p5 key-value">
+        <label>No lists created yet.</label>
+      </div>
+      <div v-else class="column p5">
+        <div v-for="[listName, listValues] in verificationListEntries" :key="listName" class="column p5 key-value">
+          <label>{{ listName }}</label>
+          <pre><code>{{ listValues.join('\n') }}</code></pre>
+        </div>
+      </div>
     </div>
 
     <TokenEditorModal
@@ -106,6 +131,7 @@ import promptHistory from '../components/PromptHistory'
 import RequestHistory from '../components/RequestHistory'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import Auth from '../Auth'
+import { useToaster } from '../composables/useToaster'
 
 // Props
 const props = defineProps<{
@@ -167,6 +193,7 @@ const sendingPrompt = ref(false)
 const promptSent = ref(false)
 const promptIcon = ref('')
 const promptStatus = ref('')
+const { showToast } = useToaster()
 
 // Token editor state - track which prompt type is being edited
 const tokenEditOpen = ref(false)
@@ -192,6 +219,7 @@ const listUsageCounts = computed(() => {
   })
   return counts
 })
+const verificationListEntries = computed(() => Object.entries(lists.value))
 
 // Methods
 async function populatePromptFromExistingRecord(dateCode: string, requestId: string) {
@@ -343,6 +371,52 @@ function deleteList({ listName }: any) {
   closeTokenEditor()
 }
 
+function addList() {
+  const listName = window.prompt('Enter a new list name')?.trim()
+  if (!listName) return
+  if (lists.value[listName]) {
+    showToast(`List "${listName}" already exists`)
+    return
+  }
+  lists.value[listName] = []
+  showToast(`Added list "${listName}"`)
+}
+
+function normalizeClipboardListItem(item: string): string {
+  const trimmed = item.trim()
+  if (trimmed.startsWith('(') && trimmed.endsWith(')')) {
+    return trimmed.slice(1, -1).trim()
+  }
+  return trimmed
+}
+
+async function pasteListFromClipboard() {
+  try {
+    const raw = await navigator.clipboard.readText()
+    const lines = raw
+      .split('\n')
+      .map(line => line.trim())
+      .filter(Boolean)
+    if (lines.length === 0) {
+      showToast('Clipboard is empty')
+      return
+    }
+    const header = lines[0]
+    const listName = header.endsWith(':')
+      ? header.slice(0, -1).replace(/^List\s+/i, '').trim()
+      : header.trim()
+    if (!listName) {
+      showToast('Could not detect list name')
+      return
+    }
+    const items = lines.slice(1).map(normalizeClipboardListItem).filter(Boolean)
+    lists.value[listName] = items
+    showToast(`Imported list "${listName}" (${items.length} items)`)
+  } catch {
+    showToast('Failed to read clipboard')
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
   promptHistoryList.value = promptHistory.getHistory()
@@ -375,4 +449,19 @@ select {
   .row.stretch { flex-wrap: wrap }
 }
 .selected { background-color: #ccc }
+
+.request-details pre {
+  margin: 0;
+  text-wrap: wrap;
+}
+
+.key-value > * {
+  flex: 1;
+}
+
+.key-value > * {
+  font-family: monospace;
+  padding: 4px;
+  background: #eee;
+}
 </style>
