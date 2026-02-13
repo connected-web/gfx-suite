@@ -12,11 +12,11 @@
         <label>Back</label>
       </router-link>
       <div class="row p5 stretch">
-        <router-link v-if="previousResultLink() !== undefined" :to="previousResultLink()" class="previous-button row p5 left">
+        <router-link v-if="previousResultLinkValue" :to="previousResultLinkValue" class="previous-button row p5 left">
           <Icon icon="circle-chevron-left" />
           <label>Previous</label>
         </router-link>
-        <router-link v-if="nextResultsLink() !== undefined" :to="nextResultsLink()" class="next-button row p5 right">
+        <router-link v-if="nextResultsLinkValue" :to="nextResultsLinkValue" class="next-button row p5 right">
           <label>Next</label>
           <Icon icon="circle-chevron-right" />
         </router-link>
@@ -84,11 +84,11 @@
           <label>Back</label>
         </router-link>
         <div class="row p5 stretch">
-          <router-link v-if="previousResultLink() !== undefined" :to="previousResultLink()" class="previous-button row p5 left">
+          <router-link v-if="previousResultLinkValue" :to="previousResultLinkValue" class="previous-button row p5 left">
             <Icon icon="circle-chevron-left" />
             <label>Previous</label>
           </router-link>
-          <router-link v-if="nextResultsLink() !== undefined" :to="nextResultsLink()" class="next-button row p5 right">
+          <router-link v-if="nextResultsLinkValue" :to="nextResultsLinkValue" class="next-button row p5 right">
             <label>Next</label>
             <Icon icon="circle-chevron-right" />
           </router-link>
@@ -251,6 +251,9 @@ function nextResultsLink() {
   }
   return undefined
 }
+
+const previousResultLinkValue = computed(() => previousResultLink())
+const nextResultsLinkValue = computed(() => nextResultsLink())
 
 onMounted(async () => {
   await fetchUserDetails()

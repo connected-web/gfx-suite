@@ -29,7 +29,7 @@
           :width="imageWidth(resultsItem)"
           :height="imageHeight(resultsItem)"
           @error="onImageError(imagePath)"
-          @click="openViewer(index)"
+          @click="openViewer(Number(index))"
         />
         <div v-else>
           <Icon icon="image" />
